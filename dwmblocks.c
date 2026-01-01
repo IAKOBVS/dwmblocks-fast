@@ -3,7 +3,6 @@
 #include<string.h>
 #include<unistd.h>
 #include<signal.h>
-#include<assert.h>
 #ifndef NO_X
 #include<X11/Xlib.h>
 #endif
