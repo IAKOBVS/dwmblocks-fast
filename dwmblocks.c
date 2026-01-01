@@ -2,7 +2,7 @@
 /* ISC License (ISC)
  *
  * Copyright 2020 torrinfail
- * Copyright 2025 James Tirta Halim <tirtajames45 at gmail dot com>
+ * Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
  * This file is derived from dwmblocks with modifications.
  *
  * Permission to use, copy, modify, and/or distribute this software
@@ -184,8 +184,6 @@ gx_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 gx_ret_ty
 setroot()
 {
-	if (!gx_statuschanged)
-		return GX_RET_SUCC;
 	char *statusstrp = getstatus(gx_statusstr);
 	gx_XStoreNameLen(gx_dpy, gx_root, gx_statusstr, statusstrp - gx_statusstr);
 	XFlush(gx_dpy);
@@ -209,8 +207,6 @@ setupX()
 gx_ret_ty
 pstdout()
 {
-	if (!gx_statuschanged)
-		return GX_RET_SUCC;
 	char *p = getstatus(gx_statusstr);
 	*p++ = '\n';
 	unsigned int statuslen = p - gx_statusstr;
@@ -229,8 +225,9 @@ statusloop()
 	getcmds(-1, gx_blocks, LEN(gx_blocks));
 	for (;;) {
 		getcmds(i++, gx_blocks, LEN(gx_blocks));
-		if (gx_writestatus() == GX_RET_ERR)
-			ERR(return GX_RET_ERR);
+		if (gx_statuschanged)
+			if (gx_writestatus() == GX_RET_ERR)
+				ERR(return GX_RET_ERR);
 		gx_statuschanged = 0;
 		if (!gx_statuscontinue)
 			break;
