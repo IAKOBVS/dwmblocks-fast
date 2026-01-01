@@ -32,7 +32,7 @@ void getcmds(int time);
 void getsigcmds(unsigned int signal);
 void setupsignals();
 void sighandler(int signum);
-int getstatus(char *str, char *last);
+int getstatus(char *str);
 void statusloop();
 void termhandler();
 void pstdout();
@@ -51,34 +51,63 @@ static void (*writestatus) () = pstdout;
 #include "blocks.h"
 
 static char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
-static char statusstr[2][STATUSLENGTH];
+static unsigned int statusbarlen[LENGTH(blocks)];
+static char statusstr[STATUSLENGTH];
 static int statusContinue = 1;
+static int statusChanged = 0;
 static int returnStatus = 0;
 
+//return ptr to nul terminator in dst
+char *xstpcpyLen(char *dst, const char *src, size_t n)
+{
+	dst = memcpy(dst, src, n) + n;
+	*dst = '\0';
+	return dst;
+}
+
+//return ptr to nul terminator in dst
+char *xstpcpy(char *dst, const char *src)
+{
+#if HAVE_STPCPY
+	return stpcpy(dst, src);
+#else
+	const size_t n = strlen(src);
+	dst = (char *)memcpy(dst, src, n) + n;
+	*dst = '\0';
+	return dst;
+#endif
+}
+
 //opens process *cmd and stores output in *output
-void getcmd(const Block *block, char *output)
+char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 {
 	//make sure status is same until output is ready
-	char tempstatus[CMDLENGTH] = {0};
-	strcpy(tempstatus, block->icon);
+	char tempstatus[CMDLENGTH];
+	char *endp = tempstatus;
+	endp = xstpcpy(endp, block->icon);
 	FILE *cmdf = popen(block->command, "r");
 	if (!cmdf)
-		return;
-	int i = strlen(block->icon);
-	fgets(tempstatus+i, CMDLENGTH-i-delimLen, cmdf);
-	i = strlen(tempstatus);
-	//if block and command output are both not empty
-	if (i != 0) {
-		//only chop off newline if one is present at the end
-		i = tempstatus[i-1] == '\n' ? i-1 : i;
-		if (delim[0] != '\0') {
-			strncpy(tempstatus+i, delim, delimLen);
-		}
-		else
-			tempstatus[i++] = '\0';
-	}
-	strcpy(output, tempstatus);
+		return output + outputOldLen;
+	unsigned int readLen = fread(endp, 1, CMDLENGTH-(endp-tempstatus)-delimLen, cmdf);
 	pclose(cmdf);
+	tempstatus[readLen] = '\0';
+	//if block and command output are both not empty
+	if (readLen) {
+		//chop off newline
+		char *nl = memchr(tempstatus, '\n', readLen);
+		if (nl) {
+			nl[0] = '\0';
+			endp = nl;
+		}
+		xstpcpyLen(endp, delim, MIN(delimLen, CMDLENGTH-(endp-tempstatus)));
+	}
+	if (outputOldLen != endp - tempstatus || memcmp(tempstatus, output, outputOldLen)) {
+		statusChanged = 1;
+		endp = xstpcpyLen(output, tempstatus, endp-tempstatus);
+		return endp;
+	} else {
+		return output + outputOldLen;
+	}
 }
 
 void getcmds(int time)
@@ -87,7 +116,7 @@ void getcmds(int time)
 	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
 		current = blocks + i;
 		if ((current->interval != 0 && time % current->interval == 0) || time == -1)
-			getcmd(current,statusbar[i]);
+			statusbarlen[i] = getcmd(current,statusbar[i],statusbarlen[i]) - statusbar[i];
 	}
 }
 
@@ -97,7 +126,7 @@ void getsigcmds(unsigned int signal)
 	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
 		current = blocks + i;
 		if (current->signal == signal)
-			getcmd(current,statusbar[i]);
+			statusbarlen[i] = getcmd(current,statusbar[i],statusbarlen[i]) - statusbar[i];
 	}
 }
 
@@ -116,22 +145,26 @@ void setupsignals()
 
 }
 
-int getstatus(char *str, char *last)
+int getstatus(char *str)
 {
-	strcpy(last, str);
-	str[0] = '\0';
+	char *p = str;
 	for (unsigned int i = 0; i < LENGTH(blocks); i++)
-		strcat(str, statusbar[i]);
-	str[strlen(str)-strlen(delim)] = '\0';
-	return strcmp(str, last);//0 if they are the same
+		p = xstpcpyLen(str, p, statusbarlen[i]);
+	if (p != str) {
+		p -= delimLen;
+		*p = '\0';
+	}
+	return 1;
 }
 
 #ifndef NO_X
 void setroot()
 {
-	if (!getstatus(statusstr[0], statusstr[1]))//Only set root if text has changed.
+	if (!statusChanged)
 		return;
-	XStoreName(dpy, root, statusstr[0]);
+	if (!getstatus(statusstr))//Only set root if text has changed.
+		return;
+	XStoreName(dpy, root, statusstr);
 	XFlush(dpy);
 }
 
@@ -150,9 +183,11 @@ int setupX()
 
 void pstdout()
 {
-	if (!getstatus(statusstr[0], statusstr[1]))//Only write out if text has changed.
+	if (!statusChanged)
 		return;
-	printf("%s\n",statusstr[0]);
+	if (!getstatus(statusstr))//Only write out if text has changed.
+		return;
+	printf("%s\n",statusstr);
 	fflush(stdout);
 }
 
@@ -164,7 +199,9 @@ void statusloop()
 	getcmds(-1);
 	while (1) {
 		getcmds(i++);
-		writestatus();
+		if (statusChanged)
+			writestatus();
+		statusChanged = 0;
 		if (!statusContinue)
 			break;
 		sleep(1.0);
@@ -203,7 +240,7 @@ int main(int argc, char** argv)
 		return 1;
 #endif
 	delimLen = MIN(delimLen, strlen(delim));
-	delim[delimLen++] = '\0';
+	delim[delimLen] = '\0';
 	signal(SIGTERM, termhandler);
 	signal(SIGINT, termhandler);
 	statusloop();
