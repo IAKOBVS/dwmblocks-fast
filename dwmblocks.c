@@ -207,6 +207,7 @@ void sighandler(int signum)
 {
 	getsigcmds(signum-SIGPLUS);
 	writestatus();
+	statusChanged = 0;
 }
 
 void termhandler(int unused)
