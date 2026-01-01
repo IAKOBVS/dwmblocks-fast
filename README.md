@@ -18,3 +18,9 @@ NVML (CUDA): for monitoring GPU temperature for Nvidia
 alsa-lib: for monitoring audio volume
 
 Linux: for monitoring RAM usage with sysinfo
+# Installation
+```
+# For Arch Linux
+pacman -S alsa-lib cuda
+
+```
