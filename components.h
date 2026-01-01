@@ -45,6 +45,7 @@
 #	define PLAYBACK 1
 #	define CAPTURE  2
 
+#	ifdef USE_ALSA
 static struct Audio {
 	const char *card;
 	const char *selem_name;
@@ -57,8 +58,9 @@ static struct Audio {
 	int playback_or_capture;
 	int has_mute;
 } gc_speaker, gc_mic;
+#	endif
 
-#	if USE_NVML
+#	ifdef USE_NVML
 static struct Gpu {
 	unsigned int deviceCount;
 	nvmlDevice_t *device;
@@ -137,6 +139,7 @@ gpu_init()
 }
 #	endif
 
+#	ifdef USE_ALSA
 static void
 audio_cleanup_one(struct Audio *audio)
 {
@@ -284,6 +287,8 @@ read_speaker_muted(void)
 {
 	return read_audio_muted(&gc_speaker);
 }
+
+#	endif
 
 static int
 read_ram_usage_percent(void)
@@ -563,7 +568,7 @@ write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *in
 	(void)interval;
 }
 
-#	if USE_NVML
+#	ifdef USE_NVML
 
 static char *
 write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)

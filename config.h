@@ -3,6 +3,9 @@
 
 #define USE_UNLOCKED_IO 1
 
+/* Monitor audio volume, requires ALSA. Comment to disable. */
+#define USE_ALSA 1
+
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 #define USE_NVML 1
 #define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"

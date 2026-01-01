@@ -26,14 +26,18 @@ static struct Block gx_blocks[] = {
 	/* Update Interval (sec)   Signal	Label	Function	Command */
 	{ 0,     SIG_RECORDING, "",   write_obs_recording,     NULL },
 	{ 0,     SIG_OBS,       "",   write_obs_opened,        NULL },
+#ifdef USE_ALSA
 	{ 0,     SIG_MIC,       "",   write_mic_muted,         NULL },
+#endif
 	{ 10800, 0,             "📅", write_date,              NULL },
 	{ 2,     0,             "🧠", write_ram_usage_percent, NULL },
 	{ 2,     0,             "💻", write_cpu_temp,          NULL },
-#if USE_NVML
+#ifdef USE_NVML
 	{ 2,     0,             "🚀", write_gpu_temp,          NULL },
 #endif
+#ifdef USE_ALSA
 	{ 0,     SIG_AUDIO,     "🔉", write_speaker_vol,       NULL },
+#endif
 	{ 60,    0,             "⏰", write_time,              NULL },
 	/* { 0,     SIG_RECORDING, "",   dummy_func,              "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |' || echo " },
 	{ 0,     SIG_OBS,       "",   dummy_func,              "pgrep 'obs' > /dev/null && echo '🎥 |' || echo ''"           }, */
