@@ -34,7 +34,7 @@ void setupsignals();
 void sighandler(int signum);
 int getstatus(char *str);
 void statusloop();
-void termhandler();
+void termhandler(int);
 void pstdout();
 #ifndef NO_X
 void setroot();
@@ -89,7 +89,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 		xstpcpyLen(endp, delim, MIN(delimLen, CMDLENGTH-(endp-tempstatus)));
 	}
 	//mark if there is a change and copy
-	if (outputOldLen != endp - tempstatus || memcmp(tempstatus, output, outputOldLen)) {
+	if (outputOldLen != endp-tempstatus || memcmp(tempstatus, output, outputOldLen)) {
 		statusChanged = 1;
 		endp = xstpcpyLen(output, tempstatus, endp-tempstatus);
 		return endp;
@@ -206,7 +206,7 @@ void sighandler(int signum)
 	writestatus();
 }
 
-void termhandler()
+void termhandler(int unused)
 {
 	statusContinue = 0;
 }
