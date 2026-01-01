@@ -1,214 +1,287 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-#include<unistd.h>
-#include<signal.h>
+/* SPDX-License-Identifier: ISC */
+/* ISC License (ISC)
+ *
+ * Copyright 2020 torrinfail
+ * Copyright 2025 James Tirta Halim <tirtajames45 at gmail dot com>
+ * This file is derived from dwmblocks with modifications.
+ *
+ * Permission to use, copy, modify, and/or distribute this software
+ * for any purpose with or without fee is hereby granted, provided that
+ * the above copyright notice and this permission notice appear in all
+ * copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+ * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
 #ifndef NO_X
-#include<X11/Xlib.h>
+#	include <X11/Xlib.h>
+#	include <X11/Xatom.h>
 #endif
+
 #ifdef __OpenBSD__
-#define SIGPLUS			SIGUSR1+1
-#define SIGMINUS		SIGUSR1-1
+#	define SIGPLUS  SIGUSR1 + 1
+#	define SIGMINUS SIGUSR1 - 1
 #else
-#define SIGPLUS			SIGRTMIN
-#define SIGMINUS		SIGRTMIN
+#	define SIGPLUS  SIGRTMIN
+#	define SIGMINUS SIGRTMIN
 #endif
-#define LENGTH(X)               (sizeof(X) / sizeof (X[0]))
-#define CMDLENGTH		50
-#define MIN( a, b ) ( ( a < b) ? a : b )
-#define STATUSLENGTH (LENGTH(blocks) * CMDLENGTH + 1)
 
-typedef struct {
-	char* icon;
-	char* command;
-	unsigned int interval;
-	unsigned int signal;
-} Block;
+#define LEN(X)       (sizeof(X) / sizeof(X[0]))
+#define GX_CMDLENGTH 64
+#define MIN(a, b)    ((a < b) ? a : b)
+#define GX_STATUSLEN (LEN(gx_blocks) * GX_CMDLENGTH + 1)
+
+typedef struct Block Block;
+typedef enum {
+	GX_RET_SUCC = 0,
+	GX_RET_ERR
+} gx_ret_ty;
+
 #ifndef __OpenBSD__
-void dummysighandler(int num);
+void
+dummysighandler(int num);
 #endif
-void sighandler(int num);
-void getcmds(int time);
-void getsigcmds(unsigned int signal);
-void setupsignals();
-void sighandler(int signum);
-int getstatus(char *str, char *last);
-void statusloop();
-void termhandler();
-void pstdout();
+void
+sighandler(int num);
+void
+getcmds(int time, Block *blocks, unsigned int blocks_len);
+void
+getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len);
+gx_ret_ty
+setupsignals();
+void
+sighandler(int signum);
+char *
+getstatus(char *str);
+gx_ret_ty
+statusloop();
+void
+termhandler(int signum);
+gx_ret_ty
+pstdout();
 #ifndef NO_X
-void setroot();
-static void (*writestatus) () = setroot;
-static int setupX();
-static Display *dpy;
-static int screen;
-static Window root;
+gx_ret_ty
+setroot();
+static gx_ret_ty (*gx_writestatus)() = setroot;
+static gx_ret_ty
+setupX();
+static Display *gx_dpy;
+static int gx_screen;
+static Window gx_root;
 #else
-static void (*writestatus) () = pstdout;
+static void (*gx_writestatus)() = pstdout;
 #endif
-
 
 #include "blocks.h"
 
-static char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
-static char statusstr[2][STATUSLENGTH];
-static int statusContinue = 1;
-static int returnStatus = 0;
+static char gx_statusbar[LEN(gx_blocks)][GX_CMDLENGTH];
+static char gx_statusstr[GX_STATUSLEN];
+static unsigned int gx_statusbarlen[LEN(gx_blocks)];
+static int gx_statuscontinue = 1;
+static int gx_statuschanged = 0;
 
-//opens process *cmd and stores output in *output
-void getcmd(const Block *block, char *output)
+/* Run command or execute C function. */
+char *
+getcmd(Block *block, char *output)
 {
-	//make sure status is same until output is ready
-	char tempstatus[CMDLENGTH] = {0};
-	strcpy(tempstatus, block->icon);
-	FILE *cmdf = popen(block->command, "r");
-	if (!cmdf)
-		return;
-	int i = strlen(block->icon);
-	fgets(tempstatus+i, CMDLENGTH-i-delimLen, cmdf);
-	i = strlen(tempstatus);
-	//if block and command output are both not empty
-	if (i != 0) {
-		//only chop off newline if one is present at the end
-		i = tempstatus[i-1] == '\n' ? i-1 : i;
-		if (delim[0] != '\0') {
-			strncpy(tempstatus+i, delim, delimLen);
+	char *dst = output;
+	/* Add icon. */
+	dst = xstpcpy(dst, block->icon);
+	*dst++ = ' ';
+	char *old = dst;
+	/* Add result of command or C function. */
+	dst = block->func(dst, GX_CMDLENGTH - (dst - output), block->command, &block->interval);
+	/* No result. Set length to zero. */
+	if (dst == old) {
+		*output = '\0';
+		return output;
+	}
+	/* Add delimiter. */
+	dst = xstpcpy_len(dst, DELIM, DELIMLEN);
+	return dst;
+}
+
+void
+getcmds(int time, Block *blocks, unsigned int blocks_len)
+{
+	Block *curr = blocks;
+	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
+		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == -1) {
+			char tmp[GX_CMDLENGTH];
+			/* Get the result of getcmd. */
+			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
+			/* Check if needs update. */
+			if (tmp_len != gx_statusbarlen[i]
+			    || memcmp(tmp, gx_statusbar[i], tmp_len)) {
+				/* Get the latest change. */
+				xstpcpy_len(gx_statusbar[i], tmp, tmp_len);
+				gx_statusbarlen[i] = tmp_len;
+				/* Mark change. */
+				gx_statuschanged = 1;
+			}
 		}
-		else
-			tempstatus[i++] = '\0';
-	}
-	strcpy(output, tempstatus);
-	pclose(cmdf);
 }
 
-void getcmds(int time)
+void
+getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len)
 {
-	const Block* current;
-	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
-		current = blocks + i;
-		if ((current->interval != 0 && time % current->interval == 0) || time == -1)
-			getcmd(current,statusbar[i]);
+	Block *curr = blocks;
+	for (unsigned int i = 0; i < blocks_len; ++i, ++curr) {
+		if (curr->signal == signal) {
+			gx_statusbarlen[i] = getcmd(curr, gx_statusbar[i]) - gx_statusbar[i];
+			/* We know there is change because of the external signal. */
+			gx_statuschanged = 1;
+		}
 	}
 }
 
-void getsigcmds(unsigned int signal)
-{
-	const Block *current;
-	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
-		current = blocks + i;
-		if (current->signal == signal)
-			getcmd(current,statusbar[i]);
-	}
-}
-
-void setupsignals()
+gx_ret_ty
+setupsignals()
 {
 #ifndef __OpenBSD__
-	    /* initialize all real time signals with dummy handler */
-    for (int i = SIGRTMIN; i <= SIGRTMAX; i++)
-        signal(i, dummysighandler);
+	/* Initialize all real time signals with dummy handler. */
+	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
+		if (signal(i, dummysighandler) == SIG_ERR)
+			ERR(return GX_RET_ERR);
 #endif
 
-	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
-		if (blocks[i].signal > 0)
-			signal(SIGMINUS+blocks[i].signal, sighandler);
-	}
-
+	for (unsigned int i = 0; i < LEN(gx_blocks); ++i)
+		if (gx_blocks[i].signal > 0)
+			if (signal(SIGMINUS + (int)gx_blocks[i].signal, sighandler) == SIG_ERR)
+				ERR(return GX_RET_ERR);
+	return GX_RET_SUCC;
 }
 
-int getstatus(char *str, char *last)
+char *
+getstatus(char *dst)
 {
-	strcpy(last, str);
-	str[0] = '\0';
-	for (unsigned int i = 0; i < LENGTH(blocks); i++)
-		strcat(str, statusbar[i]);
-	str[strlen(str)-strlen(delim)] = '\0';
-	return strcmp(str, last);//0 if they are the same
+	char *p = dst;
+	for (unsigned int i = 0; i < LEN(gx_blocks); ++i)
+		p = xstpcpy_len(p, gx_statusbar[i], gx_statusbarlen[i]);
+	/* Chop last delim, if bar is not empty. */
+	if (p != dst)
+		*(p -= DELIMLEN) = '\0';
+	return p;
 }
 
 #ifndef NO_X
-void setroot()
+static int
+gx_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 {
-	if (!getstatus(statusstr[0], statusstr[1]))//Only set root if text has changed.
-		return;
-	XStoreName(dpy, root, statusstr[0]);
-	XFlush(dpy);
+	return XChangeProperty(dpy, w, XA_WM_NAME, XA_STRING, 8, PropModeReplace, (_Xconst unsigned char *)name, len);
 }
 
-int setupX()
+gx_ret_ty
+setroot()
 {
-	dpy = XOpenDisplay(NULL);
-	if (!dpy) {
+	if (!gx_statuschanged)
+		return GX_RET_SUCC;
+	char *statusstrp = getstatus(gx_statusstr);
+	gx_XStoreNameLen(gx_dpy, gx_root, gx_statusstr, statusstrp - gx_statusstr);
+	XFlush(gx_dpy);
+	return GX_RET_SUCC;
+}
+
+gx_ret_ty
+setupX()
+{
+	gx_dpy = XOpenDisplay(NULL);
+	if (!gx_dpy) {
 		fprintf(stderr, "dwmblocks: Failed to open display\n");
-		return 0;
+		ERR(return GX_RET_ERR);
 	}
-	screen = DefaultScreen(dpy);
-	root = RootWindow(dpy, screen);
-	return 1;
+	gx_screen = DefaultScreen(gx_dpy);
+	gx_root = RootWindow(gx_dpy, gx_screen);
+	return GX_RET_SUCC;
 }
 #endif
 
-void pstdout()
+gx_ret_ty
+pstdout()
 {
-	if (!getstatus(statusstr[0], statusstr[1]))//Only write out if text has changed.
-		return;
-	printf("%s\n",statusstr[0]);
-	fflush(stdout);
+	if (!gx_statuschanged)
+		return GX_RET_SUCC;
+	char *p = getstatus(gx_statusstr);
+	*p++ = '\n';
+	unsigned int statuslen = p - gx_statusstr;
+	ssize_t ret = write(STDOUT_FILENO, gx_statusstr, statuslen);
+	if (ret != statuslen)
+		ERR(return GX_RET_ERR);
+	return GX_RET_SUCC;
 }
 
-
-void statusloop()
+gx_ret_ty
+statusloop()
 {
-	setupsignals();
+	if (setupsignals() == GX_RET_ERR)
+		ERR(return GX_RET_ERR);
 	int i = 0;
-	getcmds(-1);
-	while (1) {
-		getcmds(i++);
-		writestatus();
-		if (!statusContinue)
+	getcmds(-1, gx_blocks, LEN(gx_blocks));
+	for (;;) {
+		getcmds(i++, gx_blocks, LEN(gx_blocks));
+		if (gx_writestatus() == GX_RET_ERR)
+			ERR(return GX_RET_ERR);
+		gx_statuschanged = 0;
+		if (!gx_statuscontinue)
 			break;
-		sleep(1.0);
+		sleep(1);
 	}
+	return GX_RET_SUCC;
 }
 
 #ifndef __OpenBSD__
-/* this signal handler should do nothing */
-void dummysighandler(int signum)
+/* This signal handler should do nothing. */
+void
+dummysighandler(int signum)
 {
-    return;
+	return;
+	(void)signum;
 }
 #endif
 
-void sighandler(int signum)
+void
+sighandler(int signum)
 {
-	getsigcmds(signum-SIGPLUS);
-	writestatus();
+	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, gx_blocks, LEN(gx_blocks));
+	gx_writestatus();
 }
 
-void termhandler()
+void
+termhandler(int signum)
 {
-	statusContinue = 0;
+	gx_statuscontinue = 0;
+	(void)signum;
 }
 
-int main(int argc, char** argv)
+int
+main(int argc, char **argv)
 {
-	for (int i = 0; i < argc; i++) {//Handle command line arguments
-		if (!strcmp("-d",argv[i]))
-			strncpy(delim, argv[++i], delimLen);
-		else if (!strcmp("-p",argv[i]))
-			writestatus = pstdout;
-	}
+	/* Handle command line arguments */
+	for (int i = 0; i < argc; ++i)
+		if (!strcmp("-p", argv[i]))
+			gx_writestatus = pstdout;
 #ifndef NO_X
-	if (!setupX())
-		return 1;
+	if (setupX() == GX_RET_ERR)
+		return EXIT_FAILURE;
 #endif
-	delimLen = MIN(delimLen, strlen(delim));
-	delim[delimLen++] = '\0';
-	signal(SIGTERM, termhandler);
-	signal(SIGINT, termhandler);
-	statusloop();
+	if (signal(SIGTERM, termhandler) == SIG_ERR)
+		ERR(return EXIT_FAILURE);
+	if (signal(SIGINT, termhandler) == SIG_ERR)
+		ERR(return EXIT_FAILURE);
+	if (statusloop() == GX_RET_ERR)
+		ERR(return EXIT_FAILURE);
 #ifndef NO_X
-	XCloseDisplay(dpy);
+	XCloseDisplay(gx_dpy);
 #endif
-	return 0;
+	return EXIT_SUCCESS;
 }

@@ -1,12 +1,22 @@
 PREFIX  := /usr/local
 CC      := cc
-CFLAGS  := -pedantic -Wall -Wno-deprecated-declarations -Os
-LDFLAGS := -lX11
+CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2 -march=native
 
-# FreeBSD (uncomment)
+# X11 (comment to disable)
+LDFLAGS += -lX11
+
+# Alsa (comment to disable)
+LDFLAGS += -lasound
+
+# NVML (comment to disable)
+NVMLLIB = /opt/cuda/lib64
+LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
+
+# # FreeBSD (uncomment)
 #LDFLAGS += -L/usr/local/lib -I/usr/local/include
+
 # # OpenBSD (uncomment)
-#LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
+# LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
 
 all: options dwmblocks
 

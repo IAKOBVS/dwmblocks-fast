@@ -1,11 +1,44 @@
-//Modify this file to change what commands output to your statusbar, and recompile using the make command.
-static const Block blocks[] = {
-	/*Icon*/	/*Command*/		/*Update Interval*/	/*Update Signal*/
-	{"Mem:", "free -h | awk '/^Mem/ { print $3\"/\"$2 }' | sed s/i//g",	30,		0},
+#ifndef BLOCKS_H
+#define BLOCKS_H
 
-	{"", "date '+%b %d (%a) %I:%M%p'",					5,		0},
+#include "components.h"
+
+#define SIG_AUDIO     10
+#define SIG_OBS       9
+#define SIG_MIC       8
+#define SIG_RECORDING 7
+
+/* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
+#define DELIM    " | "
+#define DELIMLEN (S_LEN(DELIM))
+
+struct Block {
+	unsigned int interval;
+	const unsigned int signal;
+	const char *icon;
+	char *(*func)(char *, unsigned int, const char *, unsigned int *);
+	const char *command;
 };
 
-//sets delimiter between status commands. NULL character ('\0') means no delimiter.
-static char delim[] = " | ";
-static unsigned int delimLen = 5;
+/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
+static struct Block gx_blocks[] = {
+	/* Set Function to write_cmd to use a shell script, Command to NULL to use a C Function */
+	/* Update Interval (sec)   Signal	Label	Function	Command */
+	{ 0,     SIG_RECORDING, "",   write_obs_recording,     NULL },
+	{ 0,     SIG_OBS,       "",   write_obs_opened,        NULL },
+	{ 0,     SIG_MIC,       "",   write_mic_muted,         NULL },
+	{ 10800, 0,             "📅", write_date,              NULL },
+	{ 2,     0,             "🧠", write_ram_usage_percent, NULL },
+	{ 2,     0,             "💻", write_cpu_temp,          NULL },
+#if USE_NVML
+	{ 2,     0,             "🚀", write_gpu_temp,          NULL },
+#endif
+	{ 0,     SIG_AUDIO,     "🔉", write_speaker_vol,       NULL },
+	{ 60,    0,             "⏰", write_time,              NULL },
+	/* { 0,     SIG_RECORDING, "",   dummy_func,              "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |' || echo " },
+	{ 0,     SIG_OBS,       "",   dummy_func,              "pgrep 'obs' > /dev/null && echo '🎥 |' || echo ''"           }, */
+	/* "printf '%s' $([ $(pamixer --get-mute) = 'false' ] && echo '' || echo '🔇') $(pamixer --get-volume)" */
+	/* { "", cmd_write_gpu_temp, "printf '%s %s |' $([ $(pamixer --get-mute) = 'false' ] && echo '🔉' || echo '🔇') $(pamixer --get-volume)", 0, 1 }, */
+};
+
+#endif /* BLOCKS_H */
