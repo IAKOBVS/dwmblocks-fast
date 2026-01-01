@@ -86,7 +86,7 @@ static void (*gx_writestatus)() = pstdout;
 
 static char gx_statusbar[LEN(gx_blocks)][GX_CMDLENGTH];
 static char gx_statusstr[GX_STATUSLEN];
-static unsigned int gx_statusbarlen[LEN(gx_blocks)];
+static unsigned char gx_statusbarlen[LEN(gx_blocks)];
 static int gx_statuscontinue = 1;
 static int gx_statuschanged = 0;
 
