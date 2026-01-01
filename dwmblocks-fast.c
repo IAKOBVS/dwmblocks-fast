@@ -181,6 +181,7 @@ gx_ret_ty
 setroot()
 {
 	char *statusstrp = getstatus(gx_statusstr);
+	/* Directly use XChangeProperty to save a strlen. */
 	gx_XStoreNameLen(gx_dpy, gx_root, gx_statusstr, statusstrp - gx_statusstr);
 	XFlush(gx_dpy);
 	gx_statuschanged = 0;
