@@ -1,6 +1,9 @@
 PREFIX  := /usr/local
 CC      := cc
-CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2 -march=native
+CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
+
+# compile only for this architecture (comment to disable)
+CFLAGS += -march=native
 
 # X11 (comment to disable)
 LDFLAGS += -lX11
