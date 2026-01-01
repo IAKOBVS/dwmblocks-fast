@@ -66,7 +66,7 @@ char *xstpcpyLen(char *dst, const char *src, size_t n)
 	return dst;
 }
 
-//opens process *cmd and stores output in *output, returns ptr to nul terminator in output
+//opens process *cmd and stores output in *output
 char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 {
 	//make sure status is same until output is ready
@@ -76,7 +76,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 	FILE *cmdf = popen(block->command, "r");
 	if (!cmdf)
 		return output + outputOldLen;
-	unsigned int readLen = fread(endp, 1, CMDLENGTH-(endp-tempstatus)-delimLen+1, cmdf);
+	unsigned int readLen = fread(endp, 1, CMDLENGTH-(endp-tempstatus)-delimLen-1, cmdf);
 	pclose(cmdf);
 	tempstatus[readLen] = '\0';
 	//if block and command output are both not empty
@@ -87,7 +87,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 			nl[0] = '\0';
 			endp = nl;
 		}
-		endp = xstpcpyLen(endp, delim, MIN(delimLen+1, CMDLENGTH-(endp-tempstatus)));
+		endp = xstpcpyLen(endp, delim, delimLen);
 	}
 	//mark if there is a change and copy
 	if (outputOldLen != endp-tempstatus || memcmp(tempstatus, output, outputOldLen)) {
