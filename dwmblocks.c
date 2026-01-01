@@ -156,6 +156,7 @@ void setroot()
 	getstatus(statusstr);
 	XStoreName(dpy, root, statusstr);
 	XFlush(dpy);
+	statusChanged = 0;
 }
 
 int setupX()
@@ -176,6 +177,7 @@ void pstdout()
 	getstatus(statusstr);
 	printf("%s\n",statusstr);
 	fflush(stdout);
+	statusChanged = 0;
 }
 
 
@@ -188,7 +190,6 @@ void statusloop()
 		getcmds(i++);
 		if (statusChanged)//Only write out if text has changed.
 			writestatus();
-		statusChanged = 0;
 		if (!statusContinue)
 			break;
 		sleep(1.0);
@@ -207,7 +208,6 @@ void sighandler(int signum)
 {
 	getsigcmds(signum-SIGPLUS);
 	writestatus();
-	statusChanged = 0;
 }
 
 void termhandler(int unused)
