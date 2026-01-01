@@ -2,7 +2,7 @@
 Modular status bar for dwm written in c.
 # IAKOBVS's fork
 This build enables the ability to choose between using C functions or shell scripts.
-The main loop is further optimized to only reconstruct the status string when there
+The main loop is further optimized to lazily reconstruct the status string when there
 is an actual change.
 # Installation
 ```
@@ -17,7 +17,7 @@ dwmblocks-fast &
 dwmblocks -p
 ```
 # Modifying blocks
-The statusbar is made from text output from commandline programs, or C functions in components.h.
+The statusbar is made from text output from commandline programs, or C functions.
 Blocks are added and removed by editing the blocks.h header file, or creating C functions in components.h.
 By default the blocks.h header file is created the first time you run make which copies the default config from blocks.def.h.
 This is so you can edit your status bar commands and they will not get overwritten in a future update.

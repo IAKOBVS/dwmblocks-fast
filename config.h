@@ -10,7 +10,7 @@
 /* Path to CPU temperature */
 #define CPU_TEMP_FILE "/sys/class/hwmon/hwmon3/temp2_input"
 
-/* Shell scripts to execute if C functions are not available*/
+/* Shell scripts to execute if C functions are not available */
 #define CMD_RAM_USAGE "free | awk '/^Mem:/ {printf("%d%%", 100 - ($4/$2 * 100))}'"
 #define CMD_GPU_NVIDIA_TEMP "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits -i 0"
 #define CMD_GPU_NVIDIA_USAGE "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits -i 0"
