@@ -4,12 +4,21 @@ Modular status bar for dwm written in c.
 This build enables the ability to choose between using C functions or shell scripts.
 The main loop is further optimized to only reconstruct the status string when there
 is an actual change.
+# Installation
+```
+make
+sudo make install
+```
 # Usage
-To use dwmblocks first run 'make' and then install it with 'sudo make install'.
-After that you can put dwmblocks in your xinitrc or other startup script to have it start with dwm.
+```
+# inside .xinitrc
+dwmblocks-fast &
+# or to print to standard output to pipe to other programs
+dwmblocks -p
+```
 # Modifying blocks
-The statusbar is made from text output from commandline programs or C functions in components.h.
-Blocks are added and removed by editing the blocks.h header file.
+The statusbar is made from text output from commandline programs, or C functions in components.h.
+Blocks are added and removed by editing the blocks.h header file, or creating C functions in components.h.
 By default the blocks.h header file is created the first time you run make which copies the default config from blocks.def.h.
 This is so you can edit your status bar commands and they will not get overwritten in a future update.
 # Dependencies
@@ -18,9 +27,8 @@ NVML (CUDA): for monitoring GPU temperature for Nvidia
 alsa-lib: for monitoring audio volume
 
 Linux: for monitoring RAM usage with sysinfo
-# Installation
 ```
-# For Arch Linux
+# for Arch Linux
 pacman -S alsa-lib cuda
 ```
 # Configuration
