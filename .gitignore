@@ -39,6 +39,7 @@ blocks.h
 *.x86_64
 *.hex
 dwmblocks
+dwmblocks-fast
 
 # Debug files
 *.dSYM/

@@ -18,29 +18,29 @@ LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 # # OpenBSD (uncomment)
 # LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
 
-all: options dwmblocks
+all: options dwmblocks-fast
 
 options:
-	@echo dwmblocks build options:
+	@echo dwmblocks-fast build options:
 	@echo "CFLAGS  = ${CFLAGS}"
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-dwmblocks: dwmblocks.c blocks.def.h blocks.h
-	${CC} -o dwmblocks dwmblocks.c ${CFLAGS} ${LDFLAGS}
+dwmblocks-fast: dwmblocks-fast.c blocks.def.h blocks.h
+	${CC} -o dwmblocks-fast dwmblocks-fast.c ${CFLAGS} ${LDFLAGS}
 
 blocks.h:
 	cp blocks.def.h $@
 
 clean:
-	rm -f *.o *.gch dwmblocks
+	rm -f *.o *.gch dwmblocks-fast
 
-install: dwmblocks
+install: dwmblocks-fast
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f dwmblocks ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/dwmblocks
+	cp -f dwmblocks-fast ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/dwmblocks-fast
 
 uninstall:
-	rm -f ${DESTDIR}${PREFIX}/bin/dwmblocks
+	rm -f ${DESTDIR}${PREFIX}/bin/dwmblocks-fast
 
 .PHONY: all options clean install uninstall
