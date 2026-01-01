@@ -76,7 +76,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 	FILE *cmdf = popen(block->command, "r");
 	if (!cmdf)
 		return output + outputOldLen;
-	unsigned int readLen = fread(endp, 1, CMDLENGTH-(endp-tempstatus)-delimLen, cmdf);
+	unsigned int readLen = fread(endp, 1, CMDLENGTH-(endp-tempstatus)-delimLen+1, cmdf);
 	pclose(cmdf);
 	tempstatus[readLen] = '\0';
 	//if block and command output are both not empty
@@ -87,7 +87,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 			nl[0] = '\0';
 			endp = nl;
 		}
-		endp = xstpcpyLen(endp, delim, MIN(delimLen, CMDLENGTH-(endp-tempstatus)));
+		endp = xstpcpyLen(endp, delim, MIN(delimLen+1, CMDLENGTH-(endp-tempstatus)));
 	}
 	//mark if there is a change and copy
 	if (outputOldLen != endp-tempstatus || memcmp(tempstatus, output, outputOldLen)) {
@@ -116,9 +116,10 @@ void getsigcmds(unsigned int signal)
 	const Block *current;
 	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
 		current = blocks + i;
-		if (current->signal == signal)
+		if (current->signal == signal) {
 			//cache strlen
 			statusbarlen[i] = getcmd(current,statusbar[i],statusbarlen[i]) - statusbar[i];
+		}
 	}
 }
 
