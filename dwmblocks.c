@@ -60,22 +60,9 @@ static int returnStatus = 0;
 //return ptr to nul terminator in dst
 char *xstpcpyLen(char *dst, const char *src, size_t n)
 {
-	dst = memcpy(dst, src, n) + n;
-	*dst = '\0';
-	return dst;
-}
-
-//return ptr to nul terminator in dst
-char *xstpcpy(char *dst, const char *src)
-{
-#if HAVE_STPCPY
-	return stpcpy(dst, src);
-#else
-	const size_t n = strlen(src);
 	dst = (char *)memcpy(dst, src, n) + n;
 	*dst = '\0';
 	return dst;
-#endif
 }
 
 //opens process *cmd and stores output in *output
@@ -84,7 +71,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 	//make sure status is same until output is ready
 	char tempstatus[CMDLENGTH];
 	char *endp = tempstatus;
-	endp = xstpcpy(endp, block->icon);
+	endp = xstpcpyLen(endp, block->icon, strlen(block->icon));
 	FILE *cmdf = popen(block->command, "r");
 	if (!cmdf)
 		return output + outputOldLen;
