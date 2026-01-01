@@ -66,7 +66,7 @@ char *xstpcpyLen(char *dst, const char *src, size_t n)
 	return dst;
 }
 
-//opens process *cmd and stores output in *output
+//opens process *cmd and stores output in *output, returns ptr to nul terminator in output
 char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 {
 	//make sure status is same until output is ready
