@@ -88,6 +88,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 		}
 		xstpcpyLen(endp, delim, MIN(delimLen, CMDLENGTH-(endp-tempstatus)));
 	}
+	//mark if there is a change and copy
 	if (outputOldLen != endp - tempstatus || memcmp(tempstatus, output, outputOldLen)) {
 		statusChanged = 1;
 		endp = xstpcpyLen(output, tempstatus, endp-tempstatus);
@@ -103,6 +104,7 @@ void getcmds(int time)
 	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
 		current = blocks + i;
 		if ((current->interval != 0 && time % current->interval == 0) || time == -1)
+			//cache strlen
 			statusbarlen[i] = getcmd(current,statusbar[i],statusbarlen[i]) - statusbar[i];
 	}
 }
@@ -113,6 +115,7 @@ void getsigcmds(unsigned int signal)
 	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
 		current = blocks + i;
 		if (current->signal == signal)
+			//cache strlen
 			statusbarlen[i] = getcmd(current,statusbar[i],statusbarlen[i]) - statusbar[i];
 	}
 }
@@ -147,10 +150,7 @@ int getstatus(char *str)
 #ifndef NO_X
 void setroot()
 {
-	if (!statusChanged)
-		return;
-	if (!getstatus(statusstr))//Only set root if text has changed.
-		return;
+	getstatus(statusstr);
 	XStoreName(dpy, root, statusstr);
 	XFlush(dpy);
 }
@@ -170,10 +170,7 @@ int setupX()
 
 void pstdout()
 {
-	if (!statusChanged)
-		return;
-	if (!getstatus(statusstr))//Only write out if text has changed.
-		return;
+	getstatus(statusstr);
 	printf("%s\n",statusstr);
 	fflush(stdout);
 }
@@ -186,7 +183,7 @@ void statusloop()
 	getcmds(-1);
 	while (1) {
 		getcmds(i++);
-		if (statusChanged)
+		if (statusChanged)//Only write out if text has changed.
 			writestatus();
 		statusChanged = 0;
 		if (!statusContinue)
