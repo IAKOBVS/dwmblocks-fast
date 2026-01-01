@@ -183,6 +183,7 @@ setroot()
 	char *statusstrp = getstatus(gx_statusstr);
 	gx_XStoreNameLen(gx_dpy, gx_root, gx_statusstr, statusstrp - gx_statusstr);
 	XFlush(gx_dpy);
+	gx_statuschanged = 0;
 	return GX_RET_SUCC;
 }
 
@@ -207,6 +208,7 @@ pstdout()
 	*p++ = '\n';
 	unsigned int statuslen = p - gx_statusstr;
 	ssize_t ret = write(STDOUT_FILENO, gx_statusstr, statuslen);
+	gx_statuschanged = 0;
 	if (ret != statuslen)
 		ERR(return GX_RET_ERR);
 	return GX_RET_SUCC;
@@ -224,7 +226,6 @@ statusloop()
 		if (gx_statuschanged)
 			if (gx_writestatus() == GX_RET_ERR)
 				ERR(return GX_RET_ERR);
-		gx_statuschanged = 0;
 		if (!gx_statuscontinue)
 			break;
 		sleep(1);
@@ -247,7 +248,6 @@ sighandler(int signum)
 {
 	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, gx_blocks, LEN(gx_blocks));
 	gx_writestatus();
-	gx_statuschanged = 0;
 }
 
 void
