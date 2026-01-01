@@ -11,7 +11,7 @@ sudo make install
 ```
 # Usage
 ```
-# inside .xinitrc
+# inside ~/.xinitrc
 dwmblocks-fast &
 # or to print to standard output to pipe to other programs
 dwmblocks -p
