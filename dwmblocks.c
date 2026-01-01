@@ -3,6 +3,7 @@
 #include<string.h>
 #include<unistd.h>
 #include<signal.h>
+#include<assert.h>
 #ifndef NO_X
 #include<X11/Xlib.h>
 #endif
@@ -86,7 +87,7 @@ char *getcmd(const Block *block, char *output, unsigned int outputOldLen)
 			nl[0] = '\0';
 			endp = nl;
 		}
-		xstpcpyLen(endp, delim, MIN(delimLen, CMDLENGTH-(endp-tempstatus)));
+		endp = xstpcpyLen(endp, delim, MIN(delimLen, CMDLENGTH-(endp-tempstatus)));
 	}
 	//mark if there is a change and copy
 	if (outputOldLen != endp-tempstatus || memcmp(tempstatus, output, outputOldLen)) {
@@ -103,9 +104,10 @@ void getcmds(int time)
 	const Block* current;
 	for (unsigned int i = 0; i < LENGTH(blocks); i++) {
 		current = blocks + i;
-		if ((current->interval != 0 && time % current->interval == 0) || time == -1)
+		if ((current->interval != 0 && time % current->interval == 0) || time == -1) {
 			//cache strlen
 			statusbarlen[i] = getcmd(current,statusbar[i],statusbarlen[i]) - statusbar[i];
+		}
 	}
 }
 
@@ -139,7 +141,7 @@ int getstatus(char *str)
 {
 	char *p = str;
 	for (unsigned int i = 0; i < LENGTH(blocks); i++)
-		p = xstpcpyLen(str, p, statusbarlen[i]);
+		p = xstpcpyLen(p, statusbar[i], statusbarlen[i]);
 	if (p != str) {
 		p -= delimLen;
 		*p = '\0';
