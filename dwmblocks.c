@@ -136,13 +136,9 @@ void
 getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len)
 {
 	Block *curr = blocks;
-	for (unsigned int i = 0; i < blocks_len; ++i, ++curr) {
-		if (curr->signal == signal) {
+	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
+		if (curr->signal == signal)
 			gx_statusbarlen[i] = getcmd(curr, gx_statusbar[i]) - gx_statusbar[i];
-			/* We know there is change because of the external signal. */
-			gx_statuschanged = 1;
-		}
-	}
 }
 
 gx_ret_ty
@@ -251,6 +247,7 @@ sighandler(int signum)
 {
 	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, gx_blocks, LEN(gx_blocks));
 	gx_writestatus();
+	gx_statuschanged = 0;
 }
 
 void
