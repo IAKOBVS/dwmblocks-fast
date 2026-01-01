@@ -74,6 +74,7 @@ static struct Gpu {
 static unsigned int gc_obs_recording_pid;
 static unsigned int gc_obs_open_pid;
 
+/* Execute shell script. */
 static char *
 write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 {
@@ -356,6 +357,7 @@ utoa_p(unsigned int number, char *buf)
 	return (char *)end;
 }
 
+/* FIXME: broken */
 static char *
 utoa1_p(unsigned int number, char *buf)
 {
@@ -364,6 +366,7 @@ utoa1_p(unsigned int number, char *buf)
 	return buf + 1;
 }
 
+/* FIXME: broken */
 static char *
 utoa2_p(unsigned int number, char *buf)
 {
@@ -379,10 +382,10 @@ utoa2_p(unsigned int number, char *buf)
 	}
 }
 
+/* FIXME: broken */
 static char *
 utoa3_p(unsigned int number, char *buf)
 {
-	/* FIXME: broken */
 	if (number < 10) {
 		*buf = number + '0';
 		*(buf + 1) = '\0';
@@ -579,6 +582,7 @@ write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int
 	unsigned int avg;
 	if (gc_gpu.deviceCount == 1) {
 		gc_gpu.ret = nvmlDeviceGetTemperature(gc_gpu.device[0], NVML_TEMPERATURE_GPU, (unsigned int *)gc_gpu.temp);
+		/* FIXME: does not work. */
 		/* gc_gpu.ret = nvmlDeviceGetTemperatureV(gc_gpu.device[i], gc_gpu.temp + i); */
 		if (gc_gpu.ret != NVML_SUCCESS)
 			ERR(gpu_err());
@@ -587,6 +591,7 @@ write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int
 		avg = 0;
 		for (unsigned int i = 0; i < gc_gpu.deviceCount; ++i) {
 			gc_gpu.ret = nvmlDeviceGetTemperature(gc_gpu.device[i], NVML_TEMPERATURE_GPU, (unsigned int *)gc_gpu.temp + i);
+			/* FIXME: does not work. */
 			/* gc_gpu.ret = nvmlDeviceGetTemperatureV(gc_gpu.device[i], gc_gpu.temp + i); */
 			if (gc_gpu.ret != NVML_SUCCESS)
 				ERR(gpu_err());

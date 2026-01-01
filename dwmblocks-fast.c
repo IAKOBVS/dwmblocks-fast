@@ -72,20 +72,21 @@ pstdout();
 #ifndef NO_X
 gx_ret_ty
 setroot();
-static gx_ret_ty (*gx_writestatus)() = setroot;
+static gx_ret_ty (*writestatus)() = setroot;
 static gx_ret_ty
 setupX();
 static Display *gx_dpy;
 static int gx_screen;
 static Window gx_root;
 #else
-static void (*gx_writestatus)() = pstdout;
+static void (*writestatus)() = pstdout;
 #endif
 
 #include "blocks.h"
 
 static char gx_statusbar[LEN(gx_blocks)][GX_CMDLENGTH];
 static char gx_statusstr[GX_STATUSLEN];
+/* GX_STATUSLEN fits in an unsigned char. */
 static unsigned char gx_statusbarlen[LEN(gx_blocks)];
 static int gx_statuscontinue = 1;
 static int gx_statuschanged = 0;
@@ -111,6 +112,7 @@ getcmd(Block *block, char *output)
 	return dst;
 }
 
+/* Run commands or functions according to their interval. */
 void
 getcmds(int time, Block *blocks, unsigned int blocks_len)
 {
@@ -132,6 +134,7 @@ getcmds(int time, Block *blocks, unsigned int blocks_len)
 		}
 }
 
+/* Same as getcmds but executed when receiving a signal. */
 void
 getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len)
 {
@@ -158,6 +161,7 @@ setupsignals()
 	return GX_RET_SUCC;
 }
 
+/* Construct the status string. */
 char *
 getstatus(char *dst)
 {
@@ -174,6 +178,7 @@ getstatus(char *dst)
 static int
 gx_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 {
+	/* Directly use XChangeProperty to save a strlen. */
 	return XChangeProperty(dpy, w, XA_WM_NAME, XA_STRING, 8, PropModeReplace, (_Xconst unsigned char *)name, len);
 }
 
@@ -181,7 +186,6 @@ gx_ret_ty
 setroot()
 {
 	char *statusstrp = getstatus(gx_statusstr);
-	/* Directly use XChangeProperty to save a strlen. */
 	gx_XStoreNameLen(gx_dpy, gx_root, gx_statusstr, statusstrp - gx_statusstr);
 	XFlush(gx_dpy);
 	gx_statuschanged = 0;
@@ -215,6 +219,7 @@ pstdout()
 	return GX_RET_SUCC;
 }
 
+/* Main loop. */
 gx_ret_ty
 statusloop()
 {
@@ -225,7 +230,7 @@ statusloop()
 	for (;;) {
 		getcmds(i++, gx_blocks, LEN(gx_blocks));
 		if (gx_statuschanged)
-			if (gx_writestatus() == GX_RET_ERR)
+			if (writestatus() == GX_RET_ERR)
 				ERR(return GX_RET_ERR);
 		if (!gx_statuscontinue)
 			break;
@@ -248,7 +253,7 @@ void
 sighandler(int signum)
 {
 	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, gx_blocks, LEN(gx_blocks));
-	gx_writestatus();
+	writestatus();
 }
 
 void
@@ -261,10 +266,11 @@ termhandler(int signum)
 int
 main(int argc, char **argv)
 {
-	/* Handle command line arguments */
+	/* Handle command line arguments. */
 	for (int i = 0; i < argc; ++i)
+		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
-			gx_writestatus = pstdout;
+			writestatus = pstdout;
 #ifndef NO_X
 	if (setupX() == GX_RET_ERR)
 		return EXIT_FAILURE;
