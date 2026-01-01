@@ -1,7 +1,9 @@
 # dwmblocks-fast
 Modular status bar for dwm written in c.
 # IAKOBVS's fork
-This build enables the ability to choose between using C functions or shell scripts. 
+This build enables the ability to choose between using C functions or shell scripts.
+The main loop is further optimized to only reconstruct the status string when there
+is an actual change.
 # Usage
 To use dwmblocks first run 'make' and then install it with 'sudo make install'.
 After that you can put dwmblocks in your xinitrc or other startup script to have it start with dwm.
