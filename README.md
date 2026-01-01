@@ -22,7 +22,6 @@ Linux: for monitoring RAM usage with sysinfo
 ```
 # For Arch Linux
 pacman -S alsa-lib cuda
-
 ```
 # Configuration
 If you do not want to use certain configurations, to use NVML, for example, you can comment out the parts you want to
