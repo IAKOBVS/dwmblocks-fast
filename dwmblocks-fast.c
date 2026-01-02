@@ -86,7 +86,7 @@ static void (*writestatus)(const char *status, unsigned int length) = pstdout;
 
 static char gx_statusbar[LEN(gx_blocks)][GX_CMDLENGTH];
 static char gx_statusstr[GX_STATUSLEN];
-/* GX_STATUSLEN fits in an unsigned char. */
+/* GX_CMDLENGTH fits in an unsigned char. */
 static unsigned char gx_statusbarlen[LEN(gx_blocks)];
 static int gx_statuscontinue = 1;
 static int gx_statuschanged = 0;
