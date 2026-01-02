@@ -54,7 +54,7 @@ dummysighandler(int num);
 void
 sighandler(int num);
 void
-getcmds(int time, Block *blocks, unsigned int blocks_len);
+getcmds(int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
 void
 getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len);
 gx_ret_ty
@@ -68,18 +68,18 @@ statusloop();
 void
 termhandler(int signum);
 gx_ret_ty
-pstdout();
+pstdout(char *status);
 #ifndef NO_X
 gx_ret_ty
-setroot();
-static gx_ret_ty (*writestatus)() = setroot;
+setroot(char *status);
+static gx_ret_ty (*writestatus)(char *status) = setroot;
 static gx_ret_ty
 setupX();
 static Display *gx_dpy;
 static int gx_screen;
 static Window gx_root;
 #else
-static void (*writestatus)() = pstdout;
+static void (*writestatus)(const char *status, unsigned int length) = pstdout;
 #endif
 
 #include "blocks.h"
@@ -114,7 +114,7 @@ getcmd(Block *block, char *output)
 
 /* Run commands or functions according to their interval. */
 void
-getcmds(int time, Block *blocks, unsigned int blocks_len)
+getcmds(int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
 	Block *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
@@ -123,11 +123,11 @@ getcmds(int time, Block *blocks, unsigned int blocks_len)
 			/* Get the result of getcmd. */
 			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
 			/* Check if needs update. */
-			if (tmp_len != gx_statusbarlen[i]
+			if (tmp_len != statusbar_len[i]
 			    || memcmp(tmp, gx_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
 				xstpcpy_len(gx_statusbar[i], tmp, tmp_len);
-				gx_statusbarlen[i] = tmp_len;
+				statusbar_len[i] = tmp_len;
 				/* Mark change. */
 				gx_statuschanged = 1;
 			}
@@ -183,10 +183,10 @@ gx_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 }
 
 gx_ret_ty
-setroot()
+setroot(char *status)
 {
-	char *statusstrp = getstatus(gx_statusstr);
-	gx_XStoreNameLen(gx_dpy, gx_root, gx_statusstr, statusstrp - gx_statusstr);
+	char *p = getstatus(status);
+	gx_XStoreNameLen(gx_dpy, gx_root, status, p - status);
 	XFlush(gx_dpy);
 	gx_statuschanged = 0;
 	return GX_RET_SUCC;
@@ -207,12 +207,12 @@ setupX()
 #endif
 
 gx_ret_ty
-pstdout()
+pstdout(char *status)
 {
-	char *p = getstatus(gx_statusstr);
+	char *p = getstatus(status);
 	*p++ = '\n';
-	unsigned int statuslen = p - gx_statusstr;
-	ssize_t ret = write(STDOUT_FILENO, gx_statusstr, statuslen);
+	unsigned int statuslen = p - status;
+	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
 	gx_statuschanged = 0;
 	if (ret != statuslen)
 		ERR(return GX_RET_ERR);
@@ -226,11 +226,11 @@ statusloop()
 	if (setupsignals() == GX_RET_ERR)
 		ERR(return GX_RET_ERR);
 	int i = 0;
-	getcmds(-1, gx_blocks, LEN(gx_blocks));
+	getcmds(-1, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
 	for (;;) {
-		getcmds(i++, gx_blocks, LEN(gx_blocks));
+		getcmds(i++, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
 		if (gx_statuschanged)
-			if (writestatus() == GX_RET_ERR)
+			if (writestatus(gx_statusstr) == GX_RET_ERR)
 				ERR(return GX_RET_ERR);
 		if (!gx_statuscontinue)
 			break;
@@ -253,7 +253,7 @@ void
 sighandler(int signum)
 {
 	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, gx_blocks, LEN(gx_blocks));
-	writestatus();
+	writestatus(gx_statusstr);
 }
 
 void
