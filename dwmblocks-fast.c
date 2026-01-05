@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: ISC */
-/* ISC License (ISC)
- *
- * Copyright 2020 torrinfail
+/* Copyright 2020 torrinfail
  * Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
  * This file is derived from dwmblocks with modifications.
  *
