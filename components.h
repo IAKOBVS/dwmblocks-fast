@@ -72,10 +72,13 @@ static struct Gpu {
 static unsigned int gc_obs_recording_pid;
 static unsigned int gc_obs_open_pid;
 
+
+
 /* Execute shell script. */
 static char *
 write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 {
+#if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
 	if (fp == NULL)
 		ERR(return NULL);
@@ -93,6 +96,11 @@ write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 	} else {
 		*(dst += read) = '\0';
 	}
+#else
+	assert("write_cmd: calling write_cmd when popen or pclose is not available!");
+	(void)dst_len;
+	(void)cmd;
+#endif
 	return dst;
 }
 
@@ -671,10 +679,14 @@ write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *int
 		if (!*pid_cache)
 			goto not_exist;
 	} else {
+		/* Construct path: /proc/[pid]/status. */
 		char fname[S_LEN(PROC) + sizeof(unsigned int) * 8 + S_LEN(STATUS) + 1];
 		char *fnamep = fname;
+		/* /proc/ */
 		fnamep = xstpcpy_len(fnamep, S_LITERAL(PROC));
+		/* /proc/[pid] */
 		fnamep = utoa_p(*pid_cache, fnamep);
+		/* /proc/[pid]/status */
 		fnamep = xstpcpy_len(fnamep, S_LITERAL(STATUS));
 		if (!read_process_exists_at(process_name, process_name_len, fname))
 			goto not_exist;
@@ -694,7 +706,7 @@ not_exist:
 static char *
 write_obs_opened(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), OBS_INTERVAL_OPEN, OBS_OPEN, &gc_obs_open_pid);
+	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), OBS_INTERVAL_OPEN, OBS_RECORDING, &gc_obs_open_pid);
 	(void)unused;
 	(void)interval;
 	(void)dst_len;
@@ -703,7 +715,7 @@ write_obs_opened(char *dst, unsigned int dst_len, const char *unused, unsigned i
 static char *
 write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpegmux"), OBS_INTERVAL_RECORDING, OBS_RECORDING, &gc_obs_recording_pid);
+	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), OBS_INTERVAL_RECORDING, OBS_RECORDING, &gc_obs_recording_pid);
 	(void)unused;
 	(void)interval;
 	(void)dst_len;
