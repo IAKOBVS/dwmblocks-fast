@@ -24,7 +24,6 @@ struct Block {
 static struct Block gx_blocks[] = {
 	/* Set Function to write_cmd to use a shell script, Command to NULL to use a C Function */
 	/* Update Interval (sec)   Signal	Label	Function	Command */
-	{ 0,     SIG_RECORDING, "",   write_obs_recording,     NULL },
 	{ 0,     SIG_OBS,       "",   write_obs_opened,        NULL },
 #ifdef USE_ALSA
 	{ 0,     SIG_MIC,       "",   write_mic_muted,         NULL },
@@ -39,10 +38,6 @@ static struct Block gx_blocks[] = {
 	{ 0,     SIG_AUDIO,     "🔉", write_speaker_vol,       NULL },
 #endif
 	{ 60,    0,             "⏰", write_time,              NULL },
-	/* { 0,     SIG_RECORDING, "",   dummy_func,              "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |' || echo " },
-	{ 0,     SIG_OBS,       "",   dummy_func,              "pgrep 'obs' > /dev/null && echo '🎥 |' || echo ''"           }, */
-	/* "printf '%s' $([ $(pamixer --get-mute) = 'false' ] && echo '' || echo '🔇') $(pamixer --get-volume)" */
-	/* { "", cmd_write_gpu_temp, "printf '%s %s |' $([ $(pamixer --get-mute) = 'false' ] && echo '🔉' || echo '🔇') $(pamixer --get-volume)", 0, 1 }, */
 };
 
 #endif /* BLOCKS_H */
