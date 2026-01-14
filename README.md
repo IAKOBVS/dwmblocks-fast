@@ -1,5 +1,6 @@
 # dwmblocks-fast
-Modular status bar for dwm written in c.
+Modular status bar for dwm written in C. Being able to print to stdout, it can be trivially
+used by other window managers.
 # IAKOBVS's fork
 This build enables the ability to choose between using C functions or shell scripts.
 The main loop is further optimized to lazily reconstruct the status string when there
@@ -19,7 +20,8 @@ dwmblocks -p
 # Modifying blocks
 The statusbar is made from text output from commandline programs, or C functions.
 Blocks are added and removed by editing the blocks.h header file.
-By default the blocks.h header file is created the first time you run make which copies the default config from blocks.def.h.
+By default the blocks.h header file is created the first time you run make which copies
+the default config from blocks.def.h.
 This is so you can edit your status bar commands and they will not get overwritten in a future update.
 # Dependencies
 NVML (CUDA): for monitoring GPU temperature for Nvidia
@@ -32,5 +34,6 @@ Linux: for monitoring RAM usage with sysinfo
 pacman -S alsa-lib cuda
 ```
 # Configuration
-If you do not want to use certain configurations, to use NVML, for example, you can comment out the parts you want to
+If you do not want to use certain configurations, to use NVML, for example, you can
+comment out the parts you want to
 exclude in the config.h and the Makefile, and the program will be built without them.

@@ -664,7 +664,7 @@ write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)interval;
 }
 
-#	define OBS_OPEN               "🎥"
+#	define OBS_OPEN               "🔴"
 #	define OBS_RECORDING          "🔴"
 #	define OBS_INTERVAL_OPEN      5
 #	define OBS_INTERVAL_RECORDING 5
