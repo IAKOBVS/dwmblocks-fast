@@ -72,8 +72,6 @@ static struct Gpu {
 static unsigned int gc_obs_recording_pid;
 static unsigned int gc_obs_open_pid;
 
-
-
 /* Execute shell script. */
 static char *
 write_cmd(char *dst, unsigned int dst_len, const char *cmd)
