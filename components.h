@@ -437,10 +437,8 @@ read_process_exists_at(const char *process_name, unsigned int process_name_len, 
 	buf[read_sz] = '\0';
 	/* Find "Name: [process_name]\n" */
 	const char *name_field = xstrstr_len(buf, (unsigned int)read_sz, STATUS_NAME_START, S_LEN(STATUS_NAME_START));
-	if (name_field == NULL) {
-		close(fd);
+	if (name_field == NULL)
 		return 0;
-	}
 	/* bufp = "[process_name]\n" */
 	name_field += S_LEN(STATUS_NAME_START);
 	read_sz -= (name_field - buf);
@@ -719,6 +717,31 @@ write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigne
 	(void)unused;
 	(void)interval;
 	(void)dst_len;
+}
+
+static char *
+write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+	int fd = open("/proc/modules", O_RDONLY);
+#ifdef __linux__
+	if (fd == -1)
+		ERR();
+#else
+	/* Ignore if no procfs. */
+	if (fd == -1)
+		return dst;
+#endif
+	char buf[4096];
+	ssize_t readsz;
+	readsz = read(fd, buf, sizeof(buf));
+	if (close(fd) == -1)
+		ERR();
+	if (readsz < 0)
+		ERR();
+	/* Check if webcam is running. */
+	if (xstrstr_len(buf, sizeof(buf), S_LITERAL("uvcvideo")))
+		dst = xstpcpy_len(dst, S_LITERAL("📸"));
+	return dst;
 }
 
 #endif /* COMPONENTS_H */
