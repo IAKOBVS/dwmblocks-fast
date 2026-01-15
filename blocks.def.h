@@ -1,16 +1,16 @@
 #ifndef BLOCKS_H
-#define BLOCKS_H
+#	define BLOCKS_H 1
 
-#include "components.h"
+#	include "components.h"
 
-#define SIG_AUDIO     10
-#define SIG_OBS       9
-#define SIG_MIC       8
-#define SIG_RECORDING 7
+#	define SIG_AUDIO     10
+#	define SIG_OBS       9
+#	define SIG_MIC       8
+#	define SIG_RECORDING 7
 
 /* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
-#define DELIM    " | "
-#define DELIMLEN (S_LEN(DELIM))
+#	define DELIM    " | "
+#	define DELIMLEN (S_LEN(DELIM))
 
 struct Block {
 	unsigned int interval;
@@ -25,18 +25,18 @@ static struct Block gx_blocks[] = {
 	/* Set Function to write_cmd to use a shell script, Command to NULL to use a C Function */
 	/* Update Interval (sec)   Signal	Label	Function	Command */
 	{ 0,    SIG_OBS,   "",   write_obs_opened,        NULL },
-#ifdef USE_ALSA
+#	ifdef USE_ALSA
 	{ 0,    SIG_MIC,   "",   write_mic_muted,         NULL },
-#endif
+#	endif
 	{ 3600, 0,         "📅", write_date,              NULL },
 	{ 2,    0,         "🧠", write_ram_usage_percent, NULL },
 	{ 2,    0,         "💻", write_cpu_temp,          NULL },
-#ifdef USE_NVML
+#	ifdef USE_NVML
 	{ 2,    0,         "🚀", write_gpu_temp,          NULL },
-#endif
-#ifdef USE_ALSA
+#	endif
+#	ifdef USE_ALSA
 	{ 0,    SIG_AUDIO, "🔉", write_speaker_vol,       NULL },
-#endif
+#	endif
 	{ 60,   0,         "⏰", write_time,              NULL },
 };
 
