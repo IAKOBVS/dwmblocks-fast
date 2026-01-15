@@ -128,7 +128,6 @@ gpu_init()
 	gc_gpu.ret = nvmlInit();
 	if (gc_gpu.ret != NVML_SUCCESS)
 		ERR(nvmlErrorString(gc_gpu.ret); exit(EXIT_FAILURE));
-	gc_gpu.init = 1;
 	gc_gpu.ret = nvmlDeviceGetCount(&gc_gpu.deviceCount);
 	if (gc_gpu.ret != NVML_SUCCESS)
 		ERR(gpu_err());
@@ -143,6 +142,7 @@ gpu_init()
 		if (gc_gpu.ret != NVML_SUCCESS)
 			ERR(gpu_err());
 	}
+	gc_gpu.init = 1;
 }
 #	endif
 
@@ -182,7 +182,6 @@ audio_init_one(struct Audio *audio, const char *card, const char *selem_name, in
 	audio->ret = snd_mixer_open(&audio->handle, 0);
 	if (audio->ret != 0)
 		ERR(audio_err());
-	audio->init = 1;
 	audio->ret = snd_mixer_attach(audio->handle, audio->card);
 	if (audio->ret != 0)
 		ERR(audio_err());
@@ -209,6 +208,7 @@ audio_init_one(struct Audio *audio, const char *card, const char *selem_name, in
 		audio->has_mute = snd_mixer_selem_has_capture_switch(audio->elem);
 	else
 		ERR(audio_err());
+	audio->init = 1;
 }
 
 static void
