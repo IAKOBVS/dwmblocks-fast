@@ -22,7 +22,8 @@ struct Block {
 
 /* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
 static struct Block gx_blocks[] = {
-	/* Set Function to write_cmd to use a shell script, Command to NULL to use a C Function */
+	/* To use a shell script, set func to write_cmd and command to the shell script.
+	 * To use a C function, set command to NULL. */
 	/* Update Interval (sec)   Signal	Label	Function	Command */
 	{ 0,    SIG_WEBCAM, "",   write_webcam_on,         NULL },
 	/* Do not change the order of obs: write_obs_on must be before write_obs_recording */
