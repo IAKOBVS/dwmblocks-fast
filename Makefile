@@ -54,7 +54,7 @@ options:
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
+${BINDIR}/${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
 	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
 	./updatesig
 
