@@ -725,14 +725,8 @@ static char *
 write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	int fd = open("/proc/modules", O_RDONLY);
-#	ifdef __linux__
 	if (fd == -1)
 		ERR();
-#	else
-	/* Ignore if no procfs. */
-	if (fd == -1)
-		return dst;
-#	endif
 	char buf[4096];
 	ssize_t readsz;
 	readsz = read(fd, buf, sizeof(buf));
