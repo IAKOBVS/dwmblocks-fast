@@ -46,7 +46,7 @@ static struct Block gx_blocks[] = {
     /* ... */
 }
 ```
-## Adding a C functions
+## Adding a C function
 ### blocks.h
 ```
 static struct Block gx_blocks[] = {
