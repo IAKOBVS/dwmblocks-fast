@@ -34,26 +34,40 @@ dwmblocks-fast &
 dwmblocks -p # | some_window_manager
 ```
 # Modifying blocks
-## blocks.h
+## Adding a shell script
+### blocks.h
 ```
 #define SIG_SH 11
 static struct Block gx_blocks[] = {
     /* Update_interval   Signal    Label    Function    Command*/
-    { 0,                 SIG_SH,  "",      write_cmd,  "my_shell_script" },
+    { 0,                 SIG_SH,   "",      write_cmd,  "my_shell_script" },
     /* ... */
+}
+```
+## Adding a C functions
+### blocks.h
+```
+static struct Block gx_blocks[] = {
+    /* Update_interval   Signal    Label    Function    Command*/
+    { 0,                 0,       "",       write_my,   NULL },
+    /* ... */
+}
+```
+### components.h
+```
+static char *
+write_my (char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+    /* Do something, writing to cmd as output. */
+    return dst;
 }
 ```
 ## Triggering an update
 ```
-# Do something
 SIG_SH=11
 pkill -RTMIN+"$SIG_SH" dwmblocks-fast
 ```
-The statusbar is made from text output from commandline programs, or C functions.
-Blocks are added and removed by editing the blocks.h header file.
-By default the blocks.h header file is created the first time you run make which copies
-the default config from blocks.def.h.
-This is so you can edit your status bar commands and they will not get overwritten in a future update.
+
 # Dependencies
 NVML (CUDA): for monitoring GPU temperature for Nvidia
 
