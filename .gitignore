@@ -1,5 +1,7 @@
-# Custom blocks file
+# User files
 blocks.h
+config.h
+components.h
 
 # Prerequisites
 *.d

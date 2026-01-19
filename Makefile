@@ -50,11 +50,17 @@ options:
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-dwmblocks-fast: dwmblocks-fast.c blocks.def.h blocks.h
+dwmblocks-fast: dwmblocks-fast.c blocks.def.h blocks.h config.def.h config.h components.def.h components.h
 	${CC} -o dwmblocks-fast dwmblocks-fast.c ${CFLAGS} ${LDFLAGS}
 
 blocks.h:
 	cp blocks.def.h $@
+
+config.h:
+	cp config.def.h $@
+
+components.h:
+	cp components.def.h $@
 
 clean:
 	rm -f *.o *.gch dwmblocks-fast
@@ -64,7 +70,7 @@ install: dwmblocks-fast
 	cp -f dwmblocks-fast ${DESTDIR}${PREFIX}/bin
 	chmod 755 ${DESTDIR}${PREFIX}/bin/dwmblocks-fast
 
-uninstall:
+uninstall: 
 	rm -f ${DESTDIR}${PREFIX}/bin/dwmblocks-fast
 
 .PHONY: all options clean install uninstall

@@ -52,16 +52,16 @@ static struct Block g_blocks[] = {
 	/* Do not change the order of obs: c_write_obs_on must be before c_write_obs_recording */
 	{ 0,    SIG_OBS,    NULL,   c_write_obs_on,            NULL },
 	{ 0,    SIG_OBS,    "",   c_write_obs_recording,     NULL },
-#	ifdef USE_ALSA
+#	if USE_ALSA
 	{ 0,    SIG_MIC,    NULL,   c_write_mic_muted,         NULL },
 #	endif
 	{ 3600, 0,          "📅", c_write_date,              NULL },
 	{ 2,    0,          "🧠", c_write_ram_usage_percent, NULL },
 	{ 2,    0,          "💻", c_write_cpu_temp,          NULL },
-#	ifdef USE_NVML
+#	if USE_NVML
 	{ 2,    0,          "🚀", c_write_gpu_temp,          NULL },
 #	endif
-#	ifdef USE_ALSA
+#	if USE_ALSA
 	{ 0,    SIG_AUDIO,  "🔉", c_write_speaker_vol,       NULL },
 #	endif
 	{ 60,   0,          "⏰", c_write_time,              NULL },

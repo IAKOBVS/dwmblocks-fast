@@ -24,7 +24,7 @@
 #	include "config.h"
 #	include "c-audio-lib.h"
 
-#	ifdef USE_ALSA
+#	if USE_ALSA
 
 #		define C_MIC_UNMUTED "🎤"
 #		define C_MIC_MUTED   "🔇"

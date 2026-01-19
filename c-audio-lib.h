@@ -19,7 +19,7 @@
 #ifndef C_AUDIO_LIB_H
 #	define C_AUDIO_LIB_H 1
 
-#	ifdef USE_ALSA
+#	if USE_ALSA
 #		include <alsa/asoundlib.h>
 #	endif
 

@@ -21,7 +21,7 @@
 
 #	include "config.h"
 
-#	ifdef USE_NVML
+#	if USE_NVML
 #		include <stdlib.h>
 #		include <assert.h>
 

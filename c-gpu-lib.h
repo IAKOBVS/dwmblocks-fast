@@ -21,7 +21,7 @@
 
 #	include "config.h"
 
-#	ifdef USE_NVML
+#	if USE_NVML
 #		ifndef NVML_HEADER
 #			define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
 #		endif

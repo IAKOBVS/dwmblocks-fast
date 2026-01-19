@@ -19,17 +19,6 @@
 #ifndef COMPONENTS_H
 #	define COMPONENTS_H 1
 
-#	include <sys/sysinfo.h>
-#	include <assert.h>
-#	include <time.h>
-#	include <unistd.h>
-#	include <fcntl.h>
-#	include <string.h>
-#	include <dirent.h>
-#	include <stdlib.h>
-#	include <stdio.h>
-#	include <errno.h>
-
 #	include "c-audio.h"
 #	include "c-gpu.h"
 #	include "c-cpu.h"
