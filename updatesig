@@ -1,0 +1,11 @@
+#!/bin/sh
+sigs=$(grep 'define SIG_' ./src/blocks.h | sed 's/.*define.*\(SIG_[A-Z]*\)[ \t]*\([0-9]*\)/\1=\2/')
+for file in $(echo ./scripts/dwmblocks-fast-*); do
+	{
+	out_file="./bin/$(basename $file)"
+	echo "#!/bin/sh" >"$out_file"
+	echo "$sigs" >>"$out_file"
+	grep -v '^#!/bin/sh$\|^SIG_' "$file" >>"$out_file"
+	} &
+done
+wait

@@ -1,0 +1,3 @@
+#!/bin/sh
+obs --startstreaming
+pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast

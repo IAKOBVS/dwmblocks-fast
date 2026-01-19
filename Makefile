@@ -20,6 +20,10 @@
 PREFIX  := /usr/local
 CC      := cc
 CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
+SRC     := ./src
+PROG    := dwmblocks-fast
+BINDIR  := ./bin
+SCRIPTS := ./scripts/dwmblocks-fast-*
 
 # TODO: automate disabling flags
 
@@ -42,35 +46,40 @@ LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 # # OpenBSD (uncomment)
 # LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
 
-all: options dwmblocks-fast
+all: options ${PROG}
 
 options:
-	@echo dwmblocks-fast build options:
+	@echo ${PROG} build options:
 	@echo "CFLAGS  = ${CFLAGS}"
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-dwmblocks-fast: dwmblocks-fast.c blocks.def.h blocks.h config.def.h config.h components.def.h components.h
-	${CC} -o dwmblocks-fast dwmblocks-fast.c ${CFLAGS} ${LDFLAGS}
+${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
+	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
+	./updatesig
 
 blocks.h:
-	cp blocks.def.h $@
+	cp ${SRC}/blocks.def.h $@
 
 config.h:
-	cp config.def.h $@
+	cp ${SRC}/config.def.h $@
 
 components.h:
-	cp components.def.h $@
+	cp ${SRC}/components.def.h $@
 
 clean:
-	rm -f *.o *.gch dwmblocks-fast
+	rm -f ${SRC}/*.o ${SRC}/*.gch ${PROG}
 
-install: dwmblocks-fast
+SCRIPTS_OUT := ./bin/dwmblocks-fast-*
+SCRIPTS_BASE := dwmblocks-fast-*
+
+install: ${BINDIR}/${PROG} ${SCRIPTS_OUT}
+	./updatesig
 	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f dwmblocks-fast ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/dwmblocks-fast
+	cp -f ${BINDIR}/${PROG} ${SCRIPTS_OUT} ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/${PROG} ${DESTDIR}${PREFIX}/bin/${SCRIPTS_BASE}
 
 uninstall: 
-	rm -f ${DESTDIR}${PREFIX}/bin/dwmblocks-fast
+	rm -f ${DESTDIR}${PREFIX}/bin/${PROG}
 
 .PHONY: all options clean install uninstall

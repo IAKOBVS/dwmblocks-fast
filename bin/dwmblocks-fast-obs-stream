@@ -1,0 +1,7 @@
+#!/bin/sh
+SIG_AUDIO=10
+SIG_OBS=9
+SIG_MIC=8
+SIG_WEBCAM=6
+obs --startstreaming
+pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast
