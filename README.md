@@ -20,14 +20,17 @@ makepkg -si
 yay -S dwmblocks-fast-git
 ```
 # Building
+```
 make
 sudo make install
 ```
 # Usage
+## in ~/.xinitrc (for dwm, and other window managers that use WM\_NAME)
 ```
-# inside ~/.xinitrc
 dwmblocks-fast &
-# or to print to standard output to pipe to other programs
+```
+## print to stdout
+```
 dwmblocks -p
 ```
 # Modifying blocks
