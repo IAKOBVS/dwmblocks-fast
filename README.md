@@ -1,10 +1,9 @@
 # dwmblocks-fast
-Modular status bar for dwm written in C. Being able to print to stdout, it can be trivially
+A modular status bar for dwm written in C. Being able to print to stdout, it can be trivially
 made to work with other window managers.
-# fork of dwmblocks
-This build enables the ability to choose between using C functions or shell scripts.
-The main loop is further optimized to lazily reconstruct the status string when there
-is an actual change.
+# forked from dwmblocks
+dwmblocks-fast enables choosing between C functions or shell scripts. The main loop is further
+optimized to lazily reconstruct the status string only when there is an actual change.
 # Installation
 ```
 make
