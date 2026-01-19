@@ -19,14 +19,14 @@
 #ifndef C_TIME_H
 #	define C_TIME_H 1
 
-#	include "config.h"
+#	include "../config.h"
 
 #	include <sys/sysinfo.h>
 #	include <time.h>
 #	include <assert.h>
 
-#	include "macros.h"
-#	include "utils.h"
+#	include "../macros.h"
+#	include "../utils.h"
 
 static struct tm *
 c_read_time(void)

@@ -19,10 +19,10 @@
 #ifndef C_AUDIO_H
 #	define C_AUDIO_H 1
 
-#	include "macros.h"
-#	include "utils.h"
-#	include "config.h"
-#	include "c-audio-lib.h"
+#	include "../macros.h"
+#	include "../utils.h"
+#	include "../config.h"
+#	include "audio-lib.h"
 
 #	if USE_ALSA
 

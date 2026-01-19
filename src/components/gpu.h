@@ -19,15 +19,15 @@
 #ifndef C_GPU_H
 #	define C_GPU_H 1
 
-#	include "config.h"
+#	include "../config.h"
 
 #	if USE_NVML
 #		include <stdlib.h>
 #		include <assert.h>
 
-#		include "c-gpu-lib.h"
-#		include "macros.h"
-#		include "utils.h"
+#		include "gpu-lib.h"
+#		include "../macros.h"
+#		include "../utils.h"
 
 static struct Gpu {
 	unsigned int deviceCount;

@@ -19,7 +19,7 @@
 #ifndef C_OBS_H
 #	define C_OBS_H 1
 
-#	include "c-procfs.h"
+#	include "procfs.h"
 
 
 #	define OBS_OPEN_ICON       "🎥 OBS"

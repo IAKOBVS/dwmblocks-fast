@@ -26,8 +26,8 @@
 #	include <unistd.h>
 #	include <errno.h>
 
-#	include "macros.h"
-#	include "utils.h"
+#	include "../macros.h"
+#	include "../utils.h"
 
 #	define PROC        "/proc/"
 #	define STATUS      "/status"

@@ -19,15 +19,15 @@
 #ifndef C_CPU_H
 #	define C_CPU_H 1
 
-#	include "config.h"
+#	include "../config.h"
 
 #		include <stdlib.h>
 #		include <assert.h>
 #		include <fcntl.h>
 #		include <unistd.h>
 
-#		include "macros.h"
-#		include "utils.h"
+#		include "../macros.h"
+#		include "../utils.h"
 
 static int
 c_atou_lt3(const char *s, int digits)

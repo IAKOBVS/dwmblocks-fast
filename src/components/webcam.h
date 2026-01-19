@@ -16,49 +16,36 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_CPU_H
-#	define C_CPU_H 1
-
-#	include "config.h"
+#ifndef C_WEBCAM_H
+#	define C_WEBCAM_H 1
 
 #	include <assert.h>
+#	include <fcntl.h>
 #	include <unistd.h>
 
-#	include "macros.h"
-#	include "utils.h"
+#	include "../macros.h"
+#	include "../utils.h"
 
-/* Execute shell script. */
 static char *
-c_write_shell(char *dst, unsigned int dst_len, const char *cmd)
+c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-#	if HAVE_POPEN && HAVE_PCLOSE
-	FILE *fp = popen(cmd, "r");
-	if (fp == NULL)
-		ERR(return NULL);
-	int fd;
-	ssize_t read_sz;
-	fd = io_fileno(fp);
+	int fd = open("/proc/modules", O_RDONLY);
 	if (fd == -1)
-		ERR(pclose(fp); return NULL);
-	read_sz = read(fd, dst, dst_len);
-	if (pclose(fp) < 0)
-		ERR(return NULL);
-	if (read_sz == -1)
-		ERR(return NULL);
-	/* Chop newline. */
-	char *nl = (char *)memchr(dst, '\n', read_sz);
-	if (nl) {
-		*nl = '\0';
-		dst = nl;
-	} else {
-		*(dst += read_sz) = '\0';
-	}
-#	else
-	assert("c_write_cmd: calling c_write_cmd when popen or pclose is not available!");
-	(void)dst_len;
-	(void)cmd;
-#	endif
+		ERR();
+	char buf[4096];
+	ssize_t read_sz;
+	read_sz = read(fd, buf, sizeof(buf));
+	if (close(fd) == -1)
+		ERR();
+	if (read_sz < 0)
+		ERR();
+	buf[read_sz] = '\0';
+	if (xstrstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
+		dst = xstpcpy_len(dst, S_LITERAL("📸"));
 	return dst;
+	(void)dst_len;
+	(void)interval;
+	(void)unused;
 }
 
-#endif /* C_CPU_H */
+#endif /* C_WEBCAM_H */

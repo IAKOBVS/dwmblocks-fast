@@ -16,16 +16,47 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_GPU_LIB_H
-#	define C_GPU_LIB_H 1
+#ifndef C_RAM_H
+#	define C_RAM_H 1
 
-#	include "config.h"
+#	include "../config.h"
 
-#	if USE_NVML
-#		ifndef NVML_HEADER
-#			define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
-#		endif
-#		include NVML_HEADER
+#	include <stdlib.h>
+#	include <stdio.h>
+#	include <sys/sysinfo.h>
+
+#	include "../macros.h"
+#	include "../utils.h"
+
+static int
+c_read_ram_usage_percent(void)
+{
+	struct sysinfo info;
+	if (sysinfo(&info) != 0)
+		ERR(return -1);
+	const int percent = 100 - (((double)info.freeram / (double)info.totalram) * 100);
+	return percent;
+}
+
+static char *
+c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+#	ifdef __linux__
+	int usage = c_read_ram_usage_percent();
+	if (usage < 0)
+		ERR(return dst);
+	char *p = dst;
+	p = utoa_p((unsigned int)usage, p);
+	*p = '%';
+	*(p + 1) = '\0';
+	return p + 1;
+	(void)dst_len;
+	(void)unused;
+	(void)interval;
+#	else
+	if (c_write_cmd(dst, dst_len, CMD_RAM_USAGE) != NULL)
+		ERR(return dst);
 #	endif
+}
 
-#endif /* C_GPU_LIB_H */
+#endif /* C_RAM_H */

@@ -20,10 +20,11 @@
 PREFIX  := /usr/local
 CC      := cc
 CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
-SRC     := ./src
+SRC     := src
+MAIN    := main
 PROG    := dwmblocks-fast
-BINDIR  := ./bin
-SCRIPTS := ./scripts/dwmblocks-fast-*
+BINDIR  := bin
+SCRIPTS := scripts/dwmblocks-fast-*
 
 # TODO: automate disabling flags
 
@@ -54,8 +55,8 @@ options:
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
-	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
+${PROG}: ${SRC}/${MAIN}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
+	${CC} -o ${BINDIR}/${PROG} ${SRC}/${MAIN}.c ${CFLAGS} ${LDFLAGS}
 	./updatesig
 
 blocks.h:
@@ -74,7 +75,6 @@ SCRIPTS_OUT := ./bin/dwmblocks-fast-*
 SCRIPTS_BASE := dwmblocks-fast-*
 
 install: ${BINDIR}/${PROG} ${SCRIPTS_OUT}
-	./updatesig
 	mkdir -p ${DESTDIR}${PREFIX}/bin
 	cp -f ${BINDIR}/${PROG} ${SCRIPTS_OUT} ${DESTDIR}${PREFIX}/bin
 	chmod 755 ${DESTDIR}${PREFIX}/bin/${PROG} ${DESTDIR}${PREFIX}/bin/${SCRIPTS_BASE}
