@@ -58,7 +58,7 @@ static struct Block gx_blocks[] = {
 static char *
 write_my (char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-    /* Do something, writing to cmd as output. */
+    /* Do something, output to dst. */
     return dst;
 }
 ```
