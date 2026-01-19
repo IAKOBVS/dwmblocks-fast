@@ -4,8 +4,9 @@ made to work with other window managers.
 
 ![Alt text](./dwmblocks-fast.png?raw=true "dwmblocks-fast")
 # Changes from dwmblocks
-Forked from dwmblocks, dwmblocks-fast enables choosing between C functions or shell scripts. The main loop is
-optimized to only reconstruct the status string when there is an actual change.
+Forked from dwmblocks, dwmblocks-fast enables choosing between C functions, for speed, or shell scripts,
+to retain modularity. The main loop is optimized to only reconstruct the status string when there is an
+actual change.
 # Installation
 ```
 make
