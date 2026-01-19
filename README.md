@@ -33,10 +33,9 @@ Linux: for monitoring processes with procfs and RAM usage with sysinfo
 pacman -S alsa-lib cuda
 ```
 # Configuration
-If you do not want to use certain configurations, to use NVML, for example, you can
-comment out the parts you want to
-exclude in the config.h and the Makefile, and the program will be built without them.
-For example, disabling NVML:
+If you do not want to use certain configurations, not to use NVML, for example, you can
+comment out the parts you want to exclude in the config.h and the Makefile, and the
+program will be built without them. For example, to disable NVML:
 
 Makefile
 ```
