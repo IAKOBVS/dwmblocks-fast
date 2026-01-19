@@ -21,6 +21,8 @@ PREFIX  := /usr/local
 CC      := cc
 CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
 
+# TODO: automate disabling flags
+
 # Compile only for this architecture (comment to disable)
 CFLAGS += -march=native
 
