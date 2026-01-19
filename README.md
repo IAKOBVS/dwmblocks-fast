@@ -58,7 +58,7 @@ static struct Block gx_blocks[] = {
 ### components.h
 ```
 static char *
-write_my (char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+write_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
     /* Do something, output to dst. */
     return dst;
