@@ -37,7 +37,7 @@
 #define LEN(X)       (sizeof(X) / sizeof(X[0]))
 #define GX_CMDLENGTH 64
 #define MIN(a, b)    ((a < b) ? a : b)
-#define GX_STATUSLEN (LEN(gx_blocks) * GX_CMDLENGTH + 1)
+#define GX_STATUSLEN (S_LEN(" ") + LEN(gx_blocks) * GX_CMDLENGTH + 1)
 
 typedef struct Block Block;
 typedef enum {
@@ -52,7 +52,7 @@ dummysighandler(int num);
 void
 sighandler(int num);
 void
-getcmds(int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
+getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
 void
 getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len);
 gx_ret_ty
@@ -94,9 +94,11 @@ char *
 getcmd(Block *block, char *output)
 {
 	char *dst = output;
-	/* Add icon. */
-	dst = xstpcpy(dst, block->icon);
-	*dst++ = ' ';
+	if (block->icon) {
+		/* Add icon. */
+		dst = xstpcpy(dst, block->icon);
+		*dst++ = ' ';
+	}
 	char *old = dst;
 	/* Add result of command or C function. */
 	dst = block->func(dst, GX_CMDLENGTH - (dst - output), block->command, &block->interval);
@@ -112,11 +114,11 @@ getcmd(Block *block, char *output)
 
 /* Run commands or functions according to their interval. */
 void
-getcmds(int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
+getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
 	Block *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
-		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == -1) {
+		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == (unsigned int)-1) {
 			char tmp[GX_CMDLENGTH];
 			/* Get the result of getcmd. */
 			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
@@ -163,13 +165,19 @@ setupsignals()
 char *
 getstatus(char *dst)
 {
+	char *dst_s = dst;
+	/* Cosmetic: start with a space. */
+	*dst++ = ' ';
 	char *p = dst;
 	for (unsigned int i = 0; i < LEN(gx_blocks); ++i)
 		p = xstpcpy_len(p, gx_statusbar[i], gx_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
-	if (p != dst)
+	if (p != dst) {
 		*(p -= DELIMLEN) = '\0';
-	return p;
+		return p;
+	} else {
+		return dst_s;
+	}
 }
 
 #ifndef NO_X
@@ -223,8 +231,8 @@ statusloop()
 {
 	if (setupsignals() == GX_RET_ERR)
 		ERR(return GX_RET_ERR);
-	int i = 0;
-	getcmds(-1, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
+	unsigned int i = 0;
+	getcmds((unsigned int)-1, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
 	for (;;) {
 		getcmds(i++, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
 		if (gx_statuschanged)
