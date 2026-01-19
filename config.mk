@@ -1,18 +1,21 @@
 # Compile only for this architecture (comment to disable)
-CFLAGS += -march=native
+ARCHFLAGS += -march=native
 
 # X11 (comment to disable)
-LDFLAGS += -lX11
+X11FLAGS += -lX11
 
 # Alsa (comment to disable)
-LDFLAGS += -lasound
+ALSAFLAGS += -lasound
 
 # NVML (comment to disable)
 NVMLLIB = /opt/cuda/lib64
-LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
+NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
 
 # # FreeBSD (uncomment)
-#LDFLAGS += -L/usr/local/lib -I/usr/local/include
+# FREEBSDFLAGS += -L/usr/local/lib -I/usr/local/include
 
 # # OpenBSD (uncomment)
-# LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
+# OPENBSDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
+
+CFLAGS += $(ARCHFLAGS)
+LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
