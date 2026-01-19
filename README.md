@@ -1,6 +1,6 @@
 # dwmblocks-fast
-A modular status bar for dwm written in C. Being able to print to stdout, it can be trivially
-made to work with other window managers.
+A modular status bar for dwm, or other window managers that use WM\_NAME or stdin to fill the
+status bar, written in C.
 
 ![Alt text](./dwmblocks-fast.png?raw=true "dwmblocks-fast")
 # Changes from dwmblocks
