@@ -17,7 +17,27 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-include config.mk
+# Compile only for this architecture (comment to disable)
+ARCHFLAGS += -march=native
+
+# X11 (comment to disable)
+X11FLAGS += -lX11
+
+# Alsa (comment to disable)
+ALSAFLAGS += -lasound
+
+# NVML (comment to disable)
+NVMLLIB = /opt/cuda/lib64
+NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
+
+# # FreeBSD (uncomment)
+# FREEBSDFLAGS += -L/usr/local/lib -I/usr/local/include
+
+# # OpenBSD (uncomment)
+# OPENBSDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
+
+CFLAGS += $(ARCHFLAGS)
+LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
 
 PREFIX      = /usr/local
 CC          = cc
@@ -54,7 +74,7 @@ clean:
 	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(BINDIR)/dwmblocks-fast
 
 install: $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
-	./updatesig
+	@./updatesig
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
 	cp -f $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW) $(DESTDIR)$(PREFIX)/bin
