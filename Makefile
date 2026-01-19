@@ -17,70 +17,51 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-PREFIX  := /usr/local
-CC      := cc
-CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
-SRC     := ./src
-PROG    := dwmblocks-fast
-BINDIR  := ./bin
-SCRIPTS := ./scripts/dwmblocks-fast-*
-HFILES  := ./src/*.h
+include config.mk
 
-# TODO: automate disabling flags
+PREFIX  = /usr/local
+CC      = cc
+CFLAGS  += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
+SRC     = src
+PROG    = dwmblocks-fast
+BINDIR  = bin
+SCRIPTS = scripts/dwmblocks-fast-*
+HFILES  = src/*.h
 
-# Compile only for this architecture (comment to disable)
-CFLAGS += -march=native
-
-# X11 (comment to disable)
-LDFLAGS += -lX11
-
-# Alsa (comment to disable)
-LDFLAGS += -lasound
-
-# NVML (comment to disable)
-NVMLLIB = /opt/cuda/lib64
-LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
-
-# # FreeBSD (uncomment)
-#LDFLAGS += -L/usr/local/lib -I/usr/local/include
-
-# # OpenBSD (uncomment)
-# LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
-
-all: options ${PROG}
+all: options dwmblocks-fast
 
 options:
-	@echo ${PROG} build options:
-	@echo "CFLAGS  = ${CFLAGS}"
-	@echo "LDFLAGS = ${LDFLAGS}"
-	@echo "CC      = ${CC}"
+	@echo dwmblocks-fast build options:
+	@echo "CFLAGS  = $(CFLAGS)"
+	@echo "LDFLAGS = $(LDFLAGS)"
+	@echo "CC      = $(CC)"
 
-${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
-	mkdir -p ${BINDIR}
-	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
+$(SRC)/blocks.h:
+	cp $(SRC)/blocks.def.h $@
 
-${SRC}/blocks.h:
-	cp ${SRC}/blocks.def.h $@
+$(SRC)/config.h:
+	cp $(SRC)/config.def.h $@
 
-${SRC}/config.h:
-	cp ${SRC}/config.def.h $@
+$(SRC)/components.h:
+	cp $(SRC)/components.def.h $@
 
-${SRC}/components.h:
-	cp ${SRC}/components.def.h $@
+dwmblocks-fast: $(SRC)/dwmblocks-fast.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
+	mkdir -p $(BINDIR)
+	$(CC) -o $(BINDIR)/dwmblocks-fast $(SRC)/dwmblocks-fast.c $(CFLAGS) $(LDFLAGS)
 
 clean:
-	rm -f ${SRC}/*.o ${SRC}/*.gch ${PROG}
+	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(BINDIR)/dwmblocks-fast
 
-SCRIPTS_OUT := ./bin/dwmblocks-fast-*
-SCRIPTS_BASE := dwmblocks-fast-*
+SCRIPTS_NEW = ./bin/dwmblocks-fast-*
+SCRIPTS_BASE = dwmblocks-fast-*
 
-install: ${BINDIR}/${PROG} ${SCRIPTS_OUT}
+install: $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
 	./updatesig
-	mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -f ${BINDIR}/${PROG} ${SCRIPTS_OUT} ${DESTDIR}${PREFIX}/bin
-	chmod 755 ${DESTDIR}${PREFIX}/bin/${PROG} ${DESTDIR}${PREFIX}/bin/${SCRIPTS_BASE}
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	chmod 755 $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
+	cp -f $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW) $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
-	rm -f ${DESTDIR}${PREFIX}/bin/${PROG}
+	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast
 
 .PHONY: all options clean install uninstall
