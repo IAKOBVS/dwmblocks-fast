@@ -20,10 +20,10 @@
 PREFIX  := /usr/local
 CC      := cc
 CFLAGS  := -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
-SRC     := src
+SRC     := ./src
 PROG    := dwmblocks-fast
-BINDIR  := bin
-SCRIPTS := scripts/dwmblocks-fast-*
+BINDIR  := ./bin
+SCRIPTS := ./scripts/dwmblocks-fast-*
 
 # TODO: automate disabling flags
 
