@@ -80,9 +80,8 @@ write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 	FILE *fp = popen(cmd, "r");
 	if (fp == NULL)
 		ERR(return NULL);
-	int ret;
 	int fd;
-	unsigned int read_sz;
+	ssize_t read_sz;
 	fd = io_fileno(fp);
 	if (fd == -1)
 		ERR(pclose(fp); return NULL);
