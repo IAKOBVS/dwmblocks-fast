@@ -51,7 +51,7 @@ static struct Block gx_blocks[] = {
 ```
 static struct Block gx_blocks[] = {
     /* Update_interval   Signal    Label    Function    Command*/
-    { 0,                 0,       "",       write_my,   NULL },
+    { 0,                 0,        "",      write_my,   NULL },
     /* ... */
 }
 ```
