@@ -24,6 +24,7 @@ SRC     := ./src
 PROG    := dwmblocks-fast
 BINDIR  := ./bin
 SCRIPTS := ./scripts/dwmblocks-fast-*
+HFILES  := ./src/*.h
 
 # TODO: automate disabling flags
 
@@ -54,21 +55,21 @@ options:
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-blocks.h:
+${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
+	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
+	./updatesig
+
+${SRC}/blocks.h:
 	cp ${SRC}/blocks.def.h $@
 
-config.h:
+${SRC}/config.h:
 	cp ${SRC}/config.def.h $@
 
-components.h:
+${SRC}/components.h:
 	cp ${SRC}/components.def.h $@
 
 clean:
 	rm -f ${SRC}/*.o ${SRC}/*.gch ${PROG}
-
-${BINDIR}/${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
-	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
-	./updatesig
 
 SCRIPTS_OUT := ./bin/dwmblocks-fast-*
 SCRIPTS_BASE := dwmblocks-fast-*

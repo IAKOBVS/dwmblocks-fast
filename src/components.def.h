@@ -19,13 +19,13 @@
 #ifndef COMPONENTS_H
 #	define COMPONENTS_H 1
 
-#	include "c-audio.h"
-#	include "c-gpu.h"
-#	include "c-cpu.h"
-#	include "c-obs.h"
-#	include "c-ram.h"
-#	include "c-time.h"
-#	include "c-shell.h"
-#	include "c-webcam.h"
+#	include "components/audio.h"
+#	include "components/gpu.h"
+#	include "components/cpu.h"
+#	include "components/obs.h"
+#	include "components/ram.h"
+#	include "components/time.h"
+#	include "components/shell.h"
+#	include "components/webcam.h"
 
 #endif /* COMPONENTS_H */
