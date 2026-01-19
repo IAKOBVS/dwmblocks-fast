@@ -9,13 +9,13 @@ or shell scripts. The main loop is optimized to only reconstruct the status stri
 an actual change.
 # Installation
 ## Arch Linux
-### manually
+### Manually
 ```
 git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 cd dwmblocks-fast-git
 makepkg -si
 ```
-### using an AUR helper
+### Using an AUR helper
 ```
 yay -S dwmblocks-fast-git
 ```
