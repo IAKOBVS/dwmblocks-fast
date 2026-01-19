@@ -47,7 +47,7 @@ LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 # # OpenBSD (uncomment)
 # LDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
 
-all: options ${PROG}
+all: options ${MAIN}
 
 options:
 	@echo ${PROG} build options:
@@ -55,7 +55,7 @@ options:
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-${PROG}: ${SRC}/${MAIN}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
+${MAIN}: ${SRC}/${MAIN}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
 	${CC} -o ${BINDIR}/${PROG} ${SRC}/${MAIN}.c ${CFLAGS} ${LDFLAGS}
 	./updatesig
 
