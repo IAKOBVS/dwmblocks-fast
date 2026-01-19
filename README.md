@@ -36,3 +36,17 @@ pacman -S alsa-lib cuda
 If you do not want to use certain configurations, to use NVML, for example, you can
 comment out the parts you want to
 exclude in the config.h and the Makefile, and the program will be built without them.
+```
+# For example, disabling NVML
+
+# in Makefile
+
+# NVML (comment to disable)
+# NVMLLIB = /opt/cuda/lib64
+# LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
+
+/* in config.h */
+/* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
+/* #define USE_NVML 1 */
+/* #define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h" */
+```
