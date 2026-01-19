@@ -30,9 +30,6 @@
 #	include <stdio.h>
 #	include <errno.h>
 
-#	include "macros.h"
-#	include "utils.h"
-
 #	include "c-audio.h"
 #	include "c-gpu.h"
 #	include "c-cpu.h"

@@ -27,7 +27,7 @@ sudo make install
 ```
 
 # Usage
-## In ~/.xinitrc (for dwm, and other window managers that use WM\_NAME)
+## In ~/.xinitrc (for dwm, and other window managers that use WM_NAME)
 ```
 dwmblocks-fast &
 ```
@@ -90,6 +90,6 @@ program will be built without them. For example, to disable NVML:
 ## config.h
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
-/* #define USE\_NVML 1 */
-/* #define NVML\_HEADER "/opt/cuda/targets/x86\_64-linux/include/nvml.h" */
+/* #define USE_NVML 1 */
+/* #define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h" */
 ```

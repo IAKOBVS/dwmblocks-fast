@@ -26,8 +26,10 @@
 
 #	ifdef USE_ALSA
 
-#		define C_PLAYBACK 1
-#		define C_CAPTURE  2
+#		define C_MIC_UNMUTED "🎤"
+#		define C_MIC_MUTED   "🔇"
+#		define C_PLAYBACK    1
+#		define C_CAPTURE     2
 
 static struct Audio {
 	const char *card;
@@ -219,20 +221,17 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)interval;
 }
 
-#		define MIC_UNMUTED "🎤"
-#		define MIC_MUTED   "🔇"
-
 static char *
 c_write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	if (c_read_mic_muted()) {
-		p = xstpcpy_len(dst, S_LITERAL(MIC_MUTED));
+		p = xstpcpy_len(dst, S_LITERAL(C_MIC_MUTED));
 	} else {
 		int vol = c_read_mic_volume();
 		if (vol == -1)
 			ERR();
-		p = xstpcpy_len(p, S_LITERAL(MIC_UNMUTED));
+		p = xstpcpy_len(p, S_LITERAL(C_MIC_UNMUTED));
 		*p++ = ' ';
 		p = utoa_p((unsigned int)vol, p);
 		*p++ = '%';
@@ -244,6 +243,8 @@ c_write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	(void)interval;
 }
 
+#		undef C_MIC_UNMUTED
+#		undef C_MIC_MUTED
 #		undef C_PLAYBACK
 #		undef C_CAPTURE
 
