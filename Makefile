@@ -54,10 +54,6 @@ options:
 	@echo "LDFLAGS = ${LDFLAGS}"
 	@echo "CC      = ${CC}"
 
-${BINDIR}/${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
-	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
-	./updatesig
-
 blocks.h:
 	cp ${SRC}/blocks.def.h $@
 
@@ -69,6 +65,10 @@ components.h:
 
 clean:
 	rm -f ${SRC}/*.o ${SRC}/*.gch ${PROG}
+
+${BINDIR}/${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
+	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
+	./updatesig
 
 SCRIPTS_OUT := ./bin/dwmblocks-fast-*
 SCRIPTS_BASE := dwmblocks-fast-*
