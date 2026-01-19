@@ -73,7 +73,7 @@ $(SRC)/components.h:
 clean:
 	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(BINDIR)/dwmblocks-fast
 
-install: $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
+install: $(BINDIR)/dwmblocks-fast $(SCRIPTS)
 	@./updatesig
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
