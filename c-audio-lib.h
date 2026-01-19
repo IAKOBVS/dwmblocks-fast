@@ -16,30 +16,11 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef COMPONENTS_H
-#	define COMPONENTS_H 1
+#ifndef C_AUDIO_LIB_H
+#	define C_AUDIO_LIB_H 1
 
-#	include <sys/sysinfo.h>
-#	include <assert.h>
-#	include <time.h>
-#	include <unistd.h>
-#	include <fcntl.h>
-#	include <string.h>
-#	include <dirent.h>
-#	include <stdlib.h>
-#	include <stdio.h>
-#	include <errno.h>
+#	ifdef USE_ALSA
+#		include <alsa/asoundlib.h>
+#	endif
 
-#	include "macros.h"
-#	include "utils.h"
-
-#	include "c-audio.h"
-#	include "c-gpu.h"
-#	include "c-cpu.h"
-#	include "c-obs.h"
-#	include "c-ram.h"
-#	include "c-time.h"
-#	include "c-shell.h"
-#	include "c-webcam.h"
-
-#endif /* COMPONENTS_H */
+#endif /* C_AUDIO_LIB_H */

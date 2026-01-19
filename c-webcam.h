@@ -16,30 +16,36 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef COMPONENTS_H
-#	define COMPONENTS_H 1
+#ifndef C_WEBCAM_H
+#	define C_WEBCAM_H 1
 
-#	include <sys/sysinfo.h>
 #	include <assert.h>
-#	include <time.h>
-#	include <unistd.h>
 #	include <fcntl.h>
-#	include <string.h>
-#	include <dirent.h>
-#	include <stdlib.h>
-#	include <stdio.h>
-#	include <errno.h>
+#	include <unistd.h>
 
 #	include "macros.h"
 #	include "utils.h"
 
-#	include "c-audio.h"
-#	include "c-gpu.h"
-#	include "c-cpu.h"
-#	include "c-obs.h"
-#	include "c-ram.h"
-#	include "c-time.h"
-#	include "c-shell.h"
-#	include "c-webcam.h"
+static char *
+c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+	int fd = open("/proc/modules", O_RDONLY);
+	if (fd == -1)
+		ERR();
+	char buf[4096];
+	ssize_t read_sz;
+	read_sz = read(fd, buf, sizeof(buf));
+	if (close(fd) == -1)
+		ERR();
+	if (read_sz < 0)
+		ERR();
+	buf[read_sz] = '\0';
+	if (xstrstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
+		dst = xstpcpy_len(dst, S_LITERAL("📸"));
+	return dst;
+	(void)dst_len;
+	(void)interval;
+	(void)unused;
+}
 
-#endif /* COMPONENTS_H */
+#endif /* C_WEBCAM_H */

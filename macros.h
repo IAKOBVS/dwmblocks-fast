@@ -16,12 +16,18 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef LIB_H
-#	define LIB_H 1
+#ifndef MACROS_H
+#	define MACROS_H 1
 
-#	include <string.h>
-
+#	include <stdio.h>
 #	include "config.h"
+
+#	define ERR(x)              \
+		do {                \
+			perror(""); \
+			assert(0);  \
+			x;          \
+		} while (0)
 
 #	define MAX(x, y)    (((x) > (y)) ? (x) : (y))
 #	define MIN(x, y)    (((x) < (y)) ? (x) : (y))
@@ -176,49 +182,4 @@
 #		define io_fflush(stream) fflush(stream)
 #	endif
 
-static int
-xisdigit(int c)
-{
-	return ((unsigned)c - '0' < 10);
-}
-
-static char *
-xstpcpy_len(char *dst, const char *src, size_t n)
-{
-#	ifdef HAVE_MEMPCPY
-	dst = (char *)mempcpy(dst, src, n);
-	*dst = '\0';
-	return dst;
-#	else
-	dst = (char *)memcpy(dst, src, n) + n;
-	*dst = '\0';
-	return dst;
-#	endif
-}
-
-static char *
-xstpcpy(char *dst, const char *src)
-{
-#	ifdef HAVE_STPCPY
-	return stpcpy(dst, src);
-#	else
-	size_t n = strlen(src);
-	dst = (char *)memcpy(dst, src, n) + n;
-	*dst = '\0';
-	return dst;
-#	endif
-}
-
-static char *
-xstrstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
-{
-#	ifdef HAVE_STPCPY
-	return (char *)memmem(hs, hs_len, ne, ne_len);
-#	else
-	return strstr((char *)hs, (char *)ne);
-	(void)hs_len;
-	(void)ne_len;
-#	endif
-}
-
-#endif /* LIB_H */
+#endif /* MACROS_H */

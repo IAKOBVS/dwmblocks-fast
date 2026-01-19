@@ -37,13 +37,13 @@
 
 #define LEN(X)       (sizeof(X) / sizeof(X[0]))
 #define GX_CMDLENGTH 64
-#define GX_STATUSLEN (S_LEN(" ") + LEN(gx_blocks) * GX_CMDLENGTH + 1)
+#define GX_STATUSLEN (S_LEN(" ") + LEN(g_blocks) * GX_CMDLENGTH + 1)
 
 typedef struct Block Block;
 typedef enum {
 	GX_RET_SUCC = 0,
 	GX_RET_ERR
-} gx_ret_ty;
+} g_ret_ty;
 
 #ifndef __OpenBSD__
 void
@@ -55,39 +55,39 @@ void
 getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
 void
 getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len);
-gx_ret_ty
+g_ret_ty
 setupsignals();
 void
 sighandler(int signum);
 char *
 getstatus(char *str);
-gx_ret_ty
+g_ret_ty
 statusloop();
 void
 termhandler(int signum);
-gx_ret_ty
+g_ret_ty
 pstdout(char *status);
 #ifndef NO_X
-gx_ret_ty
+g_ret_ty
 setroot(char *status);
-static gx_ret_ty (*writestatus)(char *status) = setroot;
-static gx_ret_ty
+static g_ret_ty (*writestatus)(char *status) = setroot;
+static g_ret_ty
 setupX();
-static Display *gx_dpy;
-static int gx_screen;
-static Window gx_root;
+static Display *g_dpy;
+static int g_screen;
+static Window g_root;
 #else
 static void (*writestatus)(const char *status, unsigned int length) = pstdout;
 #endif
 
 #include "blocks.h"
 
-static char gx_statusbar[LEN(gx_blocks)][GX_CMDLENGTH];
-static char gx_statusstr[GX_STATUSLEN];
+static char g_statusbar[LEN(g_blocks)][GX_CMDLENGTH];
+static char g_statusstr[GX_STATUSLEN];
 /* GX_CMDLENGTH fits in an unsigned char. */
-static unsigned char gx_statusbarlen[LEN(gx_blocks)];
-static int gx_statuscontinue = 1;
-static int gx_statuschanged = 0;
+static unsigned char g_statusbarlen[LEN(g_blocks)];
+static int g_statuscontinue = 1;
+static int g_statuschanged = 0;
 
 /* Run command or execute C function. */
 char *
@@ -124,12 +124,12 @@ getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char
 			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
 			/* Check if needs update. */
 			if (tmp_len != statusbar_len[i]
-			    || memcmp(tmp, gx_statusbar[i], tmp_len)) {
+			    || memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
-				xstpcpy_len(gx_statusbar[i], tmp, tmp_len);
+				xstpcpy_len(g_statusbar[i], tmp, tmp_len);
 				statusbar_len[i] = tmp_len;
 				/* Mark change. */
-				gx_statuschanged = 1;
+				g_statuschanged = 1;
 			}
 		}
 }
@@ -141,10 +141,10 @@ getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len)
 	Block *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
 		if (curr->signal == signal)
-			gx_statusbarlen[i] = getcmd(curr, gx_statusbar[i]) - gx_statusbar[i];
+			g_statusbarlen[i] = getcmd(curr, g_statusbar[i]) - g_statusbar[i];
 }
 
-gx_ret_ty
+g_ret_ty
 setupsignals()
 {
 #ifndef __OpenBSD__
@@ -154,9 +154,9 @@ setupsignals()
 			ERR(return GX_RET_ERR);
 #endif
 
-	for (unsigned int i = 0; i < LEN(gx_blocks); ++i)
-		if (gx_blocks[i].signal > 0)
-			if (signal(SIGMINUS + (int)gx_blocks[i].signal, sighandler) == SIG_ERR)
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		if (g_blocks[i].signal > 0)
+			if (signal(SIGMINUS + (int)g_blocks[i].signal, sighandler) == SIG_ERR)
 				ERR(return GX_RET_ERR);
 	return GX_RET_SUCC;
 }
@@ -169,8 +169,8 @@ getstatus(char *dst)
 	/* Cosmetic: start with a space. */
 	*dst++ = ' ';
 	char *p = dst;
-	for (unsigned int i = 0; i < LEN(gx_blocks); ++i)
-		p = xstpcpy_len(p, gx_statusbar[i], gx_statusbarlen[i]);
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		p = xstpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
 	if (p != dst) {
 		*(p -= DELIMLEN) = '\0';
@@ -182,63 +182,63 @@ getstatus(char *dst)
 
 #ifndef NO_X
 static int
-gx_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
+g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 {
 	/* Directly use XChangeProperty to save a strlen. */
 	return XChangeProperty(dpy, w, XA_WM_NAME, XA_STRING, 8, PropModeReplace, (_Xconst unsigned char *)name, len);
 }
 
-gx_ret_ty
+g_ret_ty
 setroot(char *status)
 {
 	char *p = getstatus(status);
-	gx_XStoreNameLen(gx_dpy, gx_root, status, p - status);
-	XFlush(gx_dpy);
-	gx_statuschanged = 0;
+	g_XStoreNameLen(g_dpy, g_root, status, p - status);
+	XFlush(g_dpy);
+	g_statuschanged = 0;
 	return GX_RET_SUCC;
 }
 
-gx_ret_ty
+g_ret_ty
 setupX()
 {
-	gx_dpy = XOpenDisplay(NULL);
-	if (!gx_dpy) {
+	g_dpy = XOpenDisplay(NULL);
+	if (!g_dpy) {
 		fprintf(stderr, "dwmblocks: Failed to open display\n");
 		ERR(return GX_RET_ERR);
 	}
-	gx_screen = DefaultScreen(gx_dpy);
-	gx_root = RootWindow(gx_dpy, gx_screen);
+	g_screen = DefaultScreen(g_dpy);
+	g_root = RootWindow(g_dpy, g_screen);
 	return GX_RET_SUCC;
 }
 #endif
 
-gx_ret_ty
+g_ret_ty
 pstdout(char *status)
 {
 	char *p = getstatus(status);
 	*p++ = '\n';
 	unsigned int statuslen = p - status;
 	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
-	gx_statuschanged = 0;
+	g_statuschanged = 0;
 	if (ret != statuslen)
 		ERR(return GX_RET_ERR);
 	return GX_RET_SUCC;
 }
 
 /* Main loop. */
-gx_ret_ty
+g_ret_ty
 statusloop()
 {
 	if (setupsignals() == GX_RET_ERR)
 		ERR(return GX_RET_ERR);
 	unsigned int i = 0;
-	getcmds((unsigned int)-1, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
+	getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
 	for (;;) {
-		getcmds(i++, gx_blocks, LEN(gx_blocks), gx_statusbarlen);
-		if (gx_statuschanged)
-			if (writestatus(gx_statusstr) == GX_RET_ERR)
+		getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
+		if (g_statuschanged)
+			if (writestatus(g_statusstr) == GX_RET_ERR)
 				ERR(return GX_RET_ERR);
-		if (!gx_statuscontinue)
+		if (!g_statuscontinue)
 			break;
 		sleep(1);
 	}
@@ -258,14 +258,14 @@ dummysighandler(int signum)
 void
 sighandler(int signum)
 {
-	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, gx_blocks, LEN(gx_blocks));
-	writestatus(gx_statusstr);
+	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
+	writestatus(g_statusstr);
 }
 
 void
 termhandler(int signum)
 {
-	gx_statuscontinue = 0;
+	g_statuscontinue = 0;
 	(void)signum;
 }
 
@@ -288,7 +288,7 @@ main(int argc, char **argv)
 	if (statusloop() == GX_RET_ERR)
 		ERR(return EXIT_FAILURE);
 #ifndef NO_X
-	XCloseDisplay(gx_dpy);
+	XCloseDisplay(g_dpy);
 #endif
 	return EXIT_SUCCESS;
 }

@@ -40,16 +40,16 @@ dwmblocks -p # | some_window_manager
 ### blocks.h
 ```
 #define SIG_SH 11
-static struct Block gx_blocks[] = {
-    /* Update_interval   Signal    Label    Function    Command*/
-    { 0,                 SIG_SH,   "",      write_cmd,  "my_shell_script" },
+static struct Block g_blocks[] = {
+    /* Update_interval   Signal    Label    Function        Command*/
+    { 0,                 SIG_SH,   "",      c_write_shell,  "my_shell_script" },
     /* ... */
 }
 ```
 ## Adding a C function
 ### blocks.h
 ```
-static struct Block gx_blocks[] = {
+static struct Block g_blocks[] = {
     /* Update_interval   Signal    Label    Function    Command*/
     { 0,                 0,        "",      write_my,   NULL },
     /* ... */
