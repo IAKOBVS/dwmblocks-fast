@@ -3,11 +3,10 @@
 
 #	include "components.h"
 
-#	define SIG_AUDIO     10
-#	define SIG_OBS       9
-#	define SIG_MIC       8
-#	define SIG_RECORDING 7
-#	define SIG_WEBCAM    6
+#	define SIG_AUDIO  10
+#	define SIG_OBS    9
+#	define SIG_MIC    8
+#	define SIG_WEBCAM 6
 
 /* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
 #	define DELIM    " | "
@@ -26,8 +25,8 @@ static struct Block gx_blocks[] = {
 	/* Set Function to write_cmd to use a shell script, Command to NULL to use a C Function */
 	/* Update Interval (sec)   Signal	Label	Function	Command */
 	{ 0,    SIG_WEBCAM, "",   write_webcam_on,         NULL },
-	/* Do not change the order of obs: write_obs_opened must be before write_obs_recording */
-	{ 0,    SIG_OBS,    "",   write_obs_opened,        NULL },
+	/* Do not change the order of obs: write_obs_on must be before write_obs_recording */
+	{ 0,    SIG_OBS,    "",   write_obs_on,            NULL },
 	{ 0,    SIG_OBS,    "",   write_obs_recording,     NULL },
 #	ifdef USE_ALSA
 	{ 0,    SIG_MIC,    "",   write_mic_muted,         NULL },
