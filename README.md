@@ -1,7 +1,7 @@
 # dwmblocks-fast
 A modular status bar for dwm written in C. Being able to print to stdout, it can be trivially
 made to work with other window managers.
-# forked from dwmblocks
+# Forked from dwmblocks
 dwmblocks-fast enables choosing between C functions or shell scripts. The main loop is further
 optimized to lazily reconstruct the status string only when there is an actual change.
 # Installation
@@ -37,14 +37,14 @@ If you do not want to use certain configurations, not to use NVML, for example, 
 comment out the parts you want to exclude in the config.h and the Makefile, and the
 program will be built without them. For example, to disable NVML:
 
-Makefile:
+## Makefile:
 ```
 # NVML (comment to disable)
 # NVMLLIB = /opt/cuda/lib64
 # LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 ```
 
-config.h:
+## config.h:
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 /* #define USE_NVML 1 */
