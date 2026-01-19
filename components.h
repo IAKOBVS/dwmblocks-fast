@@ -76,7 +76,7 @@ static unsigned int gc_obs_open_pid;
 static char *
 write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 {
-#if HAVE_POPEN && HAVE_PCLOSE
+#	if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
 	if (fp == NULL)
 		ERR(return NULL);
@@ -94,11 +94,11 @@ write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 	} else {
 		*(dst += read) = '\0';
 	}
-#else
+#	else
 	assert("write_cmd: calling write_cmd when popen or pclose is not available!");
 	(void)dst_len;
 	(void)cmd;
-#endif
+#	endif
 	return dst;
 }
 
@@ -660,20 +660,27 @@ write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)interval;
 }
 
-#	define OBS_OPEN               "🔴"
-#	define OBS_RECORDING          "🔴"
-#	define OBS_INTERVAL_OPEN      5
-#	define OBS_INTERVAL_RECORDING 5
+#	define OBS_OPEN_ICON       "🎥 OBS"
+#	define OBS_OPEN_INTERVAL   4
+#	define OBS_RECORD_ICON     "🔴 Recording"
+#	define OBS_RECORD_INTERVAL 2
 
 static char *
 write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *process_name, unsigned int process_name_len, unsigned int process_interval, const char *process_icon, unsigned int *pid_cache)
 {
-	/* Need search /proc/[pid] for process. */
+	/* Need to search /proc/[pid] for process. */
 	if (*pid_cache == 0) {
 		/* Cache the pid to avoid searching for next calls. */
 		*pid_cache = read_process_exists(process_name, process_name_len);
-		if (!*pid_cache)
-			goto not_exist;
+		if (*pid_cache == 0) {
+			/* OBS is not recording, but still on. Keep checking. */
+			if (pid_cache == &gc_obs_recording_pid && gc_obs_open_pid)
+				*interval = process_interval;
+			/* OBS is closed. Stop checking. */
+			else
+				*interval = 0;
+			return dst;
+		}
 	} else {
 		/* Construct path: /proc/[pid]/status. */
 		char fname[S_LEN(PROC) + sizeof(unsigned int) * 8 + S_LEN(STATUS) + 1];
@@ -684,36 +691,33 @@ write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *int
 		fnamep = utoa_p(*pid_cache, fnamep);
 		/* /proc/[pid]/status */
 		fnamep = xstpcpy_len(fnamep, S_LITERAL(STATUS));
-		if (!read_process_exists_at(process_name, process_name_len, fname))
-			goto not_exist;
+		(void)fnamep;
+		if (!read_process_exists_at(process_name, process_name_len, fname)) {
+			*pid_cache = 0;
+			*interval = 0;
+			return dst;
+		}
 	}
 	dst = xstpcpy(dst, process_icon);
 	*interval = process_interval;
 	return dst;
-not_exist:
-	*pid_cache = 0;
-	*interval = 0;
-	return dst;
 	(void)unused;
-	(void)interval;
 	(void)dst_len;
 }
 
 static char *
-write_obs_opened(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), OBS_INTERVAL_OPEN, OBS_RECORDING, &gc_obs_open_pid);
+	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), OBS_OPEN_INTERVAL, OBS_OPEN_ICON, &gc_obs_open_pid);
 	(void)unused;
-	(void)interval;
 	(void)dst_len;
 }
 
 static char *
 write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), OBS_INTERVAL_RECORDING, OBS_RECORDING, &gc_obs_recording_pid);
+	return write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), OBS_RECORD_INTERVAL, OBS_RECORD_ICON, &gc_obs_recording_pid);
 	(void)unused;
-	(void)interval;
 	(void)dst_len;
 }
 
@@ -721,14 +725,14 @@ static char *
 write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	int fd = open("/proc/modules", O_RDONLY);
-#ifdef __linux__
+#	ifdef __linux__
 	if (fd == -1)
 		ERR();
-#else
+#	else
 	/* Ignore if no procfs. */
 	if (fd == -1)
 		return dst;
-#endif
+#	endif
 	char buf[4096];
 	ssize_t readsz;
 	readsz = read(fd, buf, sizeof(buf));
