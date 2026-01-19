@@ -8,16 +8,17 @@ dwmblocks-fast, forked from dwmblocks, enables the user to choose between C func
 or shell scripts. The main loop is optimized to only reconstruct the status string when there is
 an actual change.
 # Installation
-# Arch Linux
+# Arch Linux (manual)
 ```
 git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
-cd dwmblocks-fast
+cd dwmblocks-fast-git
 makepkg -si
-# Or use an AUR helper
+```
+# Arch Linux (AUR helper)
+```
 yay -S dwmblocks-fast-git
 ```
-# Other
-```
+# Building
 make
 sudo make install
 ```
@@ -59,6 +60,6 @@ program will be built without them. For example, to disable NVML:
 ## config.h
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
-/* #define USE_NVML 1 */
-/* #define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h" */
+/* #define USE\_NVML 1 */
+/* #define NVML\_HEADER "/opt/cuda/targets/x86\_64-linux/include/nvml.h" */
 ```
