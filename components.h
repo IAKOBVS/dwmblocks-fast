@@ -40,6 +40,8 @@
 			x;          \
 		} while (0)
 
+/* TODO: separate into multiple files? */
+
 #	define PLAYBACK 1
 #	define CAPTURE  2
 
