@@ -8,13 +8,14 @@ dwmblocks-fast, forked from dwmblocks, enables the user to choose between C func
 or shell scripts. The main loop is optimized to only reconstruct the status string when there is
 an actual change.
 # Installation
-# Arch Linux (manual)
+## Arch Linux
+### manually
 ```
 git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 cd dwmblocks-fast-git
 makepkg -si
 ```
-# Arch Linux (AUR helper)
+### using an AUR helper
 ```
 yay -S dwmblocks-fast-git
 ```
