@@ -21,6 +21,7 @@ yay -S dwmblocks-fast-git
 ```
 # Building
 ```
+# your-package-manager-install alsa-lib cuda
 make
 sudo make install
 ```
