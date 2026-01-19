@@ -19,14 +19,15 @@
 
 include config.mk
 
-PREFIX  = /usr/local
-CC      = cc
-CFLAGS  += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
-SRC     = src
-PROG    = dwmblocks-fast
-BINDIR  = bin
-SCRIPTS = scripts/dwmblocks-fast-*
-HFILES  = src/*.h
+PREFIX      = /usr/local
+CC          = cc
+CFLAGS      += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
+SRC         = src
+PROG        = dwmblocks-fast
+BINDIR      = bin
+SCRIPTS     = scripts/dwmblocks-fast-*
+SCRIPTS_NEW = bin/dwmblocks-fast-*
+HFILES      = src/*.h
 
 all: options dwmblocks-fast
 
@@ -35,6 +36,10 @@ options:
 	@echo "CFLAGS  = $(CFLAGS)"
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
+
+dwmblocks-fast: $(SRC)/main.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
+	mkdir -p $(BINDIR)
+	$(CC) -o $(BINDIR)/dwmblocks-fast $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
 
 $(SRC)/blocks.h:
 	cp $(SRC)/blocks.def.h $@
@@ -45,15 +50,8 @@ $(SRC)/config.h:
 $(SRC)/components.h:
 	cp $(SRC)/components.def.h $@
 
-dwmblocks-fast: $(SRC)/dwmblocks-fast.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
-	mkdir -p $(BINDIR)
-	$(CC) -o $(BINDIR)/dwmblocks-fast $(SRC)/dwmblocks-fast.c $(CFLAGS) $(LDFLAGS)
-
 clean:
 	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(BINDIR)/dwmblocks-fast
-
-SCRIPTS_NEW = ./bin/dwmblocks-fast-*
-SCRIPTS_BASE = dwmblocks-fast-*
 
 install: $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
 	./updatesig
