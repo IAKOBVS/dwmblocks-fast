@@ -25,13 +25,13 @@ make
 sudo make install
 ```
 # Usage
-## in ~/.xinitrc (for dwm, and other window managers that use WM\_NAME)
+## In ~/.xinitrc (for dwm, and other window managers that use WM\_NAME)
 ```
 dwmblocks-fast &
 ```
-## print to stdout
+## Print to stdout (for other window managers that read stdin)
 ```
-dwmblocks -p
+dwmblocks -p # | some_window_manager
 ```
 # Modifying blocks
 The statusbar is made from text output from commandline programs, or C functions.
