@@ -34,6 +34,21 @@ dwmblocks-fast &
 dwmblocks -p # | some_window_manager
 ```
 # Modifying blocks
+## blocks.h
+```
+#define SIG_SH 11
+static struct Block gx_blocks[] = {
+    /* Update_interval   Signal    Label    Function    Command*/
+    { 0,                 SIG_SH,  "",      write_cmd,  "my_shell_script" },
+    /* ... */
+}
+```
+## Triggering an update
+```
+# Do something
+SIG_SH=11
+pkill -RTMIN+"$SIG_SH" dwmblocks-fast
+```
 The statusbar is made from text output from commandline programs, or C functions.
 Blocks are added and removed by editing the blocks.h header file.
 By default the blocks.h header file is created the first time you run make which copies
