@@ -605,6 +605,7 @@ write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int
 		return p;
 	}
 	p = utoa_p(avg, p);
+	p = xstpcpy_len(p, S_LITERAL("°"));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -618,6 +619,7 @@ write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned 
 {
 	char *p = dst;
 	p = utoa_p((unsigned int)read_speaker_volume(), dst);
+	*p++ = '%';
 	return p;
 	(void)dst_len;
 	(void)unused;
