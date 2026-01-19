@@ -2,6 +2,7 @@
 blocks.h
 config.h
 components.h
+bin
 
 # Prerequisites
 *.d
