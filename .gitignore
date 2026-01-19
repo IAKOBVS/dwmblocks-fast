@@ -1,7 +1,7 @@
 # User files
-blocks.h
-config.h
-components.h
+src/blocks.h
+src/config.h
+src/components.h
 bin/*
 
 # Prerequisites

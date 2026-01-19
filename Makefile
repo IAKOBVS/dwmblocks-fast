@@ -58,7 +58,6 @@ options:
 ${PROG}: ${SRC}/${PROG}.c ${SRC}/blocks.def.h ${SRC}/blocks.h ${SRC}/config.def.h ${SRC}/config.h ${SRC}/components.def.h ${SRC}/components.h
 	mkdir -p ${BINDIR}
 	${CC} -o ${BINDIR}/${PROG} ${SRC}/${PROG}.c ${CFLAGS} ${LDFLAGS}
-	./updatesig
 
 ${SRC}/blocks.h:
 	cp ${SRC}/blocks.def.h $@
