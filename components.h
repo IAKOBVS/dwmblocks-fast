@@ -620,6 +620,7 @@ write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	char *p = dst;
 	p = utoa_p((unsigned int)read_speaker_volume(), dst);
 	*p++ = '%';
+	*p = '\0';
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -634,6 +635,8 @@ write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int 
 	if (vol == -1)
 		ERR(return dst);
 	p = utoa_p((unsigned int)vol, dst);
+	*p++ = '%';
+	*p = '\0';
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -656,6 +659,8 @@ write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned in
 		p = xstpcpy_len(p, S_LITERAL(MIC_UNMUTED));
 		*p++ = ' ';
 		p = utoa_p((unsigned int)vol, p);
+		*p++ = '%';
+		*p = '\0';
 	}
 	return p;
 	(void)dst_len;
