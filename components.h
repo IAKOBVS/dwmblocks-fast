@@ -741,6 +741,7 @@ write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned in
 		dst = xstpcpy_len(dst, S_LITERAL("📸"));
 	return dst;
 	(void)interval;
+	(void)unused;
 }
 
 #endif /* COMPONENTS_H */
