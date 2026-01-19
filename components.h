@@ -81,18 +81,23 @@ write_cmd(char *dst, unsigned int dst_len, const char *cmd)
 	if (fp == NULL)
 		ERR(return NULL);
 	int ret;
-	unsigned int read;
-	read = fread(dst, 1, dst_len, fp);
-	ret = pclose(fp);
-	if (ret < 0)
+	int fd;
+	unsigned int read_sz;
+	fd = io_fileno(fp);
+	if (fd == -1)
+		ERR(pclose(fp); return NULL);
+	read_sz = read(fd, dst, dst_len);
+	if (pclose(fp) < 0)
+		ERR(return NULL);
+	if (read_sz == -1)
 		ERR(return NULL);
 	/* Chop newline. */
-	char *nl = (char *)memchr(dst, '\n', read);
+	char *nl = (char *)memchr(dst, '\n', read_sz);
 	if (nl) {
 		*nl = '\0';
 		dst = nl;
 	} else {
-		*(dst += read) = '\0';
+		*(dst += read_sz) = '\0';
 	}
 #	else
 	assert("write_cmd: calling write_cmd when popen or pclose is not available!");
@@ -334,12 +339,11 @@ read_cpu_temp(void)
 	if (fd == -1)
 		ERR(return -1);
 	int read_sz = read(fd, temp, S_LEN(temp));
-	if (read_sz < 0)
-		ERR(close(fd); return -1);
-	read_sz -= (int)S_LEN("1000");
-	int ret = close(fd);
-	if (ret == -1)
+	if (close(fd) == -1)
 		ERR(return -1);
+	if (read_sz < 0)
+		ERR(return -1);
+	read_sz -= (int)S_LEN("1000");
 	return atou_lt3(temp, read_sz);
 }
 
@@ -412,10 +416,23 @@ utoa3_p(unsigned int number, char *buf)
 #	define STATUS "/status"
 #	define PAGESZ 4096
 
-#	define STATUS_NAME_START "Name:\t"
+#	define STATUS_NAME "Name:\t"
 
 static int
-read_process_exists_at(const char *process_name, unsigned int process_name_len, const char *pid_status_path)
+proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
+{
+	const char *p = xstrstr_len(proc_buf, proc_buf_sz, S_LITERAL(STATUS_NAME));
+	if (p) {
+		p += S_LEN(STATUS_NAME);
+		proc_buf_sz -= S_LEN(STATUS_NAME);
+		if (proc_buf_sz > proc_name_len && !memcmp(p, proc_name, proc_name_len) && *(p + proc_name_len) == '\n')
+			return 1;
+	}
+	return 0;
+}
+
+static int
+read_proc_exists_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
 	int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
@@ -426,31 +443,16 @@ read_process_exists_at(const char *process_name, unsigned int process_name_len, 
 	char buf[PAGESZ];
 	/* Read /proc/[pid]/status */
 	ssize_t read_sz = read(fd, buf, PAGESZ);
+	if (close(fd) == -1)
+		ERR(return 0);
 	if (read_sz < 0)
-		ERR(close(fd); return 0);
-	int ret;
-	ret = close(fd);
-	if (ret == -1)
 		ERR(return 0);
 	buf[read_sz] = '\0';
-	/* Find "Name: [process_name]\n" */
-	const char *name_field = xstrstr_len(buf, (unsigned int)read_sz, STATUS_NAME_START, S_LEN(STATUS_NAME_START));
-	if (name_field == NULL)
-		return 0;
-	/* bufp = "[process_name]\n" */
-	name_field += S_LEN(STATUS_NAME_START);
-	read_sz -= (name_field - buf);
-	const char *name_field_e = (const char *)memchr(name_field, '\n', (unsigned int)read_sz);
-	if (name_field_e == NULL)
-		ERR(return 0);
-	/* Check if matches wanted process. */
-	if (process_name_len == (unsigned int)(name_field_e - name_field) && !memcmp(process_name, name_field, process_name_len))
-		return 1;
-	return 0;
+	return proc_name_match(buf, read_sz, proc_name, proc_name_len);
 }
 
 static unsigned int
-read_process_exists(const char *process_name, unsigned int process_name_len)
+read_proc_exists(const char *proc_name, unsigned int proc_name_len)
 {
 	char fname[S_LEN(PROC) + sizeof(unsigned int) * 8 + S_LEN(STATUS) + 1] = PROC;
 	char *fnamep = fname + S_LEN(PROC);
@@ -466,7 +468,7 @@ read_process_exists(const char *process_name, unsigned int process_name_len)
 		char *fname_e = fnamep;
 		fname_e = xstpcpy(fname_e, ep->d_name);
 		fname_e = xstpcpy_len(fname_e, S_LITERAL(STATUS));
-		if (read_process_exists_at(process_name, process_name_len, fname))
+		if (read_proc_exists_at(proc_name, proc_name_len, fname))
 			return (unsigned int)atoi(ep->d_name);
 	}
 	if (closedir(dp) == -1)
@@ -666,16 +668,16 @@ write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned in
 #	define OBS_RECORD_INTERVAL 2
 
 static char *
-write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *process_name, unsigned int process_name_len, unsigned int process_interval, const char *process_icon, unsigned int *pid_cache)
+write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache)
 {
-	/* Need to search /proc/[pid] for process. */
+	/* Need to search /proc/[pid] for proc. */
 	if (*pid_cache == 0) {
 		/* Cache the pid to avoid searching for next calls. */
-		*pid_cache = read_process_exists(process_name, process_name_len);
+		*pid_cache = read_proc_exists(proc_name, proc_name_len);
 		if (*pid_cache == 0) {
 			/* OBS is not recording, but still on. Keep checking. */
 			if (pid_cache == &gc_obs_recording_pid && gc_obs_open_pid)
-				*interval = process_interval;
+				*interval = proc_interval;
 			/* OBS is closed. Stop checking. */
 			else
 				*interval = 0;
@@ -692,14 +694,14 @@ write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *int
 		/* /proc/[pid]/status */
 		fnamep = xstpcpy_len(fnamep, S_LITERAL(STATUS));
 		(void)fnamep;
-		if (!read_process_exists_at(process_name, process_name_len, fname)) {
+		if (!read_proc_exists_at(proc_name, proc_name_len, fname)) {
 			*pid_cache = 0;
 			*interval = 0;
 			return dst;
 		}
 	}
-	dst = xstpcpy(dst, process_icon);
-	*interval = process_interval;
+	dst = xstpcpy(dst, proc_icon);
+	*interval = proc_interval;
 	return dst;
 	(void)unused;
 	(void)dst_len;
@@ -728,14 +730,14 @@ write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	if (fd == -1)
 		ERR();
 	char buf[4096];
-	ssize_t readsz;
-	readsz = read(fd, buf, sizeof(buf));
+	ssize_t read_sz;
+	read_sz = read(fd, buf, sizeof(buf));
 	if (close(fd) == -1)
 		ERR();
-	if (readsz < 0)
+	if (read_sz < 0)
 		ERR();
-	/* Check if webcam is running. */
-	if (xstrstr_len(buf, sizeof(buf), S_LITERAL("uvcvideo")))
+	buf[read_sz] = '\0';
+	if (xstrstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
 		dst = xstpcpy_len(dst, S_LITERAL("📸"));
 	return dst;
 }

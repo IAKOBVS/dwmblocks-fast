@@ -25,12 +25,12 @@ static struct Block gx_blocks[] = {
 	/* To use a shell script, set func to write_cmd and command to the shell script.
 	 * To use a C function, set command to NULL. */
 	/* Update Interval (sec)   Signal	Label	Function	Command */
-	{ 0,    SIG_WEBCAM, NULL, write_webcam_on,         NULL },
+	{ 0,    SIG_WEBCAM, "",   write_webcam_on,         NULL },
 	/* Do not change the order of obs: write_obs_on must be before write_obs_recording */
-	{ 0,    SIG_OBS,    NULL, write_obs_on,            NULL },
-	{ 0,    SIG_OBS,    NULL, write_obs_recording,     NULL },
+	{ 0,    SIG_OBS,    NULL,   write_obs_on,            NULL },
+	{ 0,    SIG_OBS,    "",   write_obs_recording,     NULL },
 #	ifdef USE_ALSA
-	{ 0,    SIG_MIC,    NULL, write_mic_muted,         NULL },
+	{ 0,    SIG_MIC,    NULL,   write_mic_muted,         NULL },
 #	endif
 	{ 3600, 0,          "📅", write_date,              NULL },
 	{ 2,    0,          "🧠", write_ram_usage_percent, NULL },

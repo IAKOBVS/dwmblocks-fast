@@ -5,6 +5,8 @@
 
 #	include "config.h"
 
+#	define MAX(x, y)    (((x) > (y)) ? (x) : (y))
+#	define MIN(x, y)    (((x) < (y)) ? (x) : (y))
 #	define S_LEN(s)     (sizeof(s) - 1)
 #	define S_LITERAL(s) s, S_LEN(s)
 
@@ -44,19 +46,19 @@
 #	endif
 
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FREAD_UNLOCKED
-#		define fread(ptr, size, n, stream) fread_unlocked(ptr, size, n, stream)
+#		define io_fread(ptr, size, n, stream) fread_unlocked(ptr, size, n, stream)
 #	else
-#		define fread(ptr, size, n, stream) fread(ptr, size, n, stream)
+#		define io_fread(ptr, size, n, stream) fread(ptr, size, n, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETC_UNLOCKED
-#		define fgetc(stream) fgetc_unlocked(stream)
+#		define io_fgetc(stream) fgetc_unlocked(stream)
 #	else
-#		define fgetc(stream) fgetc(stream)
+#		define io_fgetc(stream) fgetc(stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETWS_UNLOCKED
-#		define fgetws(ws, n, stream) fgetws_unlocked(ws, n, stream)
+#		define io_fgetws(ws, n, stream) fgetws_unlocked(ws, n, stream)
 #	else
-#		define fgetws(ws, n, stream) fgetws(ws, n, stream)
+#		define io_fgetws(ws, n, stream) fgetws(ws, n, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_GETC_UNLOCKED
 #		define getc(stream) getc_unlocked(stream)
@@ -69,9 +71,9 @@
 #		define getchar() getchar()
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETS_UNLOCKED
-#		define fgets(s, n, stream) fgets_unlocked(s, n, stream)
+#		define io_fgets(s, n, stream) fgets_unlocked(s, n, stream)
 #	else
-#		define fgets(s, n, stream) fgets(s, n, stream)
+#		define io_fgets(s, n, stream) fgets(s, n, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_GETWC_UNLOCKED
 #		define getwc(stream) getwc_unlocked(stream)
@@ -84,15 +86,15 @@
 #		define getwchar() getwchar()
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETWC_UNLOCKED
-#		define fgetwc(stream) fgetwc_unlocked(stream)
+#		define io_fgetwc(stream) fgetwc_unlocked(stream)
 #	else
-#		define fgetwc(stream) fgetwc(stream)
+#		define io_fgetwc(stream) fgetwc(stream)
 #	endif
 
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTWC_UNLOCKED
-#		define fputwc(wc, stream) fputwc_unlocked(wc, stream)
+#		define io_fputwc(wc, stream) fputwc_unlocked(wc, stream)
 #	else
-#		define fputwc(wc, stream) fputwc(wc, stream)
+#		define io_fputwc(wc, stream) fputwc(wc, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_PUTWCHAR_UNLOCKED
 #		define putwchar(wc) putwchar_unlocked(wc)
@@ -100,14 +102,14 @@
 #		define putwchar(wc) putwchar(wc)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTS_UNLOCKED
-#		define fputs(s, stream) fputs_unlocked(s, stream)
+#		define io_fputs(s, stream) fputs_unlocked(s, stream)
 #	else
-#		define fputs(s, stream) fputs(s, stream)
+#		define io_fputs(s, stream) fputs(s, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTWS_UNLOCKED
-#		define fputws(ws, stream) fputws_unlocked(ws, stream)
+#		define io_fputws(ws, stream) fputws_unlocked(ws, stream)
 #	else
-#		define fputws(ws, stream) fputws(ws, stream)
+#		define io_fputws(ws, stream) fputws(ws, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_PUTC_UNLOCKED
 #		define putc(c, stream) putc_unlocked(c, stream)
@@ -120,14 +122,14 @@
 #		define putchar(c) putchar(c)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FWRITE_UNLOCKED
-#		define fwrite(ptr, size, n, stream) fwrite_unlocked(ptr, size, n, stream)
+#		define io_fwrite(ptr, size, n, stream) fwrite_unlocked(ptr, size, n, stream)
 #	else
-#		define fwrite(ptr, size, n, stream) fwrite(ptr, size, n, stream)
+#		define io_fwrite(ptr, size, n, stream) fwrite(ptr, size, n, stream)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTC_UNLOCKED
-#		define fputc(c, stream) fputc_unlocked(c, stream)
+#		define io_fputc(c, stream) fputc_unlocked(c, stream)
 #	else
-#		define fputc(c, stream) fputc(c, stream)
+#		define io_fputc(c, stream) fputc(c, stream)
 #	endif
 
 #	if USE_UNLOCKED_IO && HAVE_CLEARERR_UNLOCKED
@@ -136,24 +138,24 @@
 #		define clearerr(stream) clearerr(stream)
 #	endif
 #	if USE_UNLOCKED_IO && HAVE_FEOF_UNLOCKED
-#		define feof(stream) feof_unlocked(stream)
+#		define io_feof(stream) feof_unlocked(stream)
 #	else
-#		define feof(stream) feof(stream)
+#		define io_feof(stream) feof(stream)
 #	endif
 #	if USE_UNLOCKED_IO && HAVE_FERROR_UNLOCKED
-#		define ferror(stream) ferror_unlocked(stream)
+#		define io_ferror(stream) ferror_unlocked(stream)
 #	else
-#		define ferror(stream) ferror(stream)
+#		define io_ferror(stream) ferror(stream)
 #	endif
 #	if USE_UNLOCKED_IO && HAVE_FILENO_UNLOCKED
-#		define fileno(stream) fileno_unlocked(stream)
+#		define io_fileno(stream) fileno_unlocked(stream)
 #	else
-#		define fileno(stream) fileno(stream)
+#		define io_fileno(stream) fileno(stream)
 #	endif
 #	if USE_UNLOCKED_IO && HAVE_FFLUSH_UNLOCKED
-#		define fflush(stream) fflush_unlocked(stream)
+#		define io_fflush(stream) fflush_unlocked(stream)
 #	else
-#		define fflush(stream) fflush(stream)
+#		define io_fflush(stream) fflush(stream)
 #	endif
 
 static int

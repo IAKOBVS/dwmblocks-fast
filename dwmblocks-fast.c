@@ -36,7 +36,6 @@
 
 #define LEN(X)       (sizeof(X) / sizeof(X[0]))
 #define GX_CMDLENGTH 64
-#define MIN(a, b)    ((a < b) ? a : b)
 #define GX_STATUSLEN (S_LEN(" ") + LEN(gx_blocks) * GX_CMDLENGTH + 1)
 
 typedef struct Block Block;
