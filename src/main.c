@@ -22,10 +22,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <assert.h>
 #ifndef NO_X
 #	include <X11/Xlib.h>
 #	include <X11/Xatom.h>
 #endif
+
+#include "macros.h"
+#include "utils.h"
 
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1

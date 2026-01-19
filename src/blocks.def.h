@@ -24,6 +24,7 @@
 #ifndef BLOCKS_H
 #	define BLOCKS_H 1
 
+#	include <stdlib.h>
 #	include "components.h"
 
 #	define SIG_AUDIO  10
