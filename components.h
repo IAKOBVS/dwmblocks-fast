@@ -740,6 +740,7 @@ write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	if (xstrstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
 		dst = xstpcpy_len(dst, S_LITERAL("📸"));
 	return dst;
+	(void)dst_len;
 	(void)interval;
 	(void)unused;
 }
