@@ -9,15 +9,14 @@ an actual change.
 
 # Installation
 ## Arch Linux
-### Manually
 ```
 git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 cd dwmblocks-fast-git
+makepkg --nobuild
+cd src/dwmblocks-fast/src/
+/* Configure config.h blocks.h components.h */
+cd ../../..
 makepkg -si
-```
-### Using an AUR helper
-```
-yay -S dwmblocks-fast-git
 ```
 # Building
 ```
@@ -37,7 +36,7 @@ dwmblocks -p # | some_window_manager
 ```
 # Modifying blocks
 ## Adding a shell script
-### blocks.h
+### src/blocks.h
 ```
 #define SIG_SH 11
 static struct Block g_blocks[] = {
@@ -47,7 +46,7 @@ static struct Block g_blocks[] = {
 }
 ```
 ## Adding a C function
-### blocks.h
+### src/blocks.h
 ```
 static struct Block g_blocks[] = {
     /* Update_interval   Signal    Label    Function    Command*/
@@ -55,7 +54,7 @@ static struct Block g_blocks[] = {
     /* ... */
 }
 ```
-### components.h
+### src/components.h
 ```
 static char *
 write_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)

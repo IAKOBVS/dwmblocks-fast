@@ -50,6 +50,7 @@ PROG = $(BIN)/dwmblocks-fast
 SCRIPTSDIR = scripts
 SCRIPTSOLD = $(SCRIPTSDIR)/dwmblocks-fast-*
 SCRIPTS = $(BIN)/dwmblocks-fast-*
+CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
 
 all: options $(PROG) $(SCRIPTS)
 
@@ -59,7 +60,7 @@ options:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
 
-$(PROG): $(SRC)/main.c $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
+$(PROG): $(SRC)/main.c $(CFGS)
 	mkdir -p $(BIN)
 	$(CC) -o $(PROG) $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
 
@@ -71,6 +72,8 @@ $(SRC)/config.h:
 
 $(SRC)/components.h:
 	cp $(SRC)/components.def.h $@
+
+config: $(CFGS)
 
 clean:
 	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(PROG) $(BIN)/dwmblocks-fast-*
