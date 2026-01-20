@@ -49,7 +49,7 @@ SCRIPTS     = scripts/dwmblocks-fast-*
 SCRIPTS_NEW = bin/dwmblocks-fast-*
 HFILES      = src/*.h
 
-all: options dwmblocks-fast
+all: options $(BINDIR)/dwmblocks-fast $(SCRIPTS)
 
 options:
 	@echo dwmblocks-fast build options:
@@ -60,6 +60,7 @@ options:
 $(BINDIR)/dwmblocks-fast: $(SRC)/main.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
 	mkdir -p $(BINDIR)
 	$(CC) -o $(BINDIR)/dwmblocks-fast $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
+	chmod 755 $(BINDIR)/dwmblocks-fast
 
 $(SRC)/blocks.h:
 	cp $(SRC)/blocks.def.h $@
@@ -75,10 +76,10 @@ clean:
 
 $(SCRIPTS):
 	@./updatesig
+	chmod 755 $(SCRIPTS)
 
 install: $(BINDIR)/dwmblocks-fast $(SCRIPTS)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
 	cp -f $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW) $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
