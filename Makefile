@@ -57,7 +57,7 @@ options:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
 
-dwmblocks-fast: $(SRC)/main.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
+$(BINDIR)/dwmblocks-fast: $(SRC)/main.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
 	mkdir -p $(BINDIR)
 	$(CC) -o $(BINDIR)/dwmblocks-fast $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
 
@@ -73,8 +73,10 @@ $(SRC)/components.h:
 clean:
 	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(BINDIR)/dwmblocks-fast
 
-install: $(BINDIR)/dwmblocks-fast $(SCRIPTS)
+$(SCRIPTS):
 	@./updatesig
+
+install: $(BINDIR)/dwmblocks-fast $(SCRIPTS)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	chmod 755 $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW)
 	cp -f $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW) $(DESTDIR)$(PREFIX)/bin
