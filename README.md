@@ -84,7 +84,7 @@ Linux: for monitoring processes with procfs and RAM usage with sysinfo
 If you do not want to use certain configurations, not to use NVML, for example, you can
 comment out the parts you want to exclude in config.h and the Makefilee, and the program
 will be built without them. For example, to disable NVML:
-## config.mk
+## Makefile
 ```
 # NVML (comment to disable)
 # NVMLLIB = /opt/cuda/lib64
