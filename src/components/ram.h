@@ -54,8 +54,7 @@ c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	(void)unused;
 	(void)interval;
 #	else
-	if (c_write_cmd(dst, dst_len, CMD_RAM_USAGE) != NULL)
-		ERR(return dst);
+	return c_write_cmd(dst, dst_len, CMD_RAM_USAGE);
 #	endif
 }
 

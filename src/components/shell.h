@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_CPU_H
-#	define C_CPU_H 1
+#ifndef C_SHELL_H
+#	define C_SHELL_H 1
 
 #	include "../config.h"
 
@@ -61,4 +61,4 @@ c_write_shell(char *dst, unsigned int dst_len, const char *cmd)
 	return dst;
 }
 
-#endif /* C_CPU_H */
+#endif /* C_SHELL_H */

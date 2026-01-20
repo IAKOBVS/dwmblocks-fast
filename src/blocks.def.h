@@ -47,22 +47,26 @@ struct Block {
 /* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
 static struct Block g_blocks[] = {
 	/* To use a shell script, set func to c_write_cmd and command to the shell script.
-	 * To use a C function, set command to NULL. */
-	/* Update Interval (sec)   Signal	Label	Function	Command */
-	{ 0,    SIG_WEBCAM, "",   c_write_webcam_on,         NULL },
-	/* Do not change the order of obs: c_write_obs_on must be before c_write_obs_recording */
+	 * To use a C function, set command to NULL.
+	 *
+	 * Update_interval    Signal    Label    Function    Command */
+	{ 0,    SIG_WEBCAM, NULL, c_write_webcam_on,         NULL },
+	/* ================================================================================================= */
+	/* Do not change the order: c_write_obs_on must be placed before c_write_obs_recording! */
+	/* ================================================================================================= */
 	{ 0,    SIG_OBS,    NULL, c_write_obs_on,            NULL },
-	{ 0,    SIG_OBS,    "",   c_write_obs_recording,     NULL },
-#	if USE_ALSA
+	{ 0,    SIG_OBS,    NULL, c_write_obs_recording,     NULL },
+	/* ================================================================================================= */
+#	ifdef USE_ALSA
 	{ 0,    SIG_MIC,    NULL, c_write_mic_muted,         NULL },
 #	endif
 	{ 3600, 0,          "📅", c_write_date,              NULL },
-	{ 2,    0,          "🧠", c_write_ram_usage_percent, NULL },
+	{ 30,   0,          "🧠", c_write_ram_usage_percent, NULL },
 	{ 2,    0,          "💻", c_write_cpu_temp,          NULL },
-#	if USE_NVML
+#	ifdef USE_NVIDIA
 	{ 2,    0,          "🚀", c_write_gpu_temp,          NULL },
 #	endif
-#	if USE_ALSA
+#	ifdef USE_ALSA
 	{ 0,    SIG_AUDIO,  "🔉", c_write_speaker_vol,       NULL },
 #	endif
 	{ 60,   0,          "⏰", c_write_time,              NULL },
