@@ -22,6 +22,8 @@ makepkg -si
 # Building
 ```
 # your-package-manager-install alsa-lib cuda
+make config
+# Configure config.h blocks.h components.h
 make
 sudo make install
 ```
