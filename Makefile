@@ -39,17 +39,19 @@ NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
 CFLAGS += $(ARCHFLAGS)
 LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
 
-PREFIX      = /usr/local
-CC          = cc
-CFLAGS      += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
-SRC         = src
-PROG        = dwmblocks-fast
-BINDIR      = bin
-SCRIPTS     = scripts/dwmblocks-fast-*
-SCRIPTS_NEW = bin/dwmblocks-fast-*
-HFILES      = src/*.h
+PREFIX = /usr/local
+CC = cc
+CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
+SRC = src
+PROG = dwmblocks-fast
+BIN = bin
+HFILES = src/*.h
+PROG = $(BIN)/dwmblocks-fast
+SCRIPTSDIR = scripts
+SCRIPTSOLD = $(SCRIPTSDIR)/dwmblocks-fast-*
+SCRIPTS = $(BIN)/dwmblocks-fast-*
 
-all: options $(BINDIR)/dwmblocks-fast $(SCRIPTS)
+all: options $(PROG) $(SCRIPTS)
 
 options:
 	@echo dwmblocks-fast build options:
@@ -57,10 +59,9 @@ options:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
 
-$(BINDIR)/dwmblocks-fast: $(SRC)/main.c $(SRC)/blocks.def.h $(SRC)/blocks.h $(SRC)/config.def.h $(SRC)/config.h $(SRC)/components.def.h $(SRC)/components.h
-	mkdir -p $(BINDIR)
-	$(CC) -o $(BINDIR)/dwmblocks-fast $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
-	chmod 755 $(BINDIR)/dwmblocks-fast
+$(PROG): $(SRC)/main.c $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
+	mkdir -p $(BIN)
+	$(CC) -o $(PROG) $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
 
 $(SRC)/blocks.h:
 	cp $(SRC)/blocks.def.h $@
@@ -72,15 +73,15 @@ $(SRC)/components.h:
 	cp $(SRC)/components.def.h $@
 
 clean:
-	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(BINDIR)/dwmblocks-fast
+	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(PROG) $(BIN)/dwmblocks-fast-*
 
 $(SCRIPTS):
-	@./updatesig
-	chmod 755 $(SCRIPTS)
+	./updatesig $(BIN) $(SCRIPTSOLD)
 
-install: $(BINDIR)/dwmblocks-fast $(SCRIPTS)
+install: $(PROG) $(SCRIPTS)
+	chmod 755 $(PROG) $(SCRIPTS)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f $(BINDIR)/dwmblocks-fast $(SCRIPTS_NEW) $(DESTDIR)$(PREFIX)/bin
+	cp -f $(PROG) $(SCRIPTS) $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast
