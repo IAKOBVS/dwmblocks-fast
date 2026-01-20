@@ -17,6 +17,10 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+################################################################################
+# User configuration
+################################################################################
+
 # Compile only for this architecture (comment to disable)
 ARCHFLAGS += -march=native
 
@@ -39,7 +43,7 @@ NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
 CFLAGS += $(ARCHFLAGS)
 LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
 
-#
+################################################################################
 
 PREFIX = /usr/local
 CC = cc
@@ -48,8 +52,9 @@ SRC = src
 PROG = dwmblocks-fast
 BIN = bin
 HFILES = src/*.h
+SCRIPTSBASE = dwmblocks-fast-*
 PROG = $(BIN)/dwmblocks-fast
-SCRIPTS = $(BIN)/dwmblocks-fast-*
+SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
 
 all: options $(PROG) $(SCRIPTS)
@@ -74,11 +79,10 @@ $(SRC)/components.h:
 	cp $(SRC)/components.def.h $@
 
 $(SCRIPTS):
-	./updatesig $(BIN) scripts/dwmblocks-fast-*
+	./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
 clean:
-	rm -f $(PROG)
-	rm -f $(SCRIPTS)
+	rm -f $(PROG) $(SCRIPTS)
 
 config: $(CFGS)
 
@@ -88,6 +92,6 @@ install: $(PROG) $(SCRIPTS)
 	cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
-	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast
+	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
 .PHONY: all options clean install uninstall
