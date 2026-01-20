@@ -39,6 +39,8 @@ NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
 CFLAGS += $(ARCHFLAGS)
 LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
 
+#
+
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
@@ -47,8 +49,6 @@ PROG = dwmblocks-fast
 BIN = bin
 HFILES = src/*.h
 PROG = $(BIN)/dwmblocks-fast
-SCRIPTSDIR = scripts
-SCRIPTSOLD = $(SCRIPTSDIR)/dwmblocks-fast-*
 SCRIPTS = $(BIN)/dwmblocks-fast-*
 CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
 
@@ -62,7 +62,7 @@ options:
 
 $(PROG): $(SRC)/main.c $(CFGS)
 	mkdir -p $(BIN)
-	$(CC) -o $(PROG) $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
+	$(CC) -o $@ $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
 
 $(SRC)/blocks.h:
 	cp $(SRC)/blocks.def.h $@
@@ -73,18 +73,19 @@ $(SRC)/config.h:
 $(SRC)/components.h:
 	cp $(SRC)/components.def.h $@
 
-config: $(CFGS)
+$(SCRIPTS):
+	./updatesig $(BIN) scripts/dwmblocks-fast-*
 
 clean:
-	rm -f $(SRC)/*.o $(SRC)/*/*.o $(SRC)/*.gch $(SRC)/*/*.gch $(PROG) $(BIN)/dwmblocks-fast-*
+	rm -f $(PROG)
+	rm -f $(SCRIPTS)
 
-$(SCRIPTS):
-	./updatesig $(BIN) $(SCRIPTSOLD)
+config: $(CFGS)
 
 install: $(PROG) $(SCRIPTS)
-	chmod 755 $(PROG) $(SCRIPTS)
+	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f $(PROG) $(SCRIPTS) $(DESTDIR)$(PREFIX)/bin
+	cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast

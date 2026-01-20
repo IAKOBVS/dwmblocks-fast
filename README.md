@@ -14,6 +14,7 @@ git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 cd dwmblocks-fast-git
 makepkg --nobuild
 cd src/dwmblocks-fast/src/
+make config
 /* Configure config.h blocks.h components.h */
 cd ../../..
 makepkg -si
