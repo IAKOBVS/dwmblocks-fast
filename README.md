@@ -15,7 +15,7 @@ cd dwmblocks-fast-git
 makepkg --nobuild
 cd src/dwmblocks-fast/src/
 make config
-/* Configure config.h blocks.h components.h */
+# Configure config.h blocks.h components.h
 cd ../../..
 makepkg -si
 ```
