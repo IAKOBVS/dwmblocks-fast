@@ -82,9 +82,9 @@ setupX();
 static Display *g_dpy;
 static int g_screen;
 static Window g_root;
-static int g_write_dst = G_WRITE_STATUSBAR;
+static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
-static int g_write_dst = G_WRITE_STDOUT;
+static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
 
 #include "blocks.h"
@@ -130,8 +130,7 @@ getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char
 			/* Get the result of getcmd. */
 			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
 			/* Check if needs update. */
-			if (tmp_len != statusbar_len[i]
-			    || memcmp(tmp, g_statusbar[i], tmp_len)) {
+			if (tmp_len != statusbar_len[i] || memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
 				xstpcpy_len(g_statusbar[i], tmp, tmp_len);
 				statusbar_len[i] = tmp_len;

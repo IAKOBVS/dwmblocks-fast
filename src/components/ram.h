@@ -20,6 +20,7 @@
 #	define C_RAM_H 1
 
 #	include "../config.h"
+#	include "procfs.h"
 
 #	include <stdlib.h>
 #	include <stdio.h>
@@ -54,7 +55,7 @@ c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	(void)unused;
 	(void)interval;
 #	else
-	return c_write_cmd(dst, dst_len, CMD_RAM_USAGE);
+	return c_write_shell(dst, dst_len, CMD_RAM_USAGE);
 #	endif
 }
 

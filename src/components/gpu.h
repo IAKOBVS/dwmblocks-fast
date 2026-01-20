@@ -119,7 +119,7 @@ c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 static char *
 c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_TEMP);
+	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_TEMP, interval);
 	(void)dst_len;
 	(void)unused;
 	(void)interval;

@@ -29,7 +29,7 @@
 
 /* Execute shell script. */
 static char *
-c_write_shell(char *dst, unsigned int dst_len, const char *cmd)
+c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
 #	if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
@@ -58,6 +58,7 @@ c_write_shell(char *dst, unsigned int dst_len, const char *cmd)
 	(void)dst_len;
 	(void)cmd;
 #	endif
+	(void)interval;
 	return dst;
 }
 
