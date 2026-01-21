@@ -1,0 +1,3 @@
+#!/bin/sh
+pamixer -t
+pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast
