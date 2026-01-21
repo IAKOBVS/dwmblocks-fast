@@ -26,10 +26,10 @@
 
 #	include "components.h"
 
-#	define SIG_AUDIO  10
-#	define SIG_OBS    9
-#	define SIG_MIC    8
-#	define SIG_WEBCAM 6
+#	define SIG_AUDIO  1
+#	define SIG_OBS    2
+#	define SIG_MIC    3
+#	define SIG_WEBCAM 4
 
 /* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
 #	define DELIM    " | "
