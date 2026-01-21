@@ -33,7 +33,7 @@
 #		define C_PLAYBACK      1
 #		define C_CAPTURE       2
 
-static struct Audio {
+typedef struct {
 	const char *card;
 	const char *selem_name;
 	snd_mixer_t *handle;
@@ -44,10 +44,11 @@ static struct Audio {
 	int ret;
 	int playback_or_capture;
 	int has_mute;
-} c_audio_speaker, c_audio_mic;
+} c_audio_ty;
+static c_audio_ty c_audio_speaker, c_audio_mic;
 
 static void
-c_audio_cleanup_one(struct Audio *audio)
+c_audio_cleanup_one(c_audio_ty *audio)
 {
 	if (audio->handle)
 		snd_mixer_close(audio->handle);
@@ -70,7 +71,7 @@ c_audio_err(void)
 }
 
 static void
-c_audio_init_one(struct Audio *audio, const char *card, const char *selem_name, int playback_or_capture)
+c_audio_init_one(c_audio_ty *audio, const char *card, const char *selem_name, int playback_or_capture)
 {
 	audio->card = card;
 	audio->selem_name = selem_name;
@@ -130,7 +131,7 @@ c_audio_init()
 }
 
 static int
-c_read_audio_volume(struct Audio *audio)
+c_read_audio_volume(c_audio_ty *audio)
 {
 	if (audio->init == 0)
 		c_audio_init();
@@ -148,7 +149,7 @@ c_read_audio_volume(struct Audio *audio)
 }
 
 static int
-c_read_audio_muted(struct Audio *audio)
+c_read_audio_muted(c_audio_ty *audio)
 {
 	if (audio->has_mute) {
 		if (audio->init == 0)

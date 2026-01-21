@@ -71,4 +71,10 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	(void)interval;
 }
 
+/* TODO: cpu usage */
+/* static char * */
+/* c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval) */
+/* { */
+/* } */
+
 #endif /* C_CPU_H */

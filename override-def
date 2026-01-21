@@ -1,0 +1,4 @@
+#!/bin/sh
+cp -f src/blocks.h src/blocks.def.h
+cp -f src/components.h src/components.def.h
+cp -f src/config.h src/config.def.h
