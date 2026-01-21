@@ -23,7 +23,7 @@
 
 
 #	define OBS_OPEN_ICON       "🎥 OBS"
-#	define OBS_OPEN_INTERVAL   4
+#	define OBS_OPEN_INTERVAL   2
 #	define OBS_RECORD_ICON     "🔴 Recording"
 #	define OBS_RECORD_INTERVAL 2
 
