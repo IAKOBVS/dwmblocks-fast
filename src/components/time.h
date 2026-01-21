@@ -43,16 +43,30 @@ c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	struct tm *tm = c_read_time();
 	if (tm == NULL)
 		ERR(return NULL);
+	unsigned int h = (unsigned int)tm->tm_hour;
+	char meridiem;
 	char *p = dst;
+	/* Convert to 12-hour clock */
+	if (h > 12) {
+		meridiem = 'P';
+		h -= 12;
+	} else {
+		meridiem = 'A';
+		if (h < 10)
+			*p++ = '0';
+	}
 	/* Write hour */
-	if (tm->tm_hour < 10)
-		*p++ = '0';
-	p = utoa_p((unsigned int)tm->tm_hour, p);
+	p = utoa_p(h, p);
 	*p++ = ':';
 	if (tm->tm_min < 10)
 		*p++ = '0';
 	/* Write minutes */
 	p = utoa_p((unsigned int)tm->tm_min, p);
+	*p++ = ' ';
+	/* Write AM or PM */
+	*p++ = meridiem;
+	*p++ = 'M';
+	*p = '\0';
 	return p;
 	(void)dst_len;
 	(void)unused;
