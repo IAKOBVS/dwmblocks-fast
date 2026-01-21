@@ -63,7 +63,7 @@ c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	/* Write minutes */
 	p = utoa_p((unsigned int)tm->tm_min, p);
 	*p++ = ' ';
-	/* Write AM or PM */
+	/* AM or PM */
 	*p++ = meridiem;
 	*p++ = 'M';
 	*p = '\0';
