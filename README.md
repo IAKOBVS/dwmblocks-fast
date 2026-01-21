@@ -96,3 +96,8 @@ will be built without them. For example, to disable NVML:
 /* #define USE_NVML 1 */
 /* #define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h" */
 ```
+# Configuration (using patches)
+For example, to disable NVML;
+```
+git apply/disable-nvml.patch
+```
