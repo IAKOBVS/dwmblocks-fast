@@ -99,5 +99,5 @@ will be built without them. For example, to disable NVML:
 # Configuration (using patches)
 For example, to disable NVML;
 ```
-git apply/disable-nvml.patch
+git apply patch/disable-nvml.patch
 ```
