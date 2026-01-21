@@ -26,10 +26,12 @@
 
 #	if USE_ALSA
 
-#		define C_MIC_UNMUTED "🎤"
-#		define C_MIC_MUTED   "🔇"
-#		define C_PLAYBACK    1
-#		define C_CAPTURE     2
+#		define C_AUDIO_UNMUTED "🔉"
+#		define C_AUDIO_MUTED   "🔇"
+#		define C_MIC_UNMUTED   "🎤"
+#		define C_MIC_MUTED     "🚫"
+#		define C_PLAYBACK      1
+#		define C_CAPTURE       2
 
 static struct Audio {
 	const char *card;
@@ -196,7 +198,12 @@ static char *
 c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
-	p = utoa_p((unsigned int)c_read_speaker_volume(), dst);
+	if (!c_read_speaker_muted())
+		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_UNMUTED));
+	else
+		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_MUTED));
+	*p++ = ' ';
+	p = utoa_p((unsigned int)c_read_speaker_volume(), p);
 	*p++ = '%';
 	*p = '\0';
 	return p;
@@ -209,24 +216,8 @@ static char *
 c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
-	int vol = c_read_speaker_volume();
-	if (vol == -1)
-		ERR(return dst);
-	p = utoa_p((unsigned int)vol, dst);
-	*p++ = '%';
-	*p = '\0';
-	return p;
-	(void)dst_len;
-	(void)unused;
-	(void)interval;
-}
-
-static char *
-c_write_mic_muted(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	char *p = dst;
 	if (c_read_mic_muted()) {
-		p = xstpcpy_len(dst, S_LITERAL(C_MIC_MUTED));
+		p = xstpcpy_len(p, S_LITERAL(C_MIC_MUTED));
 	} else {
 		int vol = c_read_mic_volume();
 		if (vol == -1)

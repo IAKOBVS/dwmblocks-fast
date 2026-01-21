@@ -55,9 +55,9 @@ static struct Block g_blocks[] = {
 	/* ================================================================================================= */
 	{ 0,    SIG_OBS,    NULL, c_write_obs_on,            NULL },
 	{ 0,    SIG_OBS,    NULL, c_write_obs_recording,     NULL },
-	/* ================================================================================================= */
+/* ================================================================================================= */
 #	ifdef USE_ALSA
-	{ 0,    SIG_MIC,    NULL, c_write_mic_muted,         NULL },
+	{ 0,    SIG_MIC,    NULL, c_write_mic_vol,           NULL },
 #	endif
 	{ 3600, 0,          "📅", c_write_date,              NULL },
 	{ 30,   0,          "🧠", c_write_ram_usage_percent, NULL },
@@ -66,7 +66,7 @@ static struct Block g_blocks[] = {
 	{ 2,    0,          "🚀", c_write_gpu_temp,          NULL },
 #	endif
 #	ifdef USE_ALSA
-	{ 0,    SIG_AUDIO,  "🔉", c_write_speaker_vol,       NULL },
+	{ 0,    SIG_AUDIO,  NULL,   c_write_speaker_vol,       NULL },
 #	endif
 	{ 60,   0,          "⏰", c_write_time,              NULL },
 };
