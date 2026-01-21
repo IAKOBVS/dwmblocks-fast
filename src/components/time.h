@@ -95,10 +95,11 @@ c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	}
 	/* Write year */
 	p = utoa_p((unsigned int)tm->tm_year + 1900, p);
+	/* Set next update before day changes. */
+	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((60 - tm->tm_min) * 60) + (60 - tm->tm_sec));
 	return p;
 	(void)dst_len;
 	(void)unused;
-	(void)interval;
 }
 
 #endif /* C_TIME_H */

@@ -46,13 +46,10 @@ c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	if (read_sz == -1)
 		ERR(return NULL);
 	/* Chop newline. */
-	char *nl = (char *)memchr(dst, '\n', read_sz);
-	if (nl) {
-		*nl = '\0';
-		dst = nl;
-	} else {
-		*(dst += read_sz) = '\0';
-	}
+	char *end = (char *)memchr(dst, '\n', read_sz);
+	/* Nul-terminate newline or end of string. */
+	dst = end ? end : dst + read_sz;
+	*dst = '\0';
 #	else
 	assert("c_write_cmd: calling c_write_cmd when popen or pclose is not available!");
 	(void)dst_len;
