@@ -24,7 +24,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <assert.h>
-#ifndef NO_X
+#ifdef USE_X11
 #	include <X11/Xlib.h>
 #	include <X11/Xatom.h>
 #endif
@@ -76,7 +76,7 @@ g_ret_ty
 statusloop();
 void
 termhandler(int signum);
-#ifndef NO_X
+#ifdef USE_X11
 static g_ret_ty
 setupX();
 static Display *g_dpy;
@@ -186,7 +186,7 @@ getstatus(char *dst)
 	}
 }
 
-#ifndef NO_X
+#ifdef USE_X11
 static int
 g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 {
@@ -222,7 +222,7 @@ g_ret_ty
 writestatus(char *status)
 {
 	char *p = getstatus(status);
-#ifndef NO_X
+#ifdef USE_X11
 	if (g_write_dst == G_WRITE_STATUSBAR) {
 		g_XStoreNameLen(g_dpy, g_root, status, p - status);
 		XFlush(g_dpy);
@@ -291,7 +291,7 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-#ifndef NO_X
+#ifdef USE_X11
 	if (setupX() == G_RET_ERR)
 		return EXIT_FAILURE;
 #endif
@@ -301,7 +301,7 @@ main(int argc, char **argv)
 		ERR(return EXIT_FAILURE);
 	if (statusloop() == G_RET_ERR)
 		ERR(return EXIT_FAILURE);
-#ifndef NO_X
+#ifdef USE_X11
 	XCloseDisplay(g_dpy);
 #endif
 	return EXIT_SUCCESS;
