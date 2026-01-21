@@ -19,13 +19,16 @@
 #ifndef CONFIG_H
 #	define CONFIG_H 1
 
+/* Use unlocked stdio functions, since single-threaded. */
 #	define USE_UNLOCKED_IO 1
+
+/* Monitor Nvidia GPU. nvidia-settings as fallback. Comment to disable. */
+#	define USE_NVIDIA  1
 
 /* Monitor audio volume, requires ALSA. Comment to disable. */
 #	define USE_ALSA 1
 
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
-#	define USE_NVIDIA  1 /* nvidia-settings as fallback. */
 #	define USE_NVML    1
 #	define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
 

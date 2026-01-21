@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: ISC */
+# SPDX-License-Identifier: ISC
 # Copyright 2020 torrinfail
 # This file is part of dwmblocks-fast, derived from dwmblocks with
 # modifications.
