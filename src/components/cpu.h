@@ -60,10 +60,11 @@ c_read_cpu_temp(void)
 static char *
 c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	int usage = c_read_cpu_temp();
-	if (usage < 0)
+	const int temp = c_read_cpu_temp();
+	if (temp < 0)
 		ERR(return NULL);
-	char *p = utoa_p((unsigned int)usage, dst);
+	char *p = dst;
+	p = utoa_p((unsigned int)temp, p);
 	p = xstpcpy_len(p, S_LITERAL("°"));
 	return p;
 	(void)dst_len;
@@ -71,10 +72,78 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	(void)interval;
 }
 
-/* TODO: cpu usage */
-/* static char * */
-/* c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval) */
-/* { */
-/* } */
+static int
+c_read_cpu_usage()
+{
+	char buf[4096];
+	int fd = open("/proc/stat", O_RDONLY);
+	if (fd == -1)
+		ERR();
+	ssize_t read_sz = read(fd, buf, sizeof(buf));
+	if (close(fd) == -1)
+		ERR();
+	if (read_sz < 0)
+		ERR();
+	buf[read_sz] = '\0';
+	static int l_user, l_nice, l_system, l_idle, l_iowl_it, l_irq, l_softirq;
+	int user = l_user, nice = l_nice, system = l_system, idle = l_idle, iowl_it = l_iowl_it, irq = l_irq, softirq = l_softirq;
+	char *p = buf;
+	/* clang-format off */
+	p += S_LEN("CPU  ");
+	l_user = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	if (user == 0)
+		return 0;
+	l_nice = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	l_system = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	l_idle = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	l_iowl_it = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	l_irq = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	l_softirq = (int)xstrtou10(p, &p);
+	/* clang-format off */
+	const int tot = nice + user + system + idle + iowl_it + irq + softirq;
+	const int l_tot = l_nice + l_user + l_system + l_idle + l_iowl_it + l_irq + l_softirq;
+	const int sum = tot - l_tot;
+	if (sum == 0)
+		return 0;
+	const int l_tot2 = l_user + l_nice + l_system + l_irq + l_softirq;
+	const int tot2 = user + nice + system + irq + softirq;
+	return (int)((long double)100 * ((long double)(tot2 - l_tot2) / (long double)sum));
+}
+
+static char *
+c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+	const int usage = c_read_cpu_usage();
+	if (usage < 0)
+		ERR(return NULL);
+	char *p = dst;
+	p = utoa_p((unsigned int)usage, p);
+	p = xstpcpy_len(p, S_LITERAL("%"));
+	return p;
+	(void)dst_len;
+	(void)unused;
+	(void)interval;
+}
+
+static char *
+c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+	const int usage = c_read_cpu_usage();
+	if (usage < 0)
+		ERR(return NULL);
+	const int temp = c_read_cpu_temp();
+	if (temp < 0)
+		ERR(return NULL);
+	char *p = dst;
+	p = utoa_p((unsigned int)temp, p);
+	p = xstpcpy_len(p, S_LITERAL("°"));
+	*p++ = ' ';
+	p = utoa_p((unsigned int)usage, p);
+	p = xstpcpy_len(p, S_LITERAL("%"));
+	return p;
+	(void)dst_len;
+	(void)unused;
+	(void)interval;
+}
 
 #endif /* C_CPU_H */

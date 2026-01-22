@@ -21,7 +21,7 @@
 
 #	include "../config.h"
 
-#	if USE_NVML
+#	ifdef USE_NVML
 #		include <stdlib.h>
 #		include <assert.h>
 
@@ -220,7 +220,7 @@ c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	return c_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
 }
 
-#	elif USE_NVIDIA
+#	elif defined USE_NVIDIA
 
 #		include "shell.h"
 static char *

@@ -24,6 +24,9 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#include "config.h"
+
 #ifdef USE_X11
 #	include <X11/Xlib.h>
 #	include <X11/Xatom.h>

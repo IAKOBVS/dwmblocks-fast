@@ -45,6 +45,17 @@ xisdigit(int c)
 	return ((unsigned)c - '0' < 10);
 }
 
+static unsigned int
+xstrtou10(char *p, char **endp)
+{
+	unsigned int n = 0;
+	unsigned char *pp = (unsigned char *)p;
+	while (xisdigit(*pp))
+		n = n * 10 + *(pp++) - '0';
+	*endp = (char *)pp;
+	return n;
+}
+
 static char *
 xstpcpy_len(char *dst, const char *src, size_t n)
 {
