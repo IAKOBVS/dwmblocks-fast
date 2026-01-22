@@ -156,29 +156,32 @@ c_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigne
 	(void)interval;
 }
 
+typedef struct {
+	unsigned int temp;
+	unsigned int usage;
+	unsigned int vram;
+} c_gpu_values_ty;
+
 static void
-c_gpu_monitor_devices_all(unsigned int *avg_temp, unsigned int *avg_usage, unsigned int *avg_vram)
+c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 {
-	*avg_temp = 0;
-	*avg_usage = 0;
-	*avg_vram = 0;
 	for (unsigned int i = 0; i < c_gpu.deviceCount; ++i) {
 		c_gpu.ret = nvmlDeviceGetTemperature(c_gpu.device[i], NVML_TEMPERATURE_GPU, c_gpu.temp + i);
 		/* FIXME: does not work. */
 		/* c_gpu.ret = nvmlDeviceGetTemperatureV(c_gpu.device[i], c_gpu.temp + i); */
 		if (c_gpu.ret != NVML_SUCCESS)
 			ERR(c_gpu_err());
-		*avg_temp += c_gpu.temp[i];
+		val->temp += c_gpu.temp[i];
 		c_gpu.ret = nvmlDeviceGetUtilizationRates(c_gpu.device[i], c_gpu.utilization + i);
 		if (c_gpu.ret != NVML_SUCCESS)
 			ERR(c_gpu_err());
-		*avg_usage += c_gpu.utilization[i].gpu;
-		*avg_vram += c_gpu.utilization[i].memory;
+		val->usage += c_gpu.utilization[i].gpu;
+		val->vram += c_gpu.utilization[i].memory;
 	}
 	if (c_gpu.deviceCount > 0) {
-		*avg_temp /= c_gpu.deviceCount;
-		*avg_usage /= c_gpu.deviceCount;
-		*avg_vram /= c_gpu.deviceCount;
+		val->temp /= c_gpu.deviceCount;
+		val->usage /= c_gpu.deviceCount;
+		val->vram /= c_gpu.deviceCount;
 	}
 }
 
@@ -187,16 +190,16 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 {
 	if (c_gpu.init == 0)
 		c_gpu_init();
-	unsigned int avg_temp, avg_usage, avg_vram;
-	c_gpu_monitor_devices_all(&avg_temp, &avg_usage, &avg_vram);
+	c_gpu_values_ty val = {0};
+	c_gpu_monitor_devices_all(&val);
 	char *p = dst;
-	p = utoa_p(avg_temp, p);
+	p = utoa_p(val.temp, p);
 	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
-	p = utoa_p(avg_usage, p);
+	p = utoa_p(val.usage, p);
 	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p++ = ' ';
-	p = utoa_p(avg_vram, p);
+	p = utoa_p(val.vram, p);
 	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p = '\0';
 	return p;
