@@ -128,18 +128,18 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 static char *
 c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	const int usage = c_read_cpu_usage();
-	if (usage < 0)
-		ERR(return NULL);
 	const int temp = c_read_cpu_temp();
 	if (temp < 0)
+		ERR(return NULL);
+	const int usage = c_read_cpu_usage();
+	if (usage < 0)
 		ERR(return NULL);
 	char *p = dst;
 	p = utoa_p((unsigned int)temp, p);
 	p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
 	*p++ = ' ';
 	p = utoa_p((unsigned int)usage, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
+	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
