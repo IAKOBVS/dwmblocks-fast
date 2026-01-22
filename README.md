@@ -81,16 +81,19 @@ alsa-lib: for monitoring audio volume
 Linux: for monitoring processes with procfs and RAM usage with sysinfo
 
 # Configuration
-If you do not want to use certain configurations, not to use NVML, for example, you can
-comment out the parts you want to exclude in config.h and the Makefile, and the program
-will be built without them. For example, to disable NVML:
-## Makefile
+## Make (automatic)
+```
+make config # displays all the options
+```
+## Manually
+Comment out parts of the code in config.h and the Makefile.
+### Makefile
 ```
 # NVML (comment to disable)
 # NVMLLIB = /opt/cuda/lib64
 # LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 ```
-## config.h
+### config.h
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 /* #define USE_NVML 1 */

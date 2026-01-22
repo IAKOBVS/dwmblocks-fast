@@ -65,6 +65,47 @@ options:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "CC      = $(CC)"
 
+config: $(CFGS)
+	@echo 'Automated configuration:'
+	@echo 'Usage: make [OPTION]...'
+	@echo ''
+	@echo 'disable-nvidia'
+	@echo 'disable-nvml'
+	@echo 'disable-x11'
+	@echo 'disable-alsa'
+	@echo ''
+	@echo 'For example, to disable NVML, run:'
+	@echo 'make disable-nvml'
+
+disable-nvidia: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//; s/\(#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@mv Makefile Makefile.bak
+	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
+disable-nvml: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
+disable-x11: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@sed 's/^\(X11.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
+disable-alsa: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@sed 's/^\(ALSA.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
 $(PROG): $(SRC)/main.c $(CFGS)
 	mkdir -p $(BIN)
 	$(CC) -o $@ $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
@@ -79,12 +120,10 @@ $(SRC)/components.h:
 	cp $(SRC)/components.def.h $@
 
 $(SCRIPTS):
-	./updatesig $(BIN) scripts/$(SCRIPTSBASE)
+	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
 clean:
 	rm -f $(PROG) $(SCRIPTS)
-
-config: $(CFGS)
 
 install: $(PROG) $(SCRIPTS)
 	chmod 755 $^
