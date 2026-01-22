@@ -44,6 +44,7 @@ NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
 ################################################################################
 # Variables
 ################################################################################
+
 CFLAGS += $(ARCHFLAGS)
 LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
 PREFIX = /usr/local
@@ -57,6 +58,9 @@ SCRIPTSBASE = dwmblocks-fast-*
 PROG = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
+
+################################################################################
+# Targets
 ################################################################################
 
 all: options $(PROG) $(SCRIPTS)
