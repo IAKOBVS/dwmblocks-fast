@@ -81,6 +81,7 @@ alsa-lib: for monitoring audio volume
 Linux: for monitoring processes with procfs and RAM usage with sysinfo
 
 # Configuration
+To disable certain features or avoid using certain libraries.
 ## Make (automatic)
 ```
 make config # displays all the options
