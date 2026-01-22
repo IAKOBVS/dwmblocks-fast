@@ -35,7 +35,7 @@
 #	define USE_UNLOCKED_IO 1
 
 /* Path to CPU temperature */
-#	define CPU_TEMP_FILE "/sys/class/hwmon/hwmon3/temp2_input"
+#	define CPU_TEMP_FILE "/sys/class/thermal/thermal_zone1/temp"
 
 /* Shell scripts to execute if C functions are not available */
 #	define CMD_RAM_USAGE        "free | awk '/^Mem:/ {printf(" % d % % ", 100 - ($4/$2 * 100))}'"
