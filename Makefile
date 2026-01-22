@@ -136,7 +136,6 @@ install: $(PROG) $(SCRIPTS)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	cp -f $^ $(DESTDIR)$(PREFIX)/bin
 	mkdir -p $(DESTDIR)$(PREFIX)/src/dwmblocks-fast
-	cp -rf * $(DESTDIR)$(PREFIX)/src/dwmblocks-fast
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
