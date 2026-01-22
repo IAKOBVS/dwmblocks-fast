@@ -87,8 +87,9 @@ To disable certain features or avoid using certain libraries.
 make config # displays all the options
 ```
 ## Manually
-Comment out the parts you want to disable in config.h and the Makefile. This
-is what the make functions are automating. For example, to disable NVML:
+Specify custom parameters in config.h, and to disable certain parts, comment them
+out in config.h and the Makefile. This is what the make functions are automating.
+For example, to disable NVML:
 ### Makefile
 ```
 # NVML (comment to disable)
