@@ -61,11 +61,13 @@ static struct Block g_blocks[] = {
 #	endif
 	{ 3600, 0,          "📅", c_write_date,              NULL },
 	{ 30,   0,          "🧠", c_write_ram_usage_percent, NULL },
-	{ 2,    0,          "💻", c_write_cpu_temp,          NULL },
+	{ 2,    0,          "💻", c_write_cpu_all,           NULL },
+	/* { 2,    0,          "💻", c_write_cpu_temp,          NULL }, */
+	/* { 2,    0,          "💻", c_write_cpu_usage,         NULL }, */
 #	ifdef USE_NVIDIA
 	/* c_write_gpu_all: [temp]% [usage]% [vram]% */
-	/* { 2,    0,          "🚀", c_write_gpu_all,           NULL }, */
-	{ 2,    0,          "🚀", c_write_gpu_temp,          NULL },
+	{ 2,    0,          "🚀", c_write_gpu_all,           NULL },
+	/* { 2,    0,          "🚀", c_write_gpu_temp,          NULL }, */
 	/* { 2,    0,          "🚀", c_write_gpu_usage,         NULL }, */
 	/* { 2,    0,          "🚀", c_write_gpu_vram,          NULL }, */
 #	endif
