@@ -1,0 +1,2 @@
+#!/bin/sh
+pamixer --list-sources | awk '/input/ && /[Mm]icrophone/ {print $1; exit;}'
