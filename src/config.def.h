@@ -31,9 +31,6 @@
 #	define USE_NVML    1
 #	define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
 
-/* Use unlocked stdio functions, since single-threaded. */
-#	define USE_UNLOCKED_IO 1
-
 /* Path to CPU temperature */
 #	define CPU_TEMP_FILE "/sys/class/thermal/thermal_zone1/temp"
 
@@ -52,5 +49,8 @@
 
 #	define UNIT_USAGE "%"
 #	define UNIT_TEMP  "°"
+
+/* Use unlocked stdio functions, since single-threaded. */
+#	define USE_UNLOCKED_IO 1
 
 #endif /* CONFIG_H */
