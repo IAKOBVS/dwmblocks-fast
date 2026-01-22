@@ -86,7 +86,8 @@ Linux: for monitoring processes with procfs and RAM usage with sysinfo
 make config # displays all the options
 ```
 ## Manually
-Comment out parts of the code in config.h and the Makefile.
+Comment out the parts you want to disable in config.h and the Makefile. This
+is what the make functions are automating. For example, to disable NVML:
 ### Makefile
 ```
 # NVML (comment to disable)
