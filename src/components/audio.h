@@ -207,7 +207,7 @@ c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_MUTED));
 	*p++ = ' ';
 	p = utoa_p((unsigned int)c_read_speaker_vol(), p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;

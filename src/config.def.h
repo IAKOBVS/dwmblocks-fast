@@ -50,7 +50,7 @@
 #	define CMD_OBS_OPEN         "pgrep 'obs' > /dev/null && echo '🎥 |' || echo ''"
 #	define CMD_OBS_RECORDING    "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |'"
 
-#	define SYM_USAGE "%"
+#	define UNIT_USAGE "%"
 #	define SYM_TEMP  "°"
 
 #endif /* CONFIG_H */

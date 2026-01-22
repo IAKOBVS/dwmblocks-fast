@@ -143,7 +143,7 @@ c_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigne
 	p = utoa_p(avg, p);
 	switch (mon_type) {
 	case C_GPU_MON_TEMP:
-		p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
+		p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
 		break;
 	case C_GPU_MON_USAGE:
 	case C_GPU_MON_VRAM:

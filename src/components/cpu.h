@@ -65,7 +65,7 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 		ERR(return NULL);
 	char *p = dst;
 	p = utoa_p((unsigned int)temp, dst);
-	p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	return p;
 	(void)dst_len;
 	(void)unused;
