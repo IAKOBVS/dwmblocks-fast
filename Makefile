@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: ISC
 # Copyright 2020 torrinfail
+# Copyright 2026 James Tirta Halim <tirtajames45 at gmail com>
 # This file is part of dwmblocks-fast, derived from dwmblocks with
 # modifications.
 # 
@@ -40,11 +41,11 @@ NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
 # # OpenBSD (uncomment)
 # OPENBSDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
 
+################################################################################
+# Variables
+################################################################################
 CFLAGS += $(ARCHFLAGS)
 LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
-
-################################################################################
-
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
@@ -56,6 +57,7 @@ SCRIPTSBASE = dwmblocks-fast-*
 PROG = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
+################################################################################
 
 all: options $(PROG) $(SCRIPTS)
 
