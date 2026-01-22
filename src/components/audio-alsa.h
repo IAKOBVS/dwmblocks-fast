@@ -28,8 +28,8 @@
 #	include "../macros.h"
 #	include "../utils.h"
 
-#		define C_AUDIO_ALSA_UNMUTED "🔉"
-#		define C_AUDIO_ALSA_MUTED   "🔇"
+#		define C_AUDIO_UNMUTED "🔉"
+#		define C_AUDIO_MUTED   "🔇"
 #		define C_MIC_UNMUTED   "🎤"
 #		define C_MIC_MUTED     "🚫"
 #		define C_PLAYBACK      1
@@ -202,9 +202,9 @@ c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 {
 	char *p = dst;
 	if (!c_read_speaker_muted())
-		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_ALSA_UNMUTED));
+		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_UNMUTED));
 	else
-		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_ALSA_MUTED));
+		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_MUTED));
 	*p++ = ' ';
 	p = utoa_p((unsigned int)c_read_speaker_vol(), p);
 	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));

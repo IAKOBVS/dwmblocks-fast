@@ -1,3 +1,11 @@
 #!/bin/sh
 pamixer -t
-pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast
+pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast &
+gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/bell.oga &
+if [ $(dwmblocks-fast-mic-ismuted) = 'true' ]; then
+	notif='🔇 Speaker is muted!'
+else
+	notif='🔉 Speaker is on!'
+fi
+dunstctl close
+notify-send "$notif"

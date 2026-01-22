@@ -1,11 +1,11 @@
 #!/bin/sh
-pamixer --source $(getmicsource) -t
-if [ $(ifmute) = 'true' ]; then
+pamixer --source $(dwmblocks-fast-mic-get) -t
+pkill -RTMIN+"$SIG_MIC" dwmblocks-fast &
+gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/bell.oga &
+if [ $(dwmblocks-fast-mic-ismuted) = 'true' ]; then
 	notif='🔇 Mic is muted!'
 else
 	notif='🎤 Mic is on!'
 fi
 dunstctl close
 notify-send "$notif"
-gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/bell.oga
-pkill -RTMIN+"$SIG_MIC" dwmblocks-fast
