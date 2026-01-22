@@ -129,7 +129,7 @@ getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char
 	Block *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
 		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == (unsigned int)-1) {
-			char tmp[G_CMDLENGTH];
+			char tmp[sizeof(g_statusbar[0])];
 			/* Get the result of getcmd. */
 			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
 			/* Check if needs update. */
@@ -181,12 +181,12 @@ getstatus(char *dst)
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		p = xstpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
-	if (p != dst) {
-		*(p -= DELIMLEN) = '\0';
-		return p;
-	} else {
-		return dst_s;
-	}
+	if (p != dst)
+		p -= DELIMLEN;
+	else
+		p = dst_s;
+	*p = '\0';
+	return p;
 }
 
 #ifdef USE_X11
