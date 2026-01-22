@@ -19,12 +19,14 @@
 #ifndef C_AUDIO_H
 #	define C_AUDIO_H 1
 
-#	include "../macros.h"
-#	include "../utils.h"
 #	include "../config.h"
-#	include "audio-lib.h"
 
 #	ifdef USE_ALSA
+#	include <alsa/asoundlib.h>
+#	include <alsa/asoundef.h>
+
+#	include "../macros.h"
+#	include "../utils.h"
 
 #		define C_AUDIO_UNMUTED "🔉"
 #		define C_AUDIO_MUTED   "🔇"
@@ -97,9 +99,9 @@ c_audio_init_one(c_audio_ty *audio, const char *card, const char *selem_name, in
 	if (audio->elem == NULL)
 		ERR(c_audio_err());
 	if (playback_or_capture == C_PLAYBACK)
-		snd_mixer_selem_get_playback_vol_range(audio->elem, &audio->min_vol, &audio->max_vol);
+		snd_mixer_selem_get_playback_volume_range(audio->elem, &audio->min_vol, &audio->max_vol);
 	else if (audio->playback_or_capture == C_CAPTURE)
-		snd_mixer_selem_get_capture_vol_range(audio->elem, &audio->min_vol, &audio->max_vol);
+		snd_mixer_selem_get_capture_volume_range(audio->elem, &audio->min_vol, &audio->max_vol);
 	else
 		ERR(c_audio_err());
 	if (playback_or_capture == C_PLAYBACK)
@@ -139,9 +141,9 @@ c_read_audio_vol(c_audio_ty *audio)
 	if (audio->ret < 0)
 		ERR(c_audio_err(); return -1);
 	if (audio->playback_or_capture == C_PLAYBACK)
-		audio->ret = snd_mixer_selem_get_playback_vol(audio->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio->curr_vol);
+		audio->ret = snd_mixer_selem_get_playback_volume(audio->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio->curr_vol);
 	if (audio->playback_or_capture == C_CAPTURE)
-		audio->ret = snd_mixer_selem_get_capture_vol(audio->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio->curr_vol);
+		audio->ret = snd_mixer_selem_get_capture_volume(audio->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio->curr_vol);
 	if (audio->ret != 0)
 		ERR(c_audio_err(); return -1);
 	const int percent = (int)(100.0f * (audio->curr_vol - audio->min_vol) / (audio->max_vol - audio->min_vol));
@@ -205,8 +207,7 @@ c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_MUTED));
 	*p++ = ' ';
 	p = utoa_p((unsigned int)c_read_speaker_vol(), p);
-	*p++ = '%';
-	*p = '\0';
+	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -226,8 +227,7 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 		p = xstpcpy_len(p, S_LITERAL(C_MIC_UNMUTED));
 		*p++ = ' ';
 		p = utoa_p((unsigned int)vol, p);
-		*p++ = '%';
-		*p = '\0';
+		p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
 	}
 	return p;
 	(void)dst_len;

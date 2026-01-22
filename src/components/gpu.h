@@ -22,10 +22,14 @@
 #	include "../config.h"
 
 #	ifdef USE_NVML
+#		ifndef NVML_HEADER
+#			define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
+#		endif
+#		include NVML_HEADER
+
 #		include <stdlib.h>
 #		include <assert.h>
 
-#		include "gpu-lib.h"
 #		include "../macros.h"
 #		include "../utils.h"
 
@@ -139,12 +143,11 @@ c_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigne
 	p = utoa_p(avg, p);
 	switch (mon_type) {
 	case C_GPU_MON_TEMP:
-		p = xstpcpy_len(p, S_LITERAL("°"));
+		p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
 		break;
 	case C_GPU_MON_USAGE:
 	case C_GPU_MON_VRAM:
-		*p++ = '%';
-		*p = '\0';
+		p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
 		break;
 	}
 	return p;
@@ -188,13 +191,13 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	c_gpu_monitor_devices_all(&avg_temp, &avg_usage, &avg_vram);
 	char *p = dst;
 	p = utoa_p(avg_temp, p);
-	p = xstpcpy_len(p, S_LITERAL("°"));
+	p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
 	*p++ = ' ';
 	p = utoa_p(avg_usage, p);
-	*p++ = '%';
+	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
 	*p++ = ' ';
 	p = utoa_p(avg_vram, p);
-	*p++ = '%';
+	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
 	*p = '\0';
 	return p;
 	(void)dst_len;
@@ -235,14 +238,6 @@ static char *
 c_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_USAGE, interval);
-	(void)unused;
-	(void)interval;
-}
-
-static char *
-c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_VRAM, interval);
 	(void)unused;
 	(void)interval;
 }

@@ -48,9 +48,8 @@ c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 		ERR(return dst);
 	char *p = dst;
 	p = utoa_p((unsigned int)usage, p);
-	*p = '%';
-	*(p + 1) = '\0';
-	return p + 1;
+	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+	return p;
 	(void)dst_len;
 	(void)unused;
 	(void)interval;
