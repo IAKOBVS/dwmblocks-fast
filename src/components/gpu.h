@@ -147,7 +147,7 @@ c_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigne
 		break;
 	case C_GPU_MON_USAGE:
 	case C_GPU_MON_VRAM:
-		p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+		p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 		break;
 	}
 	return p;
@@ -191,13 +191,13 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	c_gpu_monitor_devices_all(&avg_temp, &avg_usage, &avg_vram);
 	char *p = dst;
 	p = utoa_p(avg_temp, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
 	p = utoa_p(avg_usage, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p++ = ' ';
 	p = utoa_p(avg_vram, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p = '\0';
 	return p;
 	(void)dst_len;

@@ -227,7 +227,7 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 		p = xstpcpy_len(p, S_LITERAL(C_MIC_UNMUTED));
 		*p++ = ' ';
 		p = utoa_p((unsigned int)vol, p);
-		p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+		p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	}
 	return p;
 	(void)dst_len;

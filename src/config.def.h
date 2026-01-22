@@ -51,6 +51,6 @@
 #	define CMD_OBS_RECORDING    "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |'"
 
 #	define UNIT_USAGE "%"
-#	define SYM_TEMP  "°"
+#	define UNIT_TEMP  "°"
 
 #endif /* CONFIG_H */

@@ -118,7 +118,7 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 		ERR(return NULL);
 	char *p = dst;
 	p = utoa_p((unsigned int)usage, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -136,10 +136,10 @@ c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 		ERR(return NULL);
 	char *p = dst;
 	p = utoa_p((unsigned int)temp, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_TEMP));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
 	p = utoa_p((unsigned int)usage, p);
-	p = xstpcpy_len(p, S_LITERAL(SYM_USAGE));
+	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
