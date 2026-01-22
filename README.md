@@ -82,7 +82,7 @@ Linux: for monitoring processes with procfs and RAM usage with sysinfo
 
 # Configuration
 If you do not want to use certain configurations, not to use NVML, for example, you can
-comment out the parts you want to exclude in config.h and the Makefilee, and the program
+comment out the parts you want to exclude in config.h and the Makefile, and the program
 will be built without them. For example, to disable NVML:
 ## Makefile
 ```
