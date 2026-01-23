@@ -168,6 +168,10 @@ setupsignals()
 		if (g_blocks[i].signal > 0)
 			if (signal(SIGMINUS + (int)g_blocks[i].signal, sighandler) == SIG_ERR)
 				ERR(return G_RET_ERR);
+	if (signal(SIGTERM, termhandler) == SIG_ERR)
+		ERR(return G_RET_ERR);
+	if (signal(SIGINT, termhandler) == SIG_ERR)
+		ERR(return G_RET_ERR);
 	return G_RET_SUCC;
 }
 
@@ -211,6 +215,7 @@ setroot(char *status)
 g_ret_ty
 setupX()
 {
+	pthread_mutex_init(&g_mutex, NULL);
 	g_dpy = XOpenDisplay(NULL);
 	if (!g_dpy) {
 		fprintf(stderr, "dwmblocks: Failed to open display\n");
@@ -249,6 +254,10 @@ statusloop()
 {
 	if (setupsignals() == G_RET_ERR)
 		ERR(return G_RET_ERR);
+#ifdef USE_X11
+	if (setupX() == G_RET_ERR)
+		return EXIT_FAILURE;
+#endif
 	unsigned int i = 0;
 	getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
 	for (;;) {
@@ -260,6 +269,9 @@ statusloop()
 			break;
 		sleep(1);
 	}
+#ifdef USE_X11
+	XCloseDisplay(g_dpy);
+#endif
 	return G_RET_SUCC;
 }
 
@@ -297,19 +309,7 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-#ifdef USE_X11
-	pthread_mutex_init(&g_mutex, NULL);
-	if (setupX() == G_RET_ERR)
-		return EXIT_FAILURE;
-#endif
-	if (signal(SIGTERM, termhandler) == SIG_ERR)
-		ERR(return EXIT_FAILURE);
-	if (signal(SIGINT, termhandler) == SIG_ERR)
-		ERR(return EXIT_FAILURE);
 	if (statusloop() == G_RET_ERR)
 		ERR(return EXIT_FAILURE);
-#ifdef USE_X11
-	XCloseDisplay(g_dpy);
-#endif
 	return EXIT_SUCCESS;
 }
