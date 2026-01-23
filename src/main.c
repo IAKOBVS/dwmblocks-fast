@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <pthread.h>
 
 #include "config.h"
 
@@ -89,6 +90,7 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
+pthread_mutex_t g_mutex;
 
 #include "blocks.h"
 
@@ -274,8 +276,10 @@ dummysighandler(int signum)
 void
 sighandler(int signum)
 {
+	pthread_mutex_lock(&g_mutex);
 	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
 	writestatus(g_statusstr);
+	pthread_mutex_unlock(&g_mutex);
 }
 
 void
@@ -294,6 +298,7 @@ main(int argc, char **argv)
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
 #ifdef USE_X11
+	pthread_mutex_init(&g_mutex, NULL);
 	if (setupX() == G_RET_ERR)
 		return EXIT_FAILURE;
 #endif
