@@ -26,7 +26,7 @@
 OPTIMIZECFLAGS += -march=native
 
 # Link-time optimizations (comment to disable)
-# OPTIMIZELDFLAGS += -flto
+OPTIMIZELDFLAGS += -flto
 
 # X11 (comment to disable)
 X11LDFLAGS += -lX11
