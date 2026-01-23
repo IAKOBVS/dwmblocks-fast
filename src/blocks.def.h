@@ -26,6 +26,7 @@
 
 #	include "components.h"
 
+/* These will be copied to each shell script in ./scripts as shell variables. */
 #	define SIG_AUDIO  1
 #	define SIG_OBS    2
 #	define SIG_MIC    3

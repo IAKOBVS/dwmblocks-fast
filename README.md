@@ -97,5 +97,5 @@ automating. For example, to disable NVML:
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 /* #define USE_NVML 1 */
-/* #define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h" */
+/* #define NVML_HEADER "/opt/cuda/include/nvml.h" */
 ```

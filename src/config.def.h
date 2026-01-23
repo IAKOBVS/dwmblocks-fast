@@ -31,7 +31,7 @@
 #	define USE_NVIDIA 1
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 #	define USE_NVML    1
-#	define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
+#	define NVML_HEADER "/opt/cuda/include/nvml.h"
 
 /* Path to CPU temperature */
 #	define CPU_TEMP_FILE "/sys/class/thermal/thermal_zone1/temp"

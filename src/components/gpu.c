@@ -20,7 +20,7 @@
 
 #	ifdef USE_NVML
 #		ifndef NVML_HEADER
-#			define NVML_HEADER "/opt/cuda/targets/x86_64-linux/include/nvml.h"
+#			define NVML_HEADER "/opt/cuda/include/nvml.h"
 #		endif
 #		include NVML_HEADER
 
