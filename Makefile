@@ -83,19 +83,18 @@ config: $(CFGS)
 	@echo 'For example, to disable NVML, run:'
 	@echo 'make disable-nvml'
 
-disable-nvidia: $(config)
-	@mv src/config.h src/config.h.bak
-	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//; s/\(#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-	@rm src/config.h.bak
-	@mv Makefile Makefile.bak
-	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
-	@rm Makefile.bak
-
 disable-nvml: $(config)
 	@mv src/config.h src/config.h.bak
 	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
+disable-nvidia: $(config) $(disable-nvml)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@sed 's/^\(NVIDIA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-x11: $(config)
@@ -110,6 +109,13 @@ disable-alsa: $(config)
 	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@sed 's/^\(ALSA.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
+disable-audio: $(config) $(disable-alsa)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@sed 's/^\(AUDIO.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 $(PROG): $(SRC)/main.c $(CFGS)
@@ -134,8 +140,7 @@ clean:
 install: $(PROG) $(SCRIPTS)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f $^ $(DESTDIR)$(PREFIX)/bin
-	mkdir -p $(DESTDIR)$(PREFIX)/src/dwmblocks-fast
+	command -v rsync >/dev/null && rsync -r --checksum $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)

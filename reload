@@ -1,6 +1,5 @@
 #!/bin/sh
 BIN=dwmblocks-fast
 killall "$BIN"
-make clean
 sudo make install
 nohup "$BIN" >/dev/null 2>/dev/null &

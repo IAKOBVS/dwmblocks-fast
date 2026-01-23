@@ -26,14 +26,9 @@
 #		include <alsa/asoundef.h>
 
 #		include "../macros.h"
-#		include "../utils.h"
 
-#		define C_AUDIO_UNMUTED "🔉"
-#		define C_AUDIO_MUTED   "🔇"
-#		define C_MIC_UNMUTED   "🎤"
-#		define C_MIC_MUTED     "🚫"
-#		define C_PLAYBACK      1
-#		define C_CAPTURE       2
+#		define C_AUDIO_ALSA_PLAYBACK 1
+#		define C_AUDIO_ALSA_CAPTURE  2
 
 typedef struct {
 	const char *card;
@@ -102,15 +97,15 @@ c_audio_alsa_init_one(c_audio_alsa_ty *audio_alsa, const char *card, const char 
 	audio_alsa->elem = snd_mixer_find_selem(audio_alsa->handle, audio_alsa->sid);
 	if (audio_alsa->elem == NULL)
 		ERR(c_audio_alsa_err());
-	if (playback_or_capture == C_PLAYBACK)
+	if (playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 		snd_mixer_selem_get_playback_volume_range(audio_alsa->elem, &audio_alsa->min_vol, &audio_alsa->max_vol);
-	else if (audio_alsa->playback_or_capture == C_CAPTURE)
+	else if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 		snd_mixer_selem_get_capture_volume_range(audio_alsa->elem, &audio_alsa->min_vol, &audio_alsa->max_vol);
 	else
 		ERR(c_audio_alsa_err());
-	if (playback_or_capture == C_PLAYBACK)
+	if (playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 		audio_alsa->has_mute = snd_mixer_selem_has_playback_switch(audio_alsa->elem);
-	else if (audio_alsa->playback_or_capture == C_CAPTURE)
+	else if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 		audio_alsa->has_mute = snd_mixer_selem_has_capture_switch(audio_alsa->elem);
 	else
 		ERR(c_audio_alsa_err());
@@ -120,13 +115,13 @@ c_audio_alsa_init_one(c_audio_alsa_ty *audio_alsa, const char *card, const char 
 static void
 c_audio_alsa_speaker_init(void)
 {
-	c_audio_alsa_init_one(&c_audio_alsa_speaker, "default", "Master", C_PLAYBACK);
+	c_audio_alsa_init_one(&c_audio_alsa_speaker, "default", "Master", C_AUDIO_ALSA_PLAYBACK);
 }
 
 static void
 c_audio_alsa_mic_init(void)
 {
-	c_audio_alsa_init_one(&c_audio_alsa_mic, "default", "Capture", C_CAPTURE);
+	c_audio_alsa_init_one(&c_audio_alsa_mic, "default", "Capture", C_AUDIO_ALSA_CAPTURE);
 }
 
 static void
@@ -144,9 +139,9 @@ c_read_audio_alsa_vol(c_audio_alsa_ty *audio_alsa)
 	audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 	if (audio_alsa->ret < 0)
 		ERR(c_audio_alsa_err(); return -1);
-	if (audio_alsa->playback_or_capture == C_PLAYBACK)
+	if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 		audio_alsa->ret = snd_mixer_selem_get_playback_volume(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio_alsa->curr_vol);
-	if (audio_alsa->playback_or_capture == C_CAPTURE)
+	if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 		audio_alsa->ret = snd_mixer_selem_get_capture_volume(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio_alsa->curr_vol);
 	if (audio_alsa->ret != 0)
 		ERR(c_audio_alsa_err(); return -1);
@@ -164,9 +159,9 @@ c_read_audio_alsa_muted(c_audio_alsa_ty *audio_alsa)
 		if (audio_alsa->ret < 0)
 			ERR(c_audio_alsa_err());
 		int i = 1;
-		if (audio_alsa->playback_or_capture == C_PLAYBACK)
+		if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 			audio_alsa->ret = snd_mixer_selem_get_playback_switch(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &i);
-		else if (audio_alsa->playback_or_capture == C_CAPTURE)
+		else if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 			audio_alsa->ret = snd_mixer_selem_get_capture_switch(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &i);
 		else
 			ERR(c_audio_alsa_err());
@@ -201,49 +196,8 @@ c_read_speaker_muted(void)
 	return c_read_audio_alsa_muted(&c_audio_alsa_speaker);
 }
 
-static char *
-c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	char *p = dst;
-	if (!c_read_speaker_muted()) {
-		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_UNMUTED));
-	} else {
-		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_MUTED));
-	}
-	*p++ = ' ';
-	p = utoa_p((unsigned int)c_read_speaker_vol(), p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
-	return p;
-	(void)dst_len;
-	(void)unused;
-	(void)interval;
-}
-
-static char *
-c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	char *p = dst;
-	if (c_read_mic_muted()) {
-		p = xstpcpy_len(p, S_LITERAL(C_MIC_MUTED));
-	} else {
-		int vol = c_read_mic_vol();
-		if (vol == -1)
-			ERR();
-		p = xstpcpy_len(p, S_LITERAL(C_MIC_UNMUTED));
-		*p++ = ' ';
-		p = utoa_p((unsigned int)vol, p);
-		p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
-	}
-	return p;
-	(void)dst_len;
-	(void)unused;
-	(void)interval;
-}
-
-#		undef C_MIC_UNMUTED
-#		undef C_MIC_MUTED
-#		undef C_PLAYBACK
-#		undef C_CAPTURE
+#		undef C_AUDIO_ALSA_PLAYBACK
+#		undef C_AUDIO_ALSA_CAPTURE
 
 #	endif
 

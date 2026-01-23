@@ -19,7 +19,7 @@
 #ifndef COMPONENTS_H
 #	define COMPONENTS_H 1
 
-#	include "components/audio-alsa.h"
+#	include "components/audio.h"
 #	include "components/gpu.h"
 #	include "components/cpu.h"
 #	include "components/obs.h"
