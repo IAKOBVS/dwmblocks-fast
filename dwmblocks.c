@@ -175,6 +175,7 @@ void statusloop()
 /* this signal handler should do nothing */
 void dummysighandler(int signum)
 {
+    fprintf(stderr, "dwmblocks: receiving unknown signal: %d\n", signum);
     return;
 }
 #endif
