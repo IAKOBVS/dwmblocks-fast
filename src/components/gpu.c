@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_GPU_H
-#	define C_GPU_H 1
-
 #	include "../config.h"
 
 #	ifdef USE_NVML
@@ -264,5 +261,3 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 }
 
 #	endif
-
-#endif /* C_GPU_H */

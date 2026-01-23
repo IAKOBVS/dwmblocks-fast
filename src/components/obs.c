@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_OBS_H
-#	define C_OBS_H 1
-
 #	include "procfs.h"
 #	include "../macros.h"
 #	include "../utils.h"
@@ -86,5 +83,3 @@ c_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsig
 	(void)unused;
 	(void)dst_len;
 }
-
-#endif /* C_OBS_H */

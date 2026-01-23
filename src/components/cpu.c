@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_CPU_H
-#	define C_CPU_H 1
-
 #	include "../config.h"
 
 #		include <assert.h>
@@ -144,5 +141,3 @@ c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)unused;
 	(void)interval;
 }
-
-#endif /* C_CPU_H */

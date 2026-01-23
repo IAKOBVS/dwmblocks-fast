@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_AUDIO_ALSA_H
-#	define C_AUDIO_ALSA_H 1
-
 #	include "../config.h"
 
 #	ifdef USE_ALSA
@@ -200,5 +197,3 @@ c_read_speaker_muted(void)
 #		undef C_AUDIO_ALSA_CAPTURE
 
 #	endif
-
-#endif /* C_AUDIO_ALSA_H */

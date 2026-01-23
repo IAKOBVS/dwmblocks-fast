@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_WEBCAM_H
-#	define C_WEBCAM_H 1
-
 #	include <assert.h>
 #	include <fcntl.h>
 #	include <unistd.h>
@@ -47,5 +44,3 @@ c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	(void)interval;
 	(void)unused;
 }
-
-#endif /* C_WEBCAM_H */

@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
-
 #	include "../config.h"
 
 #	include <assert.h>
@@ -58,5 +55,3 @@ c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	(void)interval;
 	return dst;
 }
-
-#endif /* C_SHELL_H */

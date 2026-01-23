@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_PROCFS_H
-#define C_PROCFS_H
-
 #include <fcntl.h>
 #include <dirent.h>
 #include <stdlib.h>
@@ -88,5 +85,3 @@ c_read_proc_exists(const char *proc_name, unsigned int proc_name_len)
 		ERR();
 	return 0;
 }
-
-#endif /* C_"/proc/"FS_H */

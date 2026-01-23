@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_RAM_H
-#	define C_RAM_H 1
-
 #	include "../config.h"
 #	include "procfs.h"
 
@@ -57,5 +54,3 @@ c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	return c_write_shell(dst, dst_len, CMD_RAM_USAGE);
 #	endif
 }
-
-#endif /* C_RAM_H */

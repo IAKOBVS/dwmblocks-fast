@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_TIME_H
-#	define C_TIME_H 1
-
 #	include "../config.h"
 
 #	include <sys/sysinfo.h>
@@ -115,5 +112,3 @@ c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	(void)dst_len;
 	(void)unused;
 }
-
-#endif /* C_TIME_H */

@@ -16,9 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_AUDIO_H
-#	define C_AUDIO_H 1
-
 #	include "../config.h"
 
 #	ifdef USE_AUDIO
@@ -76,5 +73,3 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 }
 
 #	endif
-
-#endif /* C_AUDIO_H */
