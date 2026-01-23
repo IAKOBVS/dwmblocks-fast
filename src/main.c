@@ -61,7 +61,7 @@ typedef enum {
 
 #ifndef __OpenBSD__
 void
-g_sighandler_dummy(int num);
+g_handler_sig_dummy(int num);
 #endif
 void
 g_getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
@@ -70,7 +70,7 @@ g_getcmds_sig(unsigned int signal, Block *blocks, unsigned int blocks_len);
 g_ret_ty
 g_setup_signals();
 void
-g_sighandler(int signum);
+g_handler_sig(int signum);
 char *
 g_status_get(char *str);
 g_ret_ty
@@ -78,13 +78,13 @@ g_status_write(char *status);
 g_ret_ty
 g_status_mainloop();
 void
-g_termhandler(int signum);
+g_handler_term(int signum);
 #ifdef USE_X11
 static g_ret_ty
 g_setup_x11();
 static Display *g_dpy;
 static int g_screen;
-static Window g_root;
+static Window g_win_root;
 static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
@@ -158,16 +158,16 @@ g_setup_signals()
 #ifndef __OpenBSD__
 	/* Initialize all real time signals with dummy handler. */
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
-		if (signal(i, g_sighandler_dummy) == SIG_ERR)
+		if (signal(i, g_handler_sig_dummy) == SIG_ERR)
 			ERR(return G_RET_ERR);
 #endif
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0)
-			if (signal(SIGMINUS + (int)g_blocks[i].signal, g_sighandler) == SIG_ERR)
+			if (signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR)
 				ERR(return G_RET_ERR);
-	if (signal(SIGTERM, g_termhandler) == SIG_ERR)
+	if (signal(SIGTERM, g_handler_term) == SIG_ERR)
 		ERR(return G_RET_ERR);
-	if (signal(SIGINT, g_termhandler) == SIG_ERR)
+	if (signal(SIGINT, g_handler_term) == SIG_ERR)
 		ERR(return G_RET_ERR);
 	return G_RET_SUCC;
 }
@@ -209,7 +209,7 @@ g_setup_x11()
 		ERR(return G_RET_ERR);
 	}
 	g_screen = DefaultScreen(g_dpy);
-	g_root = RootWindow(g_dpy, g_screen);
+	g_win_root = RootWindow(g_dpy, g_screen);
 	return G_RET_SUCC;
 }
 #endif
@@ -220,7 +220,7 @@ g_status_write(char *status)
 	char *p = g_status_get(status);
 #ifdef USE_X11
 	if (g_write_dst == G_WRITE_STATUSBAR) {
-		g_XStoreNameLen(g_dpy, g_root, status, p - status);
+		g_XStoreNameLen(g_dpy, g_win_root, status, p - status);
 		XFlush(g_dpy);
 		g_statuschanged = 0;
 		return G_RET_SUCC;
@@ -265,7 +265,7 @@ g_status_mainloop()
 #ifndef __OpenBSD__
 /* Handle error gracefully. */
 void
-g_sighandler_dummy(int signum)
+g_handler_sig_dummy(int signum)
 {
 	fprintf(stderr, "dwmblocks-fast: sending unknown signal: %d\n", signum);
 	(void)signum;
@@ -273,7 +273,7 @@ g_sighandler_dummy(int signum)
 #endif
 
 void
-g_sighandler(int signum)
+g_handler_sig(int signum)
 {
 	pthread_mutex_lock(&g_mutex);
 	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
@@ -282,7 +282,7 @@ g_sighandler(int signum)
 }
 
 void
-g_termhandler(int signum)
+g_handler_term(int signum)
 {
 	g_statuscontinue = 0;
 	(void)signum;
