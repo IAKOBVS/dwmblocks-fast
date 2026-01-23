@@ -32,7 +32,10 @@ sudo make install
 # Usage
 ## In ~/.xinitrc (for dwm, and other window managers that use WM_NAME)
 ```
-dwmblocks-fast &
+while :; do
+    dwmblocks-fast
+    sleep 1
+done &
 ```
 ## Print to stdout (for other window managers that read stdin)
 ```
