@@ -22,11 +22,11 @@
 #	include "../config.h"
 
 #	ifdef USE_ALSA
-#	include <alsa/asoundlib.h>
-#	include <alsa/asoundef.h>
+#		include <alsa/asoundlib.h>
+#		include <alsa/asoundef.h>
 
-#	include "../macros.h"
-#	include "../utils.h"
+#		include "../macros.h"
+#		include "../utils.h"
 
 #		define C_AUDIO_UNMUTED "🔉"
 #		define C_AUDIO_MUTED   "🔇"
@@ -46,6 +46,8 @@ typedef struct {
 	int ret;
 	int playback_or_capture;
 	int has_mute;
+	int last_vol;
+	int last_muted;
 } c_audio_alsa_ty;
 static c_audio_alsa_ty c_audio_alsa_speaker, c_audio_alsa_mic;
 
@@ -75,6 +77,8 @@ c_audio_alsa_err(void)
 static void
 c_audio_alsa_init_one(c_audio_alsa_ty *audio_alsa, const char *card, const char *selem_name, int playback_or_capture)
 {
+	if (audio_alsa->init)
+		return;
 	audio_alsa->card = card;
 	audio_alsa->selem_name = selem_name;
 	audio_alsa->playback_or_capture = playback_or_capture;
@@ -201,10 +205,11 @@ static char *
 c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
-	if (!c_read_speaker_muted())
+	if (!c_read_speaker_muted()) {
 		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_UNMUTED));
-	else
+	} else {
 		p = xstpcpy_len(p, S_LITERAL(C_AUDIO_MUTED));
+	}
 	*p++ = ' ';
 	p = utoa_p((unsigned int)c_read_speaker_vol(), p);
 	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
