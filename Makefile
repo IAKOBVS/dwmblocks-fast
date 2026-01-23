@@ -88,7 +88,7 @@ all: options $(PROG) $(SCRIPTS)
 
 $(PROG): $(CFGS) $(OBJS) $(REQ)
 	mkdir -p $(BIN)
-	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(OBJS) $(REQ)
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(OBJS) $(REQ) $(LDFLAGS)
 
 $(OBJS): $(REQ)
 
