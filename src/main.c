@@ -162,7 +162,6 @@ setupsignals()
 		if (signal(i, dummysighandler) == SIG_ERR)
 			ERR(return G_RET_ERR);
 #endif
-
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0)
 			if (signal(SIGMINUS + (int)g_blocks[i].signal, sighandler) == SIG_ERR)
@@ -263,11 +262,11 @@ statusloop()
 }
 
 #ifndef __OpenBSD__
-/* This signal handler should do nothing. */
+/* Handle error gracefully. */
 void
 dummysighandler(int signum)
 {
-	return;
+	fprintf(stderr, "dwmblocks-fast: sending unknown signal: %d\n", signum);
 	(void)signum;
 }
 #endif
