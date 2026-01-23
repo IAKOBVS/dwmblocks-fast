@@ -3,7 +3,9 @@ i=$1
 [ -z $1 ] && i=1
 pamixer -i "$i"
 pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast &
-if [ $(dwmblocks-fast-proc-count 'gst-play-1.0') -le 2 ]; then
+# pgrep does not work after pkill
+if [ $(ps -e -o comm | grep -Fc -e "$1" 'gst-play-1.0') -le 2 ]; then
+	# ffplay seems to sound worse
 	# ffplay -nodisp -autoexit /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga
 	gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/audio-volume-change.oga
 fi
