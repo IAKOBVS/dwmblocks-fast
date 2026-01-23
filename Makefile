@@ -145,4 +145,4 @@ install: $(PROG) $(SCRIPTS)
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
-.PHONY: all options clean install uninstall
+.PHONY: all options clean install uninstall config
