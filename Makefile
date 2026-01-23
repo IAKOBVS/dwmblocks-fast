@@ -48,7 +48,7 @@ NVMLLDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 # Variables
 ################################################################################
 
-CFLAGS += $(OPTIMIZEFLAGS)
+CFLAGS += $(OPTIMIZECFLAGS)
 LDFLAGS += $(OPTIMIZELDFLAGS) $(ALSALDFLAGS) $(X11LDFLAGS) $(NVMLLDFLAGS) $(FREEBSDLDFLAGS) $(OPENBSDLDFLAGS)
 PREFIX = /usr/local
 CC = cc
