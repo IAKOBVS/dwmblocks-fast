@@ -35,6 +35,7 @@
 
 #include "macros.h"
 #include "utils.h"
+#include "blocks.h"
 
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1
@@ -60,29 +61,27 @@ typedef enum {
 
 #ifndef __OpenBSD__
 void
-dummysighandler(int num);
+g_sighandler_dummy(int num);
 #endif
 void
-sighandler(int num);
+g_getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
 void
-getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
-void
-getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len);
+g_getcmds_sig(unsigned int signal, Block *blocks, unsigned int blocks_len);
 g_ret_ty
-setupsignals();
+g_setup_signals();
 void
-sighandler(int signum);
+g_sighandler(int signum);
 char *
-getstatus(char *str);
+g_status_get(char *str);
 g_ret_ty
-writestatus(char *status);
+g_status_write(char *status);
 g_ret_ty
-statusloop();
+g_status_mainloop();
 void
-termhandler(int signum);
+g_termhandler(int signum);
 #ifdef USE_X11
 static g_ret_ty
-setupX();
+g_setup_x11();
 static Display *g_dpy;
 static int g_screen;
 static Window g_root;
@@ -91,8 +90,6 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
 pthread_mutex_t g_mutex;
-
-#include "blocks.h"
 
 static char g_statusbar[LEN(g_blocks)][G_CMDLENGTH];
 static char g_statusstr[G_STATUSLEN];
@@ -126,7 +123,7 @@ getcmd(Block *block, char *output)
 
 /* Run commands or functions according to their interval. */
 void
-getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
+g_getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
 	Block *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
@@ -145,9 +142,9 @@ getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char
 		}
 }
 
-/* Same as getcmds but executed when receiving a signal. */
+/* Same as g_getcmds but executed when receiving a signal. */
 void
-getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len)
+g_getcmds_sig(unsigned int signal, Block *blocks, unsigned int blocks_len)
 {
 	Block *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
@@ -156,28 +153,28 @@ getsigcmds(unsigned int signal, Block *blocks, unsigned int blocks_len)
 }
 
 g_ret_ty
-setupsignals()
+g_setup_signals()
 {
 #ifndef __OpenBSD__
 	/* Initialize all real time signals with dummy handler. */
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
-		if (signal(i, dummysighandler) == SIG_ERR)
+		if (signal(i, g_sighandler_dummy) == SIG_ERR)
 			ERR(return G_RET_ERR);
 #endif
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0)
-			if (signal(SIGMINUS + (int)g_blocks[i].signal, sighandler) == SIG_ERR)
+			if (signal(SIGMINUS + (int)g_blocks[i].signal, g_sighandler) == SIG_ERR)
 				ERR(return G_RET_ERR);
-	if (signal(SIGTERM, termhandler) == SIG_ERR)
+	if (signal(SIGTERM, g_termhandler) == SIG_ERR)
 		ERR(return G_RET_ERR);
-	if (signal(SIGINT, termhandler) == SIG_ERR)
+	if (signal(SIGINT, g_termhandler) == SIG_ERR)
 		ERR(return G_RET_ERR);
 	return G_RET_SUCC;
 }
 
 /* Construct the status string. */
 char *
-getstatus(char *dst)
+g_status_get(char *dst)
 {
 	char *dst_s = dst;
 	/* Cosmetic: start with a space. */
@@ -195,7 +192,7 @@ getstatus(char *dst)
 }
 
 #ifdef USE_X11
-static int
+static ATTR_INLINE int
 g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 {
 	/* Directly use XChangeProperty to save a strlen. */
@@ -203,17 +200,7 @@ g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 }
 
 g_ret_ty
-setroot(char *status)
-{
-	char *p = getstatus(status);
-	g_XStoreNameLen(g_dpy, g_root, status, p - status);
-	XFlush(g_dpy);
-	g_statuschanged = 0;
-	return G_RET_SUCC;
-}
-
-g_ret_ty
-setupX()
+g_setup_x11()
 {
 	pthread_mutex_init(&g_mutex, NULL);
 	g_dpy = XOpenDisplay(NULL);
@@ -228,9 +215,9 @@ setupX()
 #endif
 
 g_ret_ty
-writestatus(char *status)
+g_status_write(char *status)
 {
-	char *p = getstatus(status);
+	char *p = g_status_get(status);
 #ifdef USE_X11
 	if (g_write_dst == G_WRITE_STATUSBAR) {
 		g_XStoreNameLen(g_dpy, g_root, status, p - status);
@@ -250,20 +237,20 @@ writestatus(char *status)
 
 /* Main loop. */
 g_ret_ty
-statusloop()
+g_status_mainloop()
 {
-	if (setupsignals() == G_RET_ERR)
+	if (g_setup_signals() == G_RET_ERR)
 		ERR(return G_RET_ERR);
 #ifdef USE_X11
-	if (setupX() == G_RET_ERR)
+	if (g_setup_x11() == G_RET_ERR)
 		return EXIT_FAILURE;
 #endif
 	unsigned int i = 0;
-	getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
+	g_getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
 	for (;;) {
-		getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
+		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
-			if (writestatus(g_statusstr) == G_RET_ERR)
+			if (g_status_write(g_statusstr) == G_RET_ERR)
 				ERR(return G_RET_ERR);
 		if (!g_statuscontinue)
 			break;
@@ -278,7 +265,7 @@ statusloop()
 #ifndef __OpenBSD__
 /* Handle error gracefully. */
 void
-dummysighandler(int signum)
+g_sighandler_dummy(int signum)
 {
 	fprintf(stderr, "dwmblocks-fast: sending unknown signal: %d\n", signum);
 	(void)signum;
@@ -286,16 +273,16 @@ dummysighandler(int signum)
 #endif
 
 void
-sighandler(int signum)
+g_sighandler(int signum)
 {
 	pthread_mutex_lock(&g_mutex);
-	getsigcmds((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
-	writestatus(g_statusstr);
+	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
+	g_status_write(g_statusstr);
 	pthread_mutex_unlock(&g_mutex);
 }
 
 void
-termhandler(int signum)
+g_termhandler(int signum)
 {
 	g_statuscontinue = 0;
 	(void)signum;
@@ -309,7 +296,7 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	if (statusloop() == G_RET_ERR)
+	if (g_status_mainloop() == G_RET_ERR)
 		ERR(return EXIT_FAILURE);
 	return EXIT_SUCCESS;
 }
