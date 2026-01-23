@@ -29,7 +29,7 @@
 #	include "../macros.h"
 #	include "../utils.h"
 
-static int
+int
 c_read_ram_usage_percent(void)
 {
 	struct sysinfo info;
@@ -39,7 +39,7 @@ c_read_ram_usage_percent(void)
 	return percent;
 }
 
-static char *
+char *
 c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 #	ifdef __linux__

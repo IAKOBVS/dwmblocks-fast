@@ -19,7 +19,44 @@
 #ifndef C_SHELL_H
 #	define C_SHELL_H 1
 
+#	include "../config.h"
+
+#	include <assert.h>
+#	include <unistd.h>
+#	include <string.h>
+
+#	include "../macros.h"
+
+/* Execute shell script. */
 char *
-c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
+{
+#	if HAVE_POPEN && HAVE_PCLOSE
+	FILE *fp = popen(cmd, "r");
+	if (fp == NULL)
+		ERR(return NULL);
+	int fd;
+	ssize_t read_sz;
+	fd = io_fileno(fp);
+	if (fd == -1)
+		ERR(pclose(fp); return NULL);
+	read_sz = read(fd, dst, dst_len);
+	if (pclose(fp) < 0)
+		ERR(return NULL);
+	if (read_sz == -1)
+		ERR(return NULL);
+	/* Chop newline. */
+	char *end = (char *)memchr(dst, '\n', read_sz);
+	/* Nul-terminate newline or end of string. */
+	dst = end ? end : dst + read_sz;
+	*dst = '\0';
+#	else
+	assert("c_write_cmd: calling c_write_cmd when popen or pclose is not available!");
+	(void)dst_len;
+	(void)cmd;
+#	endif
+	(void)interval;
+	return dst;
+}
 
 #endif /* C_SHELL_H */

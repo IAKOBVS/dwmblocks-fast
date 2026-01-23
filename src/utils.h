@@ -20,8 +20,9 @@
 #	define UTILS_H 1
 
 #	include <string.h>
+#	include "macros.h"
 
-static char *
+static ATTR_MAYBE_UNUSED char *
 utoa_p(unsigned int number, char *buf)
 {
 	char *start = buf;
@@ -39,13 +40,13 @@ utoa_p(unsigned int number, char *buf)
 	return (char *)end;
 }
 
-static int
+static ATTR_INLINE int
 xisdigit(int c)
 {
 	return ((unsigned)c - '0' < 10);
 }
 
-static unsigned int
+static ATTR_INLINE unsigned int
 xstrtou10(char *p, char **endp)
 {
 	unsigned int n = 0;
@@ -56,7 +57,7 @@ xstrtou10(char *p, char **endp)
 	return n;
 }
 
-static char *
+static ATTR_INLINE char *
 xstpcpy_len(char *dst, const char *src, size_t n)
 {
 #	ifdef HAVE_MEMPCPY
@@ -70,7 +71,7 @@ xstpcpy_len(char *dst, const char *src, size_t n)
 #	endif
 }
 
-static char *
+static ATTR_INLINE char *
 xstpcpy(char *dst, const char *src)
 {
 #	ifdef HAVE_STPCPY
@@ -83,7 +84,7 @@ xstpcpy(char *dst, const char *src)
 #	endif
 }
 
-static char *
+static ATTR_INLINE char *
 xstrstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
 {
 #	ifdef HAVE_STPCPY

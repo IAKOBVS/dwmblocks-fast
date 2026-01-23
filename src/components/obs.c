@@ -20,17 +20,18 @@
 #	define C_OBS_H 1
 
 #	include "procfs.h"
-
+#	include "../macros.h"
+#	include "../utils.h"
 
 #	define OBS_OPEN_ICON       "🎥 OBS"
 #	define OBS_OPEN_INTERVAL   2
 #	define OBS_RECORD_ICON     "🔴 Recording"
 #	define OBS_RECORD_INTERVAL 2
 
-static unsigned int c_obs_recording_pid;
-static unsigned int c_obs_open_pid;
+unsigned int c_obs_recording_pid;
+unsigned int c_obs_open_pid;
 
-static char *
+char *
 c_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache)
 {
 	/* Need to search /proc/[pid] for proc. */
@@ -48,14 +49,14 @@ c_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 		}
 	} else {
 		/* Construct path: /proc/[pid]/status. */
-		char fname[S_LEN(PROC) + sizeof(unsigned int) * 8 + S_LEN(STATUS) + 1];
+		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
 		char *fnamep = fname;
 		/* /proc/ */
-		fnamep = xstpcpy_len(fnamep, S_LITERAL(PROC));
+		fnamep = xstpcpy_len(fnamep, S_LITERAL("/proc/"));
 		/* /proc/[pid] */
 		fnamep = utoa_p(*pid_cache, fnamep);
 		/* /proc/[pid]/status */
-		fnamep = xstpcpy_len(fnamep, S_LITERAL(STATUS));
+		fnamep = xstpcpy_len(fnamep, S_LITERAL("/status"));
 		(void)fnamep;
 		if (!c_read_proc_exists_at(proc_name, proc_name_len, fname)) {
 			*pid_cache = 0;
@@ -70,7 +71,7 @@ c_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 	(void)dst_len;
 }
 
-static char *
+char *
 c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), OBS_OPEN_INTERVAL, OBS_OPEN_ICON, &c_obs_open_pid);
@@ -78,7 +79,7 @@ c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int
 	(void)dst_len;
 }
 
-static char *
+char *
 c_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), OBS_RECORD_INTERVAL, OBS_RECORD_ICON, &c_obs_recording_pid);

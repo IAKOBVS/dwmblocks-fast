@@ -19,13 +19,52 @@
 #ifndef COMPONENTS_H
 #	define COMPONENTS_H 1
 
-#	include "components/audio.h"
-#	include "components/gpu.h"
-#	include "components/cpu.h"
-#	include "components/obs.h"
-#	include "components/ram.h"
-#	include "components/time.h"
-#	include "components/shell.h"
-#	include "components/webcam.h"
+/* #	include "components/audio.h" */
+char *
+c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* #	include "components/gpu.h" */
+char *
+c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* #	include "components/cpu.h" */
+char *
+c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* #	include "components/obs.h" */
+char *
+c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* #	include "components/ram.h" */
+char *
+c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* #	include "components/time.h" */
+char *
+c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* #	include "components/shell.h" */
+char *
+c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+
+/* #	include "components/webcam.h" */
+char *
+c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
 #endif /* COMPONENTS_H */

@@ -21,7 +21,6 @@
 
 #	include "../config.h"
 
-#		include <stdlib.h>
 #		include <assert.h>
 #		include <fcntl.h>
 #		include <unistd.h>
@@ -29,7 +28,7 @@
 #		include "../macros.h"
 #		include "../utils.h"
 
-static int
+int
 c_atou_lt3(const char *s, int digits)
 {
 	if (digits == 2)
@@ -40,7 +39,7 @@ c_atou_lt3(const char *s, int digits)
 		return (*s - '0') * 100 + (*(s + 1) - '0') * 10 + (*(s + 2) - '0') * 1;
 }
 
-static int
+int
 c_read_cpu_temp(void)
 {
 	/* Milidegrees = degrees * 1000 */
@@ -57,7 +56,7 @@ c_read_cpu_temp(void)
 	return c_atou_lt3(temp, read_sz);
 }
 
-static char *
+char *
 c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	const int temp = c_read_cpu_temp();
@@ -72,7 +71,7 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	(void)interval;
 }
 
-static int
+int
 c_read_cpu_usage()
 {
 	char buf[4096];
@@ -110,7 +109,7 @@ c_read_cpu_usage()
 	return (int)((long double)100 * ((long double)(tot2 - l_tot2) / (long double)sum));
 }
 
-static char *
+char *
 c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	const int usage = c_read_cpu_usage();
@@ -125,7 +124,7 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	(void)interval;
 }
 
-static char *
+char *
 c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	const int temp = c_read_cpu_temp();

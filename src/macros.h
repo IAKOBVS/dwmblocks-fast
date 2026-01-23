@@ -29,6 +29,32 @@
 			x;          \
 		} while (0)
 
+#	ifndef ATTR_INLINE
+#		ifdef __inline
+#			define ATTR_INLINE __inline
+#		elif (defined __cplusplus || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L))
+#			define ATTR_INLINE inline
+#		else
+#			define ATTR_INLINE
+#		endif
+#	endif
+
+#	ifdef __glibc_has_attribute
+#		define HAS_ATTRIBUTE(attr) __glibc_has_attribute(attr)
+#	elif defined __has_attribute
+#		define HAS_ATTRIBUTE(attr) __has_attribute(attr)
+#	else
+#		define HAS_ATTRIBUTE(attr) 0
+#	endif /* has_attribute */
+
+#	ifdef __attribute_maybe_unused__
+#		define ATTR_MAYBE_UNUSED __attribute_maybe_unused__
+#	elif HAS_ATTRIBUTE(__unused__)
+#		define ATTR_MAYBE_UNUSED __attribute__((__unused__))
+#	else
+#		define ATTR_MAYBE_UNUSED
+#	endif
+
 #	define MAX(x, y)    (((x) > (y)) ? (x) : (y))
 #	define MIN(x, y)    (((x) < (y)) ? (x) : (y))
 #	define S_LEN(s)     (sizeof(s) - 1)

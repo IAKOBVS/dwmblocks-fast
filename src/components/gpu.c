@@ -42,7 +42,7 @@ typedef struct {
 	nvmlUtilization_t *utilization;
 	/* nvmlTemperature_t *temp; */
 } c_gpu_ty;
-static c_gpu_ty c_gpu;
+c_gpu_ty c_gpu;
 
 typedef enum {
 	C_GPU_MON_TEMP = 0,
@@ -50,7 +50,7 @@ typedef enum {
 	C_GPU_MON_VRAM
 } c_gpu_monitor_ty;
 
-static void
+void
 c_gpu_cleanup()
 {
 	free(c_gpu.device);
@@ -58,7 +58,7 @@ c_gpu_cleanup()
 	nvmlShutdown();
 }
 
-static void
+void
 c_gpu_err()
 {
 	fprintf(stderr, "%s\n\n", nvmlErrorString(c_gpu.ret));
@@ -66,7 +66,7 @@ c_gpu_err()
 		c_gpu_cleanup();
 }
 
-static void
+void
 c_gpu_init()
 {
 	c_gpu.ret = nvmlInit();
@@ -92,7 +92,7 @@ c_gpu_init()
 	c_gpu.init = 1;
 }
 
-static unsigned int
+unsigned int
 c_gpu_monitor(c_gpu_monitor_ty mon_type, unsigned int i)
 {
 	switch (mon_type) {
@@ -122,7 +122,7 @@ c_gpu_monitor(c_gpu_monitor_ty mon_type, unsigned int i)
 	}
 }
 
-static unsigned int
+unsigned int
 c_gpu_monitor_devices(c_gpu_monitor_ty mon_type)
 {
 	unsigned int avg = 0;
@@ -133,7 +133,7 @@ c_gpu_monitor_devices(c_gpu_monitor_ty mon_type)
 	return avg;
 }
 
-static char *
+char *
 c_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, c_gpu_monitor_ty mon_type)
 {
 	if (c_gpu.init == 0)
@@ -162,7 +162,7 @@ typedef struct {
 	unsigned int vram;
 } c_gpu_values_ty;
 
-static void
+void
 c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 {
 	for (unsigned int i = 0; i < c_gpu.deviceCount; ++i) {
@@ -185,7 +185,7 @@ c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 	}
 }
 
-static char *
+char *
 c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	if (c_gpu.init == 0)
@@ -208,19 +208,19 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)interval;
 }
 
-static char *
+char *
 c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_TEMP);
 }
 
-static char *
+char *
 c_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_USAGE);
 }
 
-static char *
+char *
 c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
@@ -229,7 +229,8 @@ c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 #	elif defined USE_NVIDIA
 
 #		include "shell.h"
-static char *
+
+char *
 c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_TEMP, interval);
@@ -237,7 +238,7 @@ c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	(void)interval;
 }
 
-static char *
+char *
 c_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_USAGE, interval);
@@ -245,7 +246,7 @@ c_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	(void)interval;
 }
 
-static char *
+char *
 c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_VRAM, interval);
@@ -253,7 +254,7 @@ c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	(void)interval;
 }
 
-static char *
+char *
 c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return c_write_shell(dst, dst_len, CMD_GPU_NVIDIA_ALL, interval);

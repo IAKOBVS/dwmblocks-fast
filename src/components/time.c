@@ -28,7 +28,7 @@
 #	include "../macros.h"
 #	include "../utils.h"
 
-static struct tm *
+struct tm *
 c_read_time(void)
 {
 	time_t t = time(NULL);
@@ -37,7 +37,7 @@ c_read_time(void)
 	return localtime(&t);
 }
 
-static char *
+char *
 c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	struct tm *tm = c_read_time();
@@ -73,7 +73,7 @@ c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	(void)interval;
 }
 
-static char *
+char *
 c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	struct tm *tm = c_read_time();

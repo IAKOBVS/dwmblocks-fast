@@ -23,6 +23,8 @@
 
 #	ifdef USE_AUDIO
 
+#		include <assert.h>
+#		include "../macros.h"
 #		include "../utils.h"
 
 #		ifdef USE_ALSA
@@ -34,7 +36,7 @@
 #		define C_MIC_UNMUTED     "🎤"
 #		define C_MIC_MUTED       "🚫"
 
-static char *
+char *
 c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
@@ -52,7 +54,7 @@ c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 	(void)interval;
 }
 
-static char *
+char *
 c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;

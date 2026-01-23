@@ -23,35 +23,37 @@
 ################################################################################
 
 # Compile only for this architecture (comment to disable)
-ARCHFLAGS += -march=native
+OPTIMIZECFLAGS += -march=native
+
+# Link-time optimizations (comment to disable)
+# OPTIMIZELDFLAGS += -flto
 
 # X11 (comment to disable)
-X11FLAGS += -lX11
+X11LDFLAGS += -lX11
 
 # Alsa (comment to disable)
-ALSAFLAGS += -lasound
+ALSALDFLAGS += -lasound
 
 # NVML (comment to disable)
 NVMLLIB = /opt/cuda/lib64
-NVMLFLAGS += -L$(NVMLLIB) -lnvidia-ml
+NVMLLDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 
 # # FreeBSD (uncomment)
-# FREEBSDFLAGS += -L/usr/local/lib -I/usr/local/include
+# FREEBSDLDFLAGS += -L/usr/local/lib -I/usr/local/include
 
 # # OpenBSD (uncomment)
-# OPENBSDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
+# OPENBSDLDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
 
 ################################################################################
 # Variables
 ################################################################################
 
-CFLAGS += $(ARCHFLAGS)
-LDFLAGS += $(ALSAFLAGS) $(X11FLAGS) $(NVMLFLAGS) $(FREEBSDFLAGS) $(OPENBSDFLAGS)
+CFLAGS += $(OPTIMIZEFLAGS)
+LDFLAGS += $(OPTIMIZELDFLAGS) $(ALSALDFLAGS) $(X11LDFLAGS) $(NVMLLDFLAGS) $(FREEBSDLDFLAGS) $(OPENBSDLDFLAGS)
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
 SRC = src
-PROG = dwmblocks-fast
 BIN = bin
 HFILES = src/*.h
 SCRIPTSBASE = dwmblocks-fast-*
@@ -59,17 +61,55 @@ PROG = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
 
+OBJS =\
+	./src/components/time.o\
+	./src/components/ram.o\
+	./src/components/obs.o\
+	./src/components/webcam.o\
+	./src/components/audio-alsa.o\
+	./src/components/audio.o\
+	./src/components/gpu.o\
+	./src/components/cpu.o\
+	./src/main.o
+
+# Always recompile $(OBJS) if $(REQ) changed
+REQ =\
+	src/components/procfs.o\
+	src/components/shell.o
+
 ################################################################################
 # Targets
 ################################################################################
 
 all: options $(PROG) $(SCRIPTS)
 
+.c.o:
+	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
+
+$(PROG): $(CFGS) $(OBJS) $(REQ)
+	mkdir -p $(BIN)
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(OBJS) $(REQ)
+
+$(OBJS): $(REQ)
+
+$(SCRIPTS):
+	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
+
+$(SRC)/blocks.h:
+	cp $(SRC)/blocks.def.h $@
+
+$(SRC)/config.h:
+	cp $(SRC)/config.def.h $@
+
+$(SRC)/components.h:
+	cp $(SRC)/components.def.h $@
+
 options:
 	@echo dwmblocks-fast build options:
-	@echo "CFLAGS  = $(CFLAGS)"
-	@echo "LDFLAGS = $(LDFLAGS)"
-	@echo "CC      = $(CC)"
+	@echo "CPPFLAGS = $(CPPFLAGS)"
+	@echo "CFLAGS   = $(CFLAGS)"
+	@echo "LDFLAGS  = $(LDFLAGS)"
+	@echo "CC       = $(CC)"
 
 config: $(CFGS)
 	@echo 'Automated configuration:'
@@ -118,29 +158,14 @@ disable-audio: $(config) $(disable-alsa)
 	@sed 's/^\(AUDIO.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
-$(PROG): $(SRC)/main.c $(CFGS)
-	mkdir -p $(BIN)
-	$(CC) -o $@ $(SRC)/main.c $(CFLAGS) $(LDFLAGS)
-
-$(SRC)/blocks.h:
-	cp $(SRC)/blocks.def.h $@
-
-$(SRC)/config.h:
-	cp $(SRC)/config.def.h $@
-
-$(SRC)/components.h:
-	cp $(SRC)/components.def.h $@
-
-$(SCRIPTS):
-	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
-
 clean:
-	rm -f $(PROG) $(SCRIPTS)
+	rm -f $(PROG) $(SCRIPTS) $(OBJS)
 
 install: $(PROG) $(SCRIPTS)
+	strip $(PROG)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	command -v rsync >/dev/null && rsync -r --checksum $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
+	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
