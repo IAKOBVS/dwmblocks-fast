@@ -56,13 +56,13 @@ static struct Block g_blocks[] = {
 	{ 0,    SIG_OBS,    NULL, c_write_obs_on,            NULL },
 	{ 0,    SIG_OBS,    NULL, c_write_obs_recording,     NULL },
 	/* ================================================================================================= */
-#	ifdef USE_ALSA
+#	ifdef USE_AUDIO
 	{ 0,    SIG_MIC,    NULL, c_write_mic_vol,           NULL },
 #	endif
 	{ 3600, 0,          "📅", c_write_date,              NULL },
 	{ 30,   0,          "🧠", c_write_ram_usage_percent, NULL },
-	{ 2,    0,          "💻", c_write_cpu_all,           NULL },
 	/* c_write_cpu_all: [temp] [usage] */
+	{ 2,    0,          "💻", c_write_cpu_all,           NULL },
 	/* { 2,    0,          "💻", c_write_cpu_temp,          NULL }, */
 	/* { 2,    0,          "💻", c_write_cpu_usage,         NULL }, */
 #	ifdef USE_NVIDIA
@@ -72,8 +72,9 @@ static struct Block g_blocks[] = {
 	/* { 2,    0,          "🚀", c_write_gpu_usage,         NULL }, */
 	/* { 2,    0,          "🚀", c_write_gpu_vram,          NULL }, */
 #	endif
-#	ifdef USE_ALSA
+#	ifdef USE_AUDIO
 	{ 0,    SIG_AUDIO,  NULL, c_write_speaker_vol,       NULL },
+	/* { 0,    SIG_AUDIO,  NULL, c_write_shell,       "wpctl get-volume @DEFAULT_AUDIO_SINK@" }, */
 #	endif
 	{ 60,   0,          "⏰", c_write_time,              NULL },
 };

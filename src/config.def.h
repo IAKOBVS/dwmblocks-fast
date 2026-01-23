@@ -22,6 +22,8 @@
 /* Use libx11. Comment to disable. */
 #	define USE_X11 1
 
+/* Monitor audio volume. Comment to disable. */
+#	define USE_AUDIO 1
 /* Monitor audio volume, requires ALSA. Comment to disable. */
 #	define USE_ALSA 1
 
