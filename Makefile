@@ -79,7 +79,7 @@ REQ =\
 	include/macros.h\
 	include/utils.h\
 	include/config.h\
-	include/blocks.h\
+	include/blocks.h
 
 ################################################################################
 # Targets
