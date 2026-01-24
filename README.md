@@ -28,6 +28,7 @@ Or for a custom configuration
 ```
 $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
+
 # Building
 Install the dependencies with your package manager. These can be
 excluded with make config.
