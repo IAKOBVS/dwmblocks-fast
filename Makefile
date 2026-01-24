@@ -39,17 +39,17 @@ LIB_NVML = /opt/cuda/lib64
 LDFLAGS_NVML += -L$(LIB_NVML) -lnvidia-ml
 
 # # FreeBSD (uncomment)
-# FREEBSDLDFLAGS += -L/usr/local/lib -I/usr/local/include
+# LDFLAGS_FREEBSD += -L/usr/local/lib -I/usr/local/include
 
 # # OpenBSD (uncomment)
-# OPENBSDLDFLAGS += -L/usr/X11R6/lib -I/usr/X11R6/include
+# LDFLAGS_OPENBSD += -L/usr/X11R6/lib -I/usr/X11R6/include
 
 ################################################################################
 # Variables
 ################################################################################
 
 CFLAGS += $(CFLAGS_OPTIMIZE)
-LDFLAGS += $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(FREEBSDLDFLAGS) $(OPENBSDLDFLAGS)
+LDFLAGS += $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
@@ -124,13 +124,19 @@ config: $(CFGS)
 	@echo 'For example, to disable NVML, run:'
 	@echo 'make disable-nvml'
 
+################################################################################
+# Configuration scripts
+################################################################################
 
+# Comment out parts of the config.h and the Makefile
 disable-nvml: $(config)
 	@mv src/config.h src/config.h.bak
+	# Comment out USE_NVML line
 	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@cp Makefile Makefile.bak
-	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
+	# Comment out LDFLAGS_NVML line
+	@sed 's/^\(LDFLAGS_NVML.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-nvidia: $(config) $(disable-nvml)
@@ -138,7 +144,7 @@ disable-nvidia: $(config) $(disable-nvml)
 	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@cp Makefile Makefile.bak
-	@sed 's/^\(NVIDIA.*\)/# \1/' Makefile.bak > Makefile
+	@sed 's/^\(LDFLAGS_NVIDIA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-x11: $(config)
@@ -146,7 +152,7 @@ disable-x11: $(config)
 	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@cp Makefile Makefile.bak
-	@sed 's/^\(X11.*\)/# \1/' Makefile.bak > Makefile
+	@sed 's/^\(LDFLAGS_X11.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-alsa: $(config)
@@ -154,7 +160,7 @@ disable-alsa: $(config)
 	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@cp Makefile Makefile.bak
-	@sed 's/^\(ALSA.*\)/# \1/' Makefile.bak > Makefile
+	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-audio: $(config) $(disable-alsa)
@@ -162,8 +168,10 @@ disable-audio: $(config) $(disable-alsa)
 	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
 	@rm src/config.h.bak
 	@cp Makefile Makefile.bak
-	@sed 's/^\(AUDIO.*\)/# \1/' Makefile.bak > Makefile
+	@sed 's/^\(LDFLAGS_AUDIO.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
+
+################################################################################
 
 clean:
 	rm -f $(PROG) $(SCRIPTS) $(OBJS)
