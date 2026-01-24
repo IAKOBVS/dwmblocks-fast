@@ -20,6 +20,22 @@ $ cd ../../..
 $ makepkg -si
 ```
 # Building
+## Dependencies
+alsa-lib: monitor audio volume
+
+cuda: monitor GPU temperature with NVML
+
+libx11: print to the status bar
+## Optional dependencies
+dwm: window manager
+
+gst-plugins-base-libs: sound notifications
+
+dunst: popup notifications
+
+pamixer: audio control and monitoring
+
+procps: send signals with pkill
 ```
 $ your-package-manager-install dependencies
 $ make config
@@ -74,13 +90,6 @@ write_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *inte
 SIG_SH=11
 pkill -RTMIN+"$SIG_SH" dwmblocks-fast
 ```
-
-# Dependencies
-NVML (CUDA): for monitoring GPU temperature for Nvidia
-
-alsa-lib: for monitoring audio volume
-
-Linux: for monitoring processes with procfs and RAM usage with sysinfo
 
 # Configuration
 To enable or disable certain features or libraries, comment them out in the config.h
