@@ -13,12 +13,14 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 ```
 $ git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 $ cd dwmblocks-fast-git
-$ makepkg --nobuild
+$ makepkg --nobuild --nodeps # will show additional instructions
+# Optionally, manually configure config.h, blocks.h, components.h, and the Makefile
 $ cd src/dwmblocks-fast/src
-$ make config
-# Configure config.h, blocks.h, components.h, and the Makefile
+# Return to the directory of the PKGBUILD
 $ cd ../../..
-$ makepkg -si
+$ makepkg -si -f
+# Or for custom configuration
+$ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
 # Building
 ## Dependencies
