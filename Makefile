@@ -118,6 +118,7 @@ config: $(CFGS)
 	@echo ''
 	@echo 'disable-nvidia'
 	@echo 'disable-nvml'
+	@echo 'disable-cuda (equal to disable-nvml)'
 	@echo 'disable-x11'
 	@echo 'disable-alsa'
 	@echo ''
@@ -138,6 +139,8 @@ disable-nvml: $(config)
 	# Comment out LDFLAGS_NVML line
 	@sed 's/^\(LDFLAGS_NVML.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
+
+disable-cuda: disable-nvml
 
 disable-nvidia: $(config) $(disable-nvml)
 	@mv src/config.h src/config.h.bak
