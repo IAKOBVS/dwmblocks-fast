@@ -32,10 +32,10 @@
 
 typedef struct {
 	int init;
+	nvmlReturn_t ret;
 	unsigned int deviceCount;
 	nvmlDevice_t *device;
 	unsigned int *temp;
-	nvmlReturn_t ret;
 	nvmlUtilization_t *utilization;
 	nvmlMemory_t *memory;
 	/* nvmlTemperature_t *temp; */
@@ -51,17 +51,19 @@ typedef enum {
 void
 c_gpu_cleanup()
 {
+	if (c_gpu.init)
+		nvmlShutdown();
 	free(c_gpu.device);
 	free(c_gpu.temp);
-	nvmlShutdown();
+	free(c_gpu.utilization);
+	free(c_gpu.memory);
 }
 
 void
 c_gpu_err()
 {
 	fprintf(stderr, "%s\n\n", nvmlErrorString(c_gpu.ret));
-	if (c_gpu.init)
-		c_gpu_cleanup();
+	c_gpu_cleanup();
 }
 
 void
