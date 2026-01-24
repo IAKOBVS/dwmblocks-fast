@@ -1,0 +1,9 @@
+#!/bin/sh
+dunstctl close
+if sudo modprobe -r uvcvideo; then
+	notify-send "📷 webcam is turned off! 🔴"
+else
+	notify-send "🔴 Error: can not turn off webcam!"
+fi
+gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/device-removed.oga &
+pkill -RTMIN+"$SIG_WEBCAM" dwmblocks-fast
