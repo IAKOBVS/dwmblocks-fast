@@ -21,11 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE. */
 
-#ifndef BLOCKS_H
-#	define BLOCKS_H 1
+#ifndef CONFIG_H
+#	define CONFIG_H 1
 
 #	include <stdlib.h>
-#	include "components.h"
+#	include "blocks.h"
 #	include "macros.h"
 
 /* Use libx11. Comment to disable. */
@@ -119,4 +119,4 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 /* clang-format on */
 
-#endif /* BLOCKS_H */
+#endif /* CONFIG_H */

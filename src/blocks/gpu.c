@@ -16,7 +16,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../config.h"
+#include "../../include/config.h"
 
 #ifdef USE_NVML
 #	ifndef NVML_HEADER
@@ -27,8 +27,8 @@
 #	include <stdlib.h>
 #	include <assert.h>
 
-#	include "../macros.h"
-#	include "../utils.h"
+#	include "../../include/macros.h"
+#	include "../../include/utils.h"
 
 typedef struct {
 	unsigned int deviceCount;
@@ -252,7 +252,7 @@ c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 
 #elif defined USE_NVIDIA
 
-#	include "shell.h"
+#	include "../blocks/shell.h"
 
 char *
 c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)

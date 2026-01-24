@@ -23,8 +23,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "../macros.h"
-#include "../utils.h"
+#include "../../include/macros.h"
+#include "../../include/utils.h"
 
 #define PAGESZ 4096
 

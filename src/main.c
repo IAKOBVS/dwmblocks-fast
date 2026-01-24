@@ -19,7 +19,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 /* Must be at the top. */
-#include "config.h"
+#include "../include/config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -34,8 +34,8 @@
 #	include <X11/Xatom.h>
 #endif
 
-#include "macros.h"
-#include "utils.h"
+#include "../include/macros.h"
+#include "../include/utils.h"
 
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1

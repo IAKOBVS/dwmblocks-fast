@@ -16,41 +16,32 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <sys/sysinfo.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-#include "../config.h"
-#include "../macros.h"
-#include "../utils.h"
-
-#ifndef __linux__
-#	include "shell.h"
-#endif
-
-int
-c_read_ram_usage_percent(void)
-{
-	struct sysinfo info;
-	if (sysinfo(&info) != 0)
-		ERR(return -1);
-	const int percent = 100 - (((double)info.freeram / (double)info.totalram) * 100);
-	return percent;
-}
+#include "../../include/macros.h"
+#include "../../include/utils.h"
+#include "../../include/config.h"
 
 char *
-c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-#ifdef __linux__
-	int usage = c_read_ram_usage_percent();
-	if (usage < 0)
-		ERR(return dst);
-	char *p = dst;
-	p = u_utoa_p((unsigned int)usage, p);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
-	return p;
+	int fd = open("/proc/modules", O_RDONLY);
+	if (fd == -1)
+		ERR();
+	char buf[4096];
+	ssize_t read_sz;
+	read_sz = read(fd, buf, sizeof(buf));
+	if (close(fd) == -1)
+		ERR();
+	if (read_sz < 0)
+		ERR();
+	buf[read_sz] = '\0';
+	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
+		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
+	return dst;
 	(void)dst_len;
-	(void)unused;
 	(void)interval;
-#else
-	return c_write_shell(dst, dst_len, CMD_RAM_USAGE);
-#endif
+	(void)unused;
 }

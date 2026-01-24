@@ -16,16 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../config.h"
+#include "../../include/config.h"
 
 #ifdef USE_AUDIO
 
 #	include <assert.h>
-#	include "../macros.h"
-#	include "../utils.h"
+#	include "../../include/macros.h"
+#	include "../../include/utils.h"
 
 #	ifdef USE_ALSA
-#		include "audio-alsa.h"
+#		include "../../include/blocks/audio-alsa.h"
 #	endif
 
 #	define ICON_SPEAKER_UNMUTED "🔉"

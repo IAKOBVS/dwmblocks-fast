@@ -16,16 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef COMPONENTS_H
-#	define COMPONENTS_H 1
+#ifndef BLOCKS_H
+#	define BLOCKS_H 1
 
-/* components/audio.h */
+/* blocks/audio.h */
 char *
 c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* components/gpu.h */
+/* blocks/gpu.h */
 char *
 c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
@@ -35,7 +35,7 @@ c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 char *
 c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* components/cpu.h */
+/* blocks/cpu.h */
 char *
 c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
@@ -43,28 +43,28 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 char *
 c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* components/obs.h */
+/* blocks/obs.h */
 char *
 c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 c_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* components/ram.h */
+/* blocks/ram.h */
 char *
 c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* components/time.h */
+/* blocks/time.h */
 char *
 c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* components/shell.h */
+/* blocks/shell.h */
 char *
 c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
 
-/* components/webcam.h */
+/* blocks/webcam.h */
 char *
 c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif /* COMPONENTS_H */
+#endif /* BLOCKS_H */

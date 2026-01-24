@@ -16,14 +16,14 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../config.h"
+#include "../../include/config.h"
 
 #include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "../macros.h"
-#include "../utils.h"
+#include "../../include/macros.h"
+#include "../../include/utils.h"
 
 int
 c_atou_lt3(const char *s, int digits)

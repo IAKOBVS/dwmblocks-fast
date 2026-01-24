@@ -17,31 +17,39 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include <assert.h>
-#include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
-#include "../macros.h"
-#include "../utils.h"
-#include "../config.h"
+#include "../../include/macros.h"
 
+/* Execute shell script. */
 char *
-c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
-	int fd = open("/proc/modules", O_RDONLY);
-	if (fd == -1)
-		ERR();
-	char buf[4096];
+#if HAVE_POPEN && HAVE_PCLOSE
+	FILE *fp = popen(cmd, "r");
+	if (fp == NULL)
+		ERR(return NULL);
+	int fd;
 	ssize_t read_sz;
-	read_sz = read(fd, buf, sizeof(buf));
-	if (close(fd) == -1)
-		ERR();
-	if (read_sz < 0)
-		ERR();
-	buf[read_sz] = '\0';
-	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
-		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
-	return dst;
+	fd = io_fileno(fp);
+	if (fd == -1)
+		ERR(pclose(fp); return NULL);
+	read_sz = read(fd, dst, dst_len);
+	if (pclose(fp) < 0)
+		ERR(return NULL);
+	if (read_sz == -1)
+		ERR(return NULL);
+	/* Chop newline. */
+	char *end = (char *)memchr(dst, '\n', read_sz);
+	/* Nul-terminate newline or end of string. */
+	dst = end ? end : dst + read_sz;
+	*dst = '\0';
+#else
+	assert("c_write_cmd: calling c_write_cmd when popen or pclose is not available!");
 	(void)dst_len;
+	(void)cmd;
+#endif
 	(void)interval;
-	(void)unused;
+	return dst;
 }

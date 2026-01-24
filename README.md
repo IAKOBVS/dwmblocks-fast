@@ -14,7 +14,7 @@ $ cd dwmblocks-fast-git
 $ makepkg --nobuild --nodeps
 ```
 Folow the additional instructions from makepkg.
-Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
+Optionally, manually [configure](#manual) config.h, blocks.h, and the Makefile.
 ```
 $ cd src/dwmblocks-fast/src
 ```
@@ -38,7 +38,7 @@ Follow the additional instructions from make.
 ```
 $ cd src
 ```
-Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
+Optionally, manually [configure](#manual) config.h, blocks.h, and the Makefile.
 ```
 $ cd  ..
 $ sudo make install
@@ -81,7 +81,7 @@ static struct Block g_blocks[] = {
     { 2,                 0,        "",      write_my,   NULL },
 }
 ```
-### src/components.h
+### src/blocks.h
 ```
 static char *
 write_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)

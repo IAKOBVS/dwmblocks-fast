@@ -1,7 +1,7 @@
 #!/bin/sh
 [ -n "$1" ] || exit 1
 out_dir=$1
-sigs=$(grep 'define SIG_' ./src/config.h | sed 's/.*define.*\(SIG_[A-Z]*\)[ \t]*\([0-9]*\)/\1=\2/')
+sigs=$(grep 'define SIG_' include/config.h | sed 's/.*define.*\(SIG_[A-Z]*\)[ \t]*\([0-9]*\)/\1=\2/')
 shift
 for file in $@; do
 	{

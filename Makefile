@@ -59,27 +59,27 @@ HFILES = src/*.h
 SCRIPTSBASE = dwmblocks-fast-*
 PROG = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
-CFGS = $(SRC)/config.h $(SRC)/components.h
+CFGS = include/config.h include/blocks.h
 
 OBJS =\
-	./src/components/time.o\
-	./src/components/ram.o\
-	./src/components/obs.o\
-	./src/components/webcam.o\
-	./src/components/audio-alsa.o\
-	./src/components/audio.o\
-	./src/components/gpu.o\
-	./src/components/cpu.o\
+	./src/blocks/time.o\
+	./src/blocks/ram.o\
+	./src/blocks/obs.o\
+	./src/blocks/webcam.o\
+	./src/blocks/audio-alsa.o\
+	./src/blocks/audio.o\
+	./src/blocks/gpu.o\
+	./src/blocks/cpu.o\
 	./src/main.o
 
 # Always recompile $(OBJS) if $(REQ) changed
 REQ =\
-	src/components/procfs.o\
-	src/components/shell.o\
-	src/macros.h\
-	src/utils.h\
-	src/config.h\
-	src/components.h\
+	src/blocks/procfs.o\
+	src/blocks/shell.o\
+	include/macros.h\
+	include/utils.h\
+	include/config.h\
+	include/blocks.h\
 
 ################################################################################
 # Targets
@@ -99,11 +99,11 @@ $(OBJS): $(REQ)
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
-$(SRC)/config.h:
-	cp $(SRC)/config.def.h $@
+include/config.h:
+	cp include/config.def.h $@
 
-$(SRC)/components.h:
-	cp $(SRC)/components.def.h $@
+include/blocks.h:
+	cp include/blocks.def.h $@
 
 options:
 	@echo dwmblocks-fast build options:
@@ -131,10 +131,10 @@ config: $(CFGS)
 
 # Comment out parts of the config.h and the Makefile
 disable-nvml: $(config)
-	@mv src/config.h src/config.h.bak
+	@mv include/config.h include/config.h.bak
 	# Comment out USE_NVML line
-	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-	@rm src/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
+	@rm include/config.h.bak
 	@cp Makefile Makefile.bak
 	# Comment out LDFLAGS_NVML line
 	@sed 's/^\(LDFLAGS_NVML.*\)/# \1/' Makefile.bak > Makefile
@@ -143,33 +143,33 @@ disable-nvml: $(config)
 disable-cuda: disable-nvml
 
 disable-nvidia: $(config) $(disable-nvml)
-	@mv src/config.h src/config.h.bak
-	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-	@rm src/config.h.bak
+	@mv include/config.h include/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
+	@rm include/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_NVIDIA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-x11: $(config)
-	@mv src/config.h src/config.h.bak
-	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-	@rm src/config.h.bak
+	@mv include/config.h include/config.h.bak
+	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
+	@rm include/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_X11.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-alsa: $(config)
-	@mv src/config.h src/config.h.bak
-	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-	@rm src/config.h.bak
+	@mv include/config.h include/config.h.bak
+	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
+	@rm include/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-audio: $(config) $(disable-alsa)
-	@mv src/config.h src/config.h.bak
-	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-	@rm src/config.h.bak
+	@mv include/config.h include/config.h.bak
+	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
+	@rm include/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_AUDIO.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
