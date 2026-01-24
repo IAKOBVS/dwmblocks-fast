@@ -13,16 +13,23 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 ```
 $ git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 $ cd dwmblocks-fast-git
-$ makepkg --nobuild --nodeps # will show additional instructions
-# Optionally, manually configure config.h, blocks.h, components.h, and the Makefile
+$ makepkg --nobuild --nodeps # additional instructions will appear
+```
+Optionally, manually configure config.h, blocks.h, components.h, and the Makefile
+```
 $ cd src/dwmblocks-fast/src
-# Return to the directory of the PKGBUILD
+```
+And return to the directory of the PKGBUILD
+```
 $ cd ../../..
 $ makepkg -si -f
-# Or for a custom configuration
+```
+Or for a custom configuration
+```
 $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
 # Building
+These dependencies can be excluded with make config.
 ## Dependencies
 - alsa-lib: audio monitoring
 - cuda: GPU temperature monitoring with NVML
@@ -35,9 +42,13 @@ $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 - procps: send signals with pkill
 ```
 $ your-package-manager-install dependencies
-$ make config
-# Configure config.h, blocks.h, components.h, and the Makefile
-$ make
+$ make config # additional instructions will appear
+$ cd src
+```
+Optionally, manually configure config.h, blocks.h, components.h, and the Makefile.
+And return to the directory of the PKGBUILD
+```
+$ cd  ..
 $ sudo make install
 ```
 
