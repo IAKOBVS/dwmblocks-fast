@@ -28,8 +28,17 @@ $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
 
 # Building
-Install the dependencies with your package manager. These can be
-excluded with make config.
+Install the [dependencies](#dependencies) with your package manager. These can be
+excluded with [make config](#automatic).
+```
+$ make config # additional instructions will appear
+$ cd src
+```
+Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
+```
+$ cd  ..
+$ sudo make install
+```
 ## Dependencies
 - alsa-lib: audio monitoring
 - cuda: GPU temperature monitoring with NVML
@@ -40,15 +49,6 @@ excluded with make config.
 - dunst: popup notifications
 - pamixer: audio control
 - procps: send signals with pkill
-```
-$ make config # additional instructions will appear
-$ cd src
-```
-Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
-```
-$ cd  ..
-$ sudo make install
-```
 
 # Usage
 ## In ~/.xinitrc (for dwm, and other window managers that use WM_NAME)
