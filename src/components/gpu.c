@@ -31,14 +31,13 @@
 #	include "../utils.h"
 
 typedef struct {
-	int init;
-	nvmlReturn_t ret;
 	unsigned int deviceCount;
 	nvmlDevice_t *device;
 	unsigned int *temp;
 	nvmlUtilization_t *utilization;
 	nvmlMemory_t *memory;
-	/* nvmlTemperature_t *temp; */
+	nvmlReturn_t ret;
+	int init;
 } c_gpu_ty;
 c_gpu_ty c_gpu;
 
@@ -62,8 +61,24 @@ c_gpu_cleanup()
 void
 c_gpu_err()
 {
-	fprintf(stderr, "%s\n\n", nvmlErrorString(c_gpu.ret));
+	fprintf(stderr, "nvml error: %s\n\n", nvmlErrorString(c_gpu.ret));
 	c_gpu_cleanup();
+}
+
+static ATTR_INLINE
+nvmlReturn_t
+c_gpu_nvmlDeviceGetTemperature(nvmlDevice_t device, nvmlTemperatureSensors_t sensorType, unsigned int *temp)
+{
+#	if USE_NVML_DEVICEGETTEMPERATUREV
+	nvmlTemperature_t tmp;
+	tmp.sensorType = sensorType;
+	tmp.version = nvmlTemperature_v1;
+	const nvmlReturn_t ret = nvmlDeviceGetTemperatureV(device, &tmp);
+	*temp = (unsigned int)tmp.temperature;
+	return ret;
+#	else
+	return nvmlDeviceGetTemperature(device, sensorType, temp);
+#	endif
 }
 
 void
@@ -100,9 +115,7 @@ c_gpu_monitor(c_gpu_monitor_ty mon_type, unsigned int i)
 {
 	switch (mon_type) {
 	case C_GPU_MON_TEMP:
-		c_gpu.ret = nvmlDeviceGetTemperature(c_gpu.device[i], NVML_TEMPERATURE_GPU, c_gpu.temp + i);
-		/* FIXME: does not work. */
-		/* c_gpu.ret = nvmlDeviceGetTemperatureV(c_gpu.device[i], c_gpu.temp + i); */
+		c_gpu.ret = c_gpu_nvmlDeviceGetTemperature(c_gpu.device[i], NVML_TEMPERATURE_GPU, c_gpu.temp + i);
 		if (c_gpu.ret != NVML_SUCCESS)
 			ERR(c_gpu_err());
 		return c_gpu.temp[i];
@@ -167,15 +180,14 @@ typedef struct {
 	unsigned long long memory_total;
 } c_gpu_values_ty;
 
+static ATTR_INLINE
 void
 c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 {
 	for (unsigned int i = 0; i < c_gpu.deviceCount; ++i) {
 		c_gpu.ret = nvmlDeviceGetTemperature(c_gpu.device[i], NVML_TEMPERATURE_GPU, c_gpu.temp + i);
-		/* FIXME: does not work. */
-		/* c_gpu.ret = nvmlDeviceGetTemperatureV(c_gpu.device[i], c_gpu.temp + i); */
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			ERR_DO(c_gpu_err());
 		val->temp += c_gpu.temp[i];
 		c_gpu.ret = nvmlDeviceGetUtilizationRates(c_gpu.device[i], c_gpu.utilization + i);
 		if (c_gpu.ret != NVML_SUCCESS)
@@ -187,13 +199,14 @@ c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 		val->memory_free += c_gpu.memory[i].free;
 		val->memory_total += c_gpu.memory[i].total;
 	}
+	/* TODO: optimize division. */
 	if (c_gpu.deviceCount > 0) {
 		val->temp /= c_gpu.deviceCount;
 		val->usage /= c_gpu.deviceCount;
 		val->memory_free /= c_gpu.deviceCount;
 		val->memory_total /= c_gpu.deviceCount;
 	}
-	val->vram = 100 - (((long double)val->memory_free / (long double)val->memory_total) * (long double)100);
+	val->vram = 100 - (((long double)val->memory_free / (long double)val->memory_total) * 100);
 }
 
 char *

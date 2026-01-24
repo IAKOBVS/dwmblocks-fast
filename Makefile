@@ -75,7 +75,11 @@ OBJS =\
 # Always recompile $(OBJS) if $(REQ) changed
 REQ =\
 	src/components/procfs.o\
-	src/components/shell.o
+	src/components/shell.o\
+	src/macros.h\
+	src/utils.h\
+	src/config.h\
+	src/components.h\
 
 ################################################################################
 # Targets
@@ -120,40 +124,46 @@ config: $(CFGS)
 	@echo 'For example, to disable NVML, run:'
 	@echo 'make disable-nvml'
 
-# disable-nvml: $(config)
-# 	@mv src/config.h src/config.h.bak
-# 	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-# 	@rm src/config.h.bak
-# 	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
-# 	@rm Makefile.bak
 
-# disable-nvidia: $(config) $(disable-nvml)
-# 	@mv src/config.h src/config.h.bak
-# 	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-# 	@rm src/config.h.bak
-# 	@sed 's/^\(NVIDIA.*\)/# \1/' Makefile.bak > Makefile
-# 	@rm Makefile.bak
+disable-nvml: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@cp Makefile Makefile.bak
+	@sed 's/^\(NVML.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
 
-# disable-x11: $(config)
-# 	@mv src/config.h src/config.h.bak
-# 	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-# 	@rm src/config.h.bak
-# 	@sed 's/^\(X11.*\)/# \1/' Makefile.bak > Makefile
-# 	@rm Makefile.bak
+disable-nvidia: $(config) $(disable-nvml)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@cp Makefile Makefile.bak
+	@sed 's/^\(NVIDIA.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
 
-# disable-alsa: $(config)
-# 	@mv src/config.h src/config.h.bak
-# 	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-# 	@rm src/config.h.bak
-# 	@sed 's/^\(ALSA.*\)/# \1/' Makefile.bak > Makefile
-# 	@rm Makefile.bak
+disable-x11: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@cp Makefile Makefile.bak
+	@sed 's/^\(X11.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
 
-# disable-audio: $(config) $(disable-alsa)
-# 	@mv src/config.h src/config.h.bak
-# 	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
-# 	@rm src/config.h.bak
-# 	@sed 's/^\(AUDIO.*\)/# \1/' Makefile.bak > Makefile
-# 	@rm Makefile.bak
+disable-alsa: $(config)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@cp Makefile Makefile.bak
+	@sed 's/^\(ALSA.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
+
+disable-audio: $(config) $(disable-alsa)
+	@mv src/config.h src/config.h.bak
+	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' src/config.h.bak > src/config.h
+	@rm src/config.h.bak
+	@cp Makefile Makefile.bak
+	@sed 's/^\(AUDIO.*\)/# \1/' Makefile.bak > Makefile
+	@rm Makefile.bak
 
 clean:
 	rm -f $(PROG) $(SCRIPTS) $(OBJS)

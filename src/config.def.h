@@ -40,6 +40,8 @@
 #	define USE_NVIDIA 1
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 #	define USE_NVML    1
+/* May not work for older versions of CUDA, in which case, comment it out. */
+#	define USE_NVML_DEVICEGETTEMPERATUREV 1
 #	define NVML_HEADER "/opt/cuda/include/nvml.h"
 
 /* Path to CPU temperature */

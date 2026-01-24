@@ -1,11 +1,12 @@
 # dwmblocks-fast
-A modular status bar for window managers written in C.
+A modular status bar for window managers written in C (fork of dwmblocks).
 
 ![Alt text](./dwmblocks-fast.png?raw=true "dwmblocks-fast")
-# Changes from dwmblocks
-dwmblocks-fast, forked from dwmblocks, enables the user to choose between C functions, for speed,
-or shell scripts. The main loop is optimized to only reconstruct the status string when there is
-an actual change.
+# Features
+- Accepts C functions or shell scripts
+- Only updates the statusbar when no change has occured
+- Nvidia GPU temperature, usage, and VRAM monitoring
+- CPU temperature and usage monitoring
 
 # Installation
 ## Arch Linux
@@ -88,6 +89,18 @@ pkill -RTMIN+"$SIG_SH" dwmblocks-fast
 # Configuration
 To enable or disable certain features or libraries, comment them out in the config.h
 and the Makefile. For example, to disable NVML:
+## Automatically
+Some features can be configured with make (which is useful for automation).
+```
+$ make config # prints the available options
+$ make disable-nvml
+```
+## Manually
+```
+# NVML (comment to disable)
+# NVMLLIB = /opt/cuda/lib64
+# LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
+```
 ### Makefile
 ```
 # NVML (comment to disable)
@@ -98,5 +111,4 @@ and the Makefile. For example, to disable NVML:
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 /* #define USE_NVML 1 */
-/* #define NVML_HEADER "/opt/cuda/include/nvml.h" */
 ```
