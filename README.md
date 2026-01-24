@@ -46,7 +46,7 @@ $ make config # additional instructions will appear
 $ cd src
 ```
 Optionally, manually configure config.h, blocks.h, components.h, and the Makefile.
-And return to the directory of the PKGBUILD
+And return to the directory of the Makefile
 ```
 $ cd  ..
 $ sudo make install
