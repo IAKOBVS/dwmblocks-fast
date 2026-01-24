@@ -15,16 +15,15 @@ cd dwmblocks-fast-git
 makepkg --nobuild
 cd src/dwmblocks-fast/src/
 make config
-# Configure config.h blocks.h components.h
+# Configure config.h, blocks.h, components.h, and the Makefile
 cd ../../..
 makepkg -si
 ```
 # Building
 ```
-# Install dependencies
-$ your-package-manager-install alsa-lib cuda
+$ your-package-manager-install dependencies
 make config
-# Configure config.h blocks.h components.h
+# Configure config.h, blocks.h, components.h, and the Makefile
 make
 sudo make install
 ```
