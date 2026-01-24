@@ -42,10 +42,7 @@ $ sudo make install
 # Usage
 ## In ~/.xinitrc (for dwm, and other window managers that use WM_NAME)
 ```
-while :; do
-    dwmblocks-fast
-    sleep 1
-done &
+dwmblocks-fast &
 ```
 ## Print to stdout (for other window managers that read stdin)
 ```
