@@ -23,20 +23,20 @@
 ################################################################################
 
 # Compile only for this architecture (comment to disable)
-OPTIMIZECFLAGS += -march=native
+CFLAGS_OPTIMIZE += -march=native
 
 # Link-time optimizations (comment to disable)
-OPTIMIZELDFLAGS += -flto
+LDFLAGS_OPTIMIZE += -flto
 
 # X11 (comment to disable)
-X11LDFLAGS += -lX11
+LDFLAGS_X11 += -lX11
 
 # Alsa (comment to disable)
-ALSALDFLAGS += -lasound
+LDFLAGS_ALSA += -lasound
 
 # NVML (comment to disable)
-NVMLLIB = /opt/cuda/lib64
-NVMLLDFLAGS += -L$(NVMLLIB) -lnvidia-ml
+LIB_NVML = /opt/cuda/lib64
+LDFLAGS_NVML += -L$(LIB_NVML) -lnvidia-ml
 
 # # FreeBSD (uncomment)
 # FREEBSDLDFLAGS += -L/usr/local/lib -I/usr/local/include
@@ -48,8 +48,8 @@ NVMLLDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 # Variables
 ################################################################################
 
-CFLAGS += $(OPTIMIZECFLAGS)
-LDFLAGS += $(OPTIMIZELDFLAGS) $(ALSALDFLAGS) $(X11LDFLAGS) $(NVMLLDFLAGS) $(FREEBSDLDFLAGS) $(OPENBSDLDFLAGS)
+CFLAGS += $(CFLAGS_OPTIMIZE)
+LDFLAGS += $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(FREEBSDLDFLAGS) $(OPENBSDLDFLAGS)
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2

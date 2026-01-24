@@ -90,7 +90,7 @@ pkill -RTMIN+"$SIG_SH" dwmblocks-fast
 To enable or disable certain features or libraries, comment them out in the config.h
 and the Makefile. For example, to disable NVML:
 ## Automatically
-Some features can be configured with make (which is useful for automation).
+Some features can be configured automatically with make (which is useful for automation).
 ```
 $ make config # prints the available options
 $ make disable-nvml
