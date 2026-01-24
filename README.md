@@ -10,22 +10,22 @@ an actual change.
 # Installation
 ## Arch Linux
 ```
-git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
-cd dwmblocks-fast-git
-makepkg --nobuild
-cd src/dwmblocks-fast/src/
-make config
+$ git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
+$ cd dwmblocks-fast-git
+$ makepkg --nobuild
+$ cd src/dwmblocks-fast/src
+$ make config
 # Configure config.h, blocks.h, components.h, and the Makefile
-cd ../../..
-makepkg -si
+$ cd ../../..
+$ makepkg -si
 ```
 # Building
 ```
 $ your-package-manager-install dependencies
-make config
+$ make config
 # Configure config.h, blocks.h, components.h, and the Makefile
-make
-sudo make install
+$ make
+$ sudo make install
 ```
 
 # Usage
