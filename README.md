@@ -46,8 +46,7 @@ excluded with make config.
 $ make config # additional instructions will appear
 $ cd src
 ```
-Optionally, manually configure config.h, blocks.h, components.h, and the Makefile,
-and return to the directory of the Makefile
+Optionally, manually configure config.h, blocks.h, components.h, and the Makefile.
 ```
 $ cd  ..
 $ sudo make install
