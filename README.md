@@ -13,7 +13,7 @@ $ git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 $ cd dwmblocks-fast-git
 $ makepkg --nobuild --nodeps # additional instructions will appear
 ```
-Optionally, manually [configure](##manual) config.h, blocks.h, components.h, and the Makefile
+Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile
 ```
 $ cd src/dwmblocks-fast/src
 ```
@@ -44,7 +44,7 @@ excluded with make config.
 $ make config # additional instructions will appear
 $ cd src
 ```
-Optionally, manually [configure](##manual) config.h, blocks.h, components.h, and the Makefile.
+Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
 ```
 $ cd  ..
 $ sudo make install
