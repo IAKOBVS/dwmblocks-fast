@@ -3,26 +3,27 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 
 ![Alt text](./dwmblocks-fast.png?raw=true "dwmblocks-fast")
 # Features
-- Accepts C functions or shell scripts
-- Only updates the statusbar when no change has occured
+- Accepts [C functions](#adding-a-c-function) or [shell scripts](#adding-a-shell-script).
+- Only updates the statusbar when no change has occured.
 
 # Installation
 ## Arch Linux
 ```
 $ git clone https://aur.archlinux.org/packages/dwmblocks-fast-git
 $ cd dwmblocks-fast-git
-$ makepkg --nobuild --nodeps # additional instructions will appear
+$ makepkg --nobuild --nodeps
 ```
-Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile
+Folow the additional instructions from makepkg.
+Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
 ```
 $ cd src/dwmblocks-fast/src
 ```
-And return to the directory of the PKGBUILD
+And return to the directory of the PKGBUILD.
 ```
 $ cd ../../..
 $ makepkg -si -f
 ```
-Or for a custom configuration
+Or for a custom configuration:
 ```
 $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
@@ -31,7 +32,10 @@ $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 Install the [dependencies](#dependencies) with your package manager. These can be
 excluded with [make config](#automatic).
 ```
-$ make config # additional instructions will appear
+$ make config
+```
+Follow the additional instructions from make.
+```
 $ cd src
 ```
 Optionally, manually [configure](#manual) config.h, blocks.h, components.h, and the Makefile.
@@ -67,7 +71,6 @@ dwmblocks -p # | some_window_manager
 static struct Block g_blocks[] = {
     /* Update_interval   Signal    Label    Function        Command*/
     { 0,                 SIG_SH,   "",      c_write_shell,  "my_shell_script" },
-    /* ... */
 }
 ```
 ## Adding a C function
@@ -76,7 +79,6 @@ static struct Block g_blocks[] = {
 static struct Block g_blocks[] = {
     /* Update_interval   Signal    Label    Function    Command*/
     { 2,                 0,        "",      write_my,   NULL },
-    /* ... */
 }
 ```
 ### src/components.h
@@ -101,7 +103,10 @@ and the Makefile. For example, to disable NVML:
 Some features can be configured automatically with make (which is useful for automation).
 ```
 $ make config # prints the available options
-$ make disable-nvml
+```
+For example, to exclude CUDA from the dependencies:
+```
+$ make disable-cuda
 ```
 ## Manual
 ```
