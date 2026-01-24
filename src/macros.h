@@ -20,7 +20,7 @@
 #	define MACROS_H 1
 
 #	include <stdio.h>
-#	include "config.h"
+#	include <assert.h>
 
 #	define ERR(x)              \
 		do {                \

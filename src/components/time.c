@@ -16,14 +16,12 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
+#include <sys/sysinfo.h>
+#include <time.h>
+#include <assert.h>
 
-#	include <sys/sysinfo.h>
-#	include <time.h>
-#	include <assert.h>
-
-#	include "../macros.h"
-#	include "../utils.h"
+#include "../macros.h"
+#include "../utils.h"
 
 struct tm *
 c_read_time(void)
@@ -53,12 +51,12 @@ c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 			*p++ = '0';
 	}
 	/* Write hour */
-	p = utoa_p(h, p);
+	p = u_utoa_p(h, p);
 	*p++ = ':';
 	if (tm->tm_min < 10)
 		*p++ = '0';
 	/* Write minutes */
-	p = utoa_p((unsigned int)tm->tm_min, p);
+	p = u_utoa_p((unsigned int)tm->tm_min, p);
 	*p++ = ' ';
 	/* AM or PM */
 	*p++ = meridiem;
@@ -79,33 +77,33 @@ c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	char *p = dst;
 	/* Write day */
 	switch (tm->tm_wday) {
-	case 0: p = xstpcpy_len(p, S_LITERAL("Sun, ")); break;
-	case 1: p = xstpcpy_len(p, S_LITERAL("Mon, ")); break;
-	case 2: p = xstpcpy_len(p, S_LITERAL("Tue, ")); break;
-	case 3: p = xstpcpy_len(p, S_LITERAL("Wed, ")); break;
-	case 4: p = xstpcpy_len(p, S_LITERAL("Thu, ")); break;
-	case 5: p = xstpcpy_len(p, S_LITERAL("Thu, ")); break;
-	case 6: p = xstpcpy_len(p, S_LITERAL("Fri, ")); break;
+	case 0: p = u_stpcpy_len(p, S_LITERAL("Sun, ")); break;
+	case 1: p = u_stpcpy_len(p, S_LITERAL("Mon, ")); break;
+	case 2: p = u_stpcpy_len(p, S_LITERAL("Tue, ")); break;
+	case 3: p = u_stpcpy_len(p, S_LITERAL("Wed, ")); break;
+	case 4: p = u_stpcpy_len(p, S_LITERAL("Thu, ")); break;
+	case 5: p = u_stpcpy_len(p, S_LITERAL("Thu, ")); break;
+	case 6: p = u_stpcpy_len(p, S_LITERAL("Fri, ")); break;
 	}
-	p = utoa_p((unsigned int)tm->tm_mday, p);
+	p = u_utoa_p((unsigned int)tm->tm_mday, p);
 	*p++ = ' ';
 	/* Write month */
 	switch (tm->tm_mon) {
-	case 0: p = xstpcpy_len(p, S_LITERAL("Jan ")); break;
-	case 1: p = xstpcpy_len(p, S_LITERAL("Feb ")); break;
-	case 2: p = xstpcpy_len(p, S_LITERAL("Mar ")); break;
-	case 3: p = xstpcpy_len(p, S_LITERAL("Apr ")); break;
-	case 4: p = xstpcpy_len(p, S_LITERAL("May ")); break;
-	case 5: p = xstpcpy_len(p, S_LITERAL("Jun ")); break;
-	case 6: p = xstpcpy_len(p, S_LITERAL("Jul ")); break;
-	case 7: p = xstpcpy_len(p, S_LITERAL("Agu ")); break;
-	case 8: p = xstpcpy_len(p, S_LITERAL("Sep ")); break;
-	case 9: p = xstpcpy_len(p, S_LITERAL("Oct ")); break;
-	case 10: p = xstpcpy_len(p, S_LITERAL("Nov ")); break;
-	case 11: p = xstpcpy_len(p, S_LITERAL("Dec ")); break;
+	case 0: p = u_stpcpy_len(p, S_LITERAL("Jan ")); break;
+	case 1: p = u_stpcpy_len(p, S_LITERAL("Feb ")); break;
+	case 2: p = u_stpcpy_len(p, S_LITERAL("Mar ")); break;
+	case 3: p = u_stpcpy_len(p, S_LITERAL("Apr ")); break;
+	case 4: p = u_stpcpy_len(p, S_LITERAL("May ")); break;
+	case 5: p = u_stpcpy_len(p, S_LITERAL("Jun ")); break;
+	case 6: p = u_stpcpy_len(p, S_LITERAL("Jul ")); break;
+	case 7: p = u_stpcpy_len(p, S_LITERAL("Agu ")); break;
+	case 8: p = u_stpcpy_len(p, S_LITERAL("Sep ")); break;
+	case 9: p = u_stpcpy_len(p, S_LITERAL("Oct ")); break;
+	case 10: p = u_stpcpy_len(p, S_LITERAL("Nov ")); break;
+	case 11: p = u_stpcpy_len(p, S_LITERAL("Dec ")); break;
 	}
 	/* Write year */
-	p = utoa_p((unsigned int)tm->tm_year + 1900, p);
+	p = u_utoa_p((unsigned int)tm->tm_year + 1900, p);
 	/* Set next update before day changes. */
 	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((60 - tm->tm_min) * 60) + (60 - tm->tm_sec));
 	return p;

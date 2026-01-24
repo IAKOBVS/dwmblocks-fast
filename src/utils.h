@@ -23,7 +23,7 @@
 #	include "macros.h"
 
 static ATTR_MAYBE_UNUSED char *
-utoa_p(unsigned int number, char *buf)
+u_utoa_p(unsigned int number, char *buf)
 {
 	char *start = buf;
 	do
@@ -41,24 +41,24 @@ utoa_p(unsigned int number, char *buf)
 }
 
 static ATTR_INLINE int
-xisdigit(int c)
+u_isdigit(int c)
 {
 	return ((unsigned)c - '0' < 10);
 }
 
 static ATTR_INLINE unsigned int
-xstrtou10(char *p, char **endp)
+u_strtou10(char *p, char **endp)
 {
 	unsigned int n = 0;
 	unsigned char *pp = (unsigned char *)p;
-	while (xisdigit(*pp))
+	while (u_isdigit(*pp))
 		n = n * 10 + *(pp++) - '0';
 	*endp = (char *)pp;
 	return n;
 }
 
 static ATTR_INLINE char *
-xstpcpy_len(char *dst, const char *src, size_t n)
+u_stpcpy_len(char *dst, const char *src, size_t n)
 {
 #	ifdef HAVE_MEMPCPY
 	dst = (char *)mempcpy(dst, src, n);
@@ -72,7 +72,7 @@ xstpcpy_len(char *dst, const char *src, size_t n)
 }
 
 static ATTR_INLINE char *
-xstpcpy(char *dst, const char *src)
+u_stpcpy(char *dst, const char *src)
 {
 #	ifdef HAVE_STPCPY
 	return stpcpy(dst, src);
@@ -85,7 +85,7 @@ xstpcpy(char *dst, const char *src)
 }
 
 static ATTR_INLINE char *
-xstrstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
+u_strstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
 {
 #	ifdef HAVE_STPCPY
 	return (char *)memmem(hs, hs_len, ne, ne_len);

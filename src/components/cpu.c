@@ -16,14 +16,14 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
+#include "../config.h"
 
-#		include <assert.h>
-#		include <fcntl.h>
-#		include <unistd.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-#		include "../macros.h"
-#		include "../utils.h"
+#include "../macros.h"
+#include "../utils.h"
 
 int
 c_atou_lt3(const char *s, int digits)
@@ -60,8 +60,8 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	if (temp < 0)
 		ERR(return NULL);
 	char *p = dst;
-	p = utoa_p((unsigned int)temp, dst);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
+	p = u_utoa_p((unsigned int)temp, dst);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -86,15 +86,15 @@ c_read_cpu_usage()
 	char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
-	l_user = (int)xstrtou10(p, &p); p += S_LEN(" ");
+	l_user = (int)u_strtou10(p, &p); p += S_LEN(" ");
 	if (user == 0)
 		return 0;
-	l_nice = (int)xstrtou10(p, &p); p += S_LEN(" ");
-	l_system = (int)xstrtou10(p, &p); p += S_LEN(" ");
-	l_idle = (int)xstrtou10(p, &p); p += S_LEN(" ");
-	l_iowait = (int)xstrtou10(p, &p); p += S_LEN(" ");
-	l_irq = (int)xstrtou10(p, &p); p += S_LEN(" ");
-	l_softirq = (int)xstrtou10(p, &p);
+	l_nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	l_system = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	l_idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	l_iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	l_irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	l_softirq = (int)u_strtou10(p, &p);
 	/* clang-format off */
 	const int tot = nice + user + system + idle + iowait + irq + softirq;
 	const int l_tot = l_nice + l_user + l_system + l_idle + l_iowait + l_irq + l_softirq;
@@ -113,8 +113,8 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	if (usage < 0)
 		ERR(return NULL);
 	char *p = dst;
-	p = utoa_p((unsigned int)usage, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	p = u_utoa_p((unsigned int)usage, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -131,11 +131,11 @@ c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	if (usage < 0)
 		ERR(return NULL);
 	char *p = dst;
-	p = utoa_p((unsigned int)temp, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
+	p = u_utoa_p((unsigned int)temp, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
-	p = utoa_p((unsigned int)usage, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	p = u_utoa_p((unsigned int)usage, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;

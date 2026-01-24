@@ -16,19 +16,19 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
+#include "../config.h"
 
-#	ifdef USE_NVML
-#		ifndef NVML_HEADER
-#			define NVML_HEADER "/opt/cuda/include/nvml.h"
-#		endif
-#		include NVML_HEADER
+#ifdef USE_NVML
+#	ifndef NVML_HEADER
+#		define NVML_HEADER "/opt/cuda/include/nvml.h"
+#	endif
+#	include NVML_HEADER
 
-#		include <stdlib.h>
-#		include <assert.h>
+#	include <stdlib.h>
+#	include <assert.h>
 
-#		include "../macros.h"
-#		include "../utils.h"
+#	include "../macros.h"
+#	include "../utils.h"
 
 typedef struct {
 	int init;
@@ -137,14 +137,14 @@ c_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigne
 		c_gpu_init();
 	unsigned int avg = c_gpu_monitor_devices(mon_type);
 	char *p = dst;
-	p = utoa_p(avg, p);
+	p = u_utoa_p(avg, p);
 	switch (mon_type) {
 	case C_GPU_MON_TEMP:
-		p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
+		p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 		break;
 	case C_GPU_MON_USAGE:
 	case C_GPU_MON_VRAM:
-		p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+		p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 		break;
 	}
 	return p;
@@ -187,17 +187,17 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 {
 	if (c_gpu.init == 0)
 		c_gpu_init();
-	c_gpu_values_ty val = {0};
+	c_gpu_values_ty val = { 0 };
 	c_gpu_monitor_devices_all(&val);
 	char *p = dst;
-	p = utoa_p(val.temp, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_TEMP));
+	p = u_utoa_p(val.temp, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
-	p = utoa_p(val.usage, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	p = u_utoa_p(val.usage, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p++ = ' ';
-	p = utoa_p(val.vram, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	p = u_utoa_p(val.vram, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p = '\0';
 	return p;
 	(void)dst_len;
@@ -223,9 +223,9 @@ c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	return c_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
 }
 
-#	elif defined USE_NVIDIA
+#elif defined USE_NVIDIA
 
-#		include "shell.h"
+#	include "shell.h"
 
 char *
 c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
@@ -260,4 +260,4 @@ c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)interval;
 }
 
-#	endif
+#endif

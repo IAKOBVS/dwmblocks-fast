@@ -1,23 +1,32 @@
 /* SPDX-License-Identifier: ISC */
-/* Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
- * This file is part of dwmblocks-fast.
+/* Copyright 2020 torrinfail
+ * Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
+ * This file is part of dwmblocks-fast, derived from dwmblocks with modifications.
  *
- * Permission to use, copy, modify, and/or distribute this software
- * for any purpose with or without fee is hereby granted, provided that
- * the above copyright notice and this permission notice appear in all
- * copies.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
- * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
- * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
- * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
- * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE. */
 
-#ifndef CONFIG_H
-#	define CONFIG_H 1
+#ifndef BLOCKS_H
+#	define BLOCKS_H 1
+
+#	include <stdlib.h>
+#	include "components.h"
+#	include "macros.h"
 
 /* Use libx11. Comment to disable. */
 #	define USE_X11 1
@@ -36,23 +45,76 @@
 /* Path to CPU temperature */
 #	define CPU_TEMP_FILE "/sys/class/thermal/thermal_zone1/temp"
 
-/* Shell scripts to execute if C functions are not available */
-#	define CMD_RAM_USAGE        "free | awk '/^Mem:/ {printf(" % d % % ", 100 - ($4/$2 * 100))}'"
-#	define CMD_GPU_NVIDIA_TEMP  "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits -i 0"
-#	define CMD_GPU_NVIDIA_USAGE "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits -i 0"
-#	define CMD_GPU_NVIDIA_VRAM  "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits -i 0 | awk -F', ' '{ printf(" % d % %\n ", ($1/$2)*100) }'"
-#	define CMD_GPU_NVIDIA_ALL   "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits -i 0 | awk -F', ' '{ printf(" % d % % % d % % % d % %\n ", $1, $2, ($3/$4)*100) }'"
-#	define CMD_TIME             "date '+%I:%M %p'"
-#	define CMD_DATE             "date '+%a, %d %b %Y'"
-#	define CMD_CPU_TEMP         "head -c2 " CPU_TEMP_FILE
-#	define CMD_MIC_MUTED        "[ $(ifmute) = 'false' ] && echo '🎤' || echo '🔇'"
-#	define CMD_OBS_OPEN         "pgrep 'obs' > /dev/null && echo '🎥 |' || echo ''"
-#	define CMD_OBS_RECORDING    "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |'"
+#	define ICON_WEBCAM_ON       "📸"
+#	define ICON_OBS_RECORDING   "🔴 Recording"
+#	define ICON_OBS_OPEN        "🎥 OBS"
+#	define ICON_SPEAKER_UNMUTED "🔉"
+#	define ICON_SPEAKER_MUTED   "🔇"
+#	define ICON_MIC_UNMUTED     "🎤"
+#	define ICON_MIC_MUTED       "🚫"
+
+#	define INTERVAL_OBS_RECORDING 2
+#	define INTERVAL_OBS_OPEN      2
 
 #	define UNIT_USAGE "%"
 #	define UNIT_TEMP  "°"
 
-/* Use unlocked stdio functions, since single-threaded. */
-#	define USE_UNLOCKED_IO 1
+/* These will be copied to each shell script in ./scripts as shell variables. */
+#	define SIG_AUDIO  1
+#	define SIG_OBS    2
+#	define SIG_MIC    3
+#	define SIG_WEBCAM 4
 
-#endif /* CONFIG_H */
+/* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
+#	define DELIM    " | "
+#	define DELIMLEN (S_LEN(DELIM))
+
+typedef struct {
+	unsigned int interval;
+	const unsigned int signal;
+	const char *icon;
+	char *(*func)(char *, unsigned int, const char *, unsigned int *);
+	const char *command;
+} g_block_ty;
+
+/* clang-format off */
+
+/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
+static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
+	/* To use a shell script, set func to c_write_cmd and command to the shell script.
+	 * To use a C function, set command to NULL.
+	 *
+	 * Update_interval    Signal    Label    Function    Command */
+	{ 0,    SIG_WEBCAM, NULL, c_write_webcam_on,         NULL },
+	/* ================================================================================================= */
+	/* Do not change the order: c_write_obs_on must be placed before c_write_obs_recording! */
+	/* ================================================================================================= */
+	{ 0,    SIG_OBS,    NULL, c_write_obs_on,            NULL },
+	{ 0,    SIG_OBS,    NULL, c_write_obs_recording,     NULL },
+	/* ================================================================================================= */
+#	ifdef USE_AUDIO
+	{ 0,    SIG_MIC,    NULL, c_write_mic_vol,           NULL },
+#	endif
+	{ 3600, 0,          "📅", c_write_date,              NULL },
+	{ 30,   0,          "🧠", c_write_ram_usage_percent, NULL },
+	/* c_write_cpu_all: [temp] [usage] */
+	{ 2,    0,          "💻", c_write_cpu_all,           NULL },
+	/* { 2,    0,          "💻", c_write_cpu_temp,          NULL }, */
+	/* { 2,    0,          "💻", c_write_cpu_usage,         NULL }, */
+#	ifdef USE_NVIDIA
+	/* c_write_gpu_all: [temp] [usage] [vram] */
+	{ 2,    0,          "🚀", c_write_gpu_all,           NULL },
+	/* { 2,    0,          "🚀", c_write_gpu_temp,          NULL }, */
+	/* { 2,    0,          "🚀", c_write_gpu_usage,         NULL }, */
+	/* { 2,    0,          "🚀", c_write_gpu_vram,          NULL }, */
+#	endif
+#	ifdef USE_AUDIO
+	{ 0,    SIG_AUDIO,  NULL, c_write_speaker_vol,       NULL },
+	/* { 0,    SIG_AUDIO,  NULL, c_write_shell,       "wpctl get-volume @DEFAULT_AUDIO_SINK@" }, */
+#	endif
+	{ 60,   0,          "⏰", c_write_time,              NULL },
+};
+
+/* clang-format on */
+
+#endif /* BLOCKS_H */

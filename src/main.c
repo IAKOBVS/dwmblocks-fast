@@ -18,6 +18,9 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
+/* Must be at the top. */
+#include "config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -26,8 +29,6 @@
 #include <assert.h>
 #include <pthread.h>
 
-#include "config.h"
-
 #ifdef USE_X11
 #	include <X11/Xlib.h>
 #	include <X11/Xatom.h>
@@ -35,7 +36,6 @@
 
 #include "macros.h"
 #include "utils.h"
-#include "blocks.h"
 
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1
@@ -49,7 +49,6 @@
 #define G_CMDLENGTH 64
 #define G_STATUSLEN (S_LEN(" ") + LEN(g_blocks) * G_CMDLENGTH + 1)
 
-typedef struct Block Block;
 typedef enum {
 	G_RET_SUCC = 0,
 	G_RET_ERR
@@ -64,9 +63,9 @@ void
 g_handler_sig_dummy(int num);
 #endif
 void
-g_getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
+g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
 void
-g_getcmds_sig(unsigned int signal, Block *blocks, unsigned int blocks_len);
+g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len);
 g_ret_ty
 g_setup_signals();
 void
@@ -100,12 +99,12 @@ static int g_statuschanged = 0;
 
 /* Run command or execute C function. */
 char *
-getcmd(Block *block, char *output)
+g_getcmd(g_block_ty *block, char *output)
 {
 	char *dst = output;
 	if (block->icon) {
 		/* Add icon. */
-		dst = xstpcpy(dst, block->icon);
+		dst = u_stpcpy(dst, block->icon);
 		*dst++ = ' ';
 	}
 	char *old = dst;
@@ -117,24 +116,24 @@ getcmd(Block *block, char *output)
 		return output;
 	}
 	/* Add delimiter. */
-	dst = xstpcpy_len(dst, DELIM, DELIMLEN);
+	dst = u_stpcpy_len(dst, DELIM, DELIMLEN);
 	return dst;
 }
 
 /* Run commands or functions according to their interval. */
 void
-g_getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
+g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
-	Block *curr = blocks;
+	g_block_ty *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
 		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == (unsigned int)-1) {
 			char tmp[sizeof(g_statusbar[0])];
-			/* Get the result of getcmd. */
-			unsigned int tmp_len = getcmd(curr, tmp) - tmp;
+			/* Get the result of g_getcmd. */
+			unsigned int tmp_len = g_getcmd(curr, tmp) - tmp;
 			/* Check if needs update. */
 			if (tmp_len != statusbar_len[i] || memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
-				xstpcpy_len(g_statusbar[i], tmp, tmp_len);
+				u_stpcpy_len(g_statusbar[i], tmp, tmp_len);
 				statusbar_len[i] = tmp_len;
 				/* Mark change. */
 				g_statuschanged = 1;
@@ -144,12 +143,12 @@ g_getcmds(unsigned int time, Block *blocks, unsigned int blocks_len, unsigned ch
 
 /* Same as g_getcmds but executed when receiving a signal. */
 void
-g_getcmds_sig(unsigned int signal, Block *blocks, unsigned int blocks_len)
+g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
 {
-	Block *curr = blocks;
+	g_block_ty *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
 		if (curr->signal == signal)
-			g_statusbarlen[i] = getcmd(curr, g_statusbar[i]) - g_statusbar[i];
+			g_statusbarlen[i] = g_getcmd(curr, g_statusbar[i]) - g_statusbar[i];
 }
 
 g_ret_ty
@@ -181,7 +180,7 @@ g_status_get(char *dst)
 	*dst++ = ' ';
 	char *p = dst;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		p = xstpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
+		p = u_stpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
 	if (p != dst)
 		p -= DELIMLEN;
@@ -263,7 +262,7 @@ g_status_mainloop()
 }
 
 #ifndef __OpenBSD__
-/* Handle error gracefully. */
+/* Handle errors gracefully. */
 void
 g_handler_sig_dummy(int signum)
 {

@@ -16,12 +16,13 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include <assert.h>
-#	include <fcntl.h>
-#	include <unistd.h>
+#include <assert.h>
+#include <fcntl.h>
+#include <unistd.h>
 
-#	include "../macros.h"
-#	include "../utils.h"
+#include "../macros.h"
+#include "../utils.h"
+#include "../config.h"
 
 char *
 c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
@@ -37,8 +38,8 @@ c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	if (read_sz < 0)
 		ERR();
 	buf[read_sz] = '\0';
-	if (xstrstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
-		dst = xstpcpy_len(dst, S_LITERAL("📸"));
+	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
+		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
 	return dst;
 	(void)dst_len;
 	(void)interval;

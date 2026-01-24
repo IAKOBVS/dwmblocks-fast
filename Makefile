@@ -59,7 +59,7 @@ HFILES = src/*.h
 SCRIPTSBASE = dwmblocks-fast-*
 PROG = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
-CFGS = $(SRC)/blocks.h $(SRC)/config.h $(SRC)/components.h
+CFGS = $(SRC)/config.h $(SRC)/components.h
 
 OBJS =\
 	./src/components/time.o\
@@ -94,9 +94,6 @@ $(OBJS): $(REQ)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
-
-$(SRC)/blocks.h:
-	cp $(SRC)/blocks.def.h $@
 
 $(SRC)/config.h:
 	cp $(SRC)/config.def.h $@

@@ -31,7 +31,7 @@
 int
 c_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
 {
-	const char *p = xstrstr_len(proc_buf, proc_buf_sz, S_LITERAL("Name:\t"));
+	const char *p = u_strstr_len(proc_buf, proc_buf_sz, S_LITERAL("Name:\t"));
 	if (p) {
 		p += S_LEN("Name:\t");
 		proc_buf_sz -= S_LEN("Name:\t");
@@ -42,7 +42,7 @@ c_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *pr
 }
 
 int
-c_read_proc_exists_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
+c_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
 	int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
@@ -62,7 +62,7 @@ c_read_proc_exists_at(const char *proc_name, unsigned int proc_name_len, const c
 }
 
 unsigned int
-c_read_proc_exists(const char *proc_name, unsigned int proc_name_len)
+c_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
 	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1] = "/proc/";
 	char *fnamep = fname + S_LEN("/proc/");
@@ -73,12 +73,12 @@ c_read_proc_exists(const char *proc_name, unsigned int proc_name_len)
 	struct dirent *ep;
 	while ((ep = readdir(dp))) {
 		/* Enter /proc/[pid] */
-		if (*(ep->d_name) == '.' || !xisdigit(*(ep->d_name)))
+		if (*(ep->d_name) == '.' || !u_isdigit(*(ep->d_name)))
 			continue;
 		char *fname_e = fnamep;
-		fname_e = xstpcpy(fname_e, ep->d_name);
-		fname_e = xstpcpy_len(fname_e, S_LITERAL("/status"));
-		if (c_read_proc_exists_at(proc_name, proc_name_len, fname))
+		fname_e = u_stpcpy(fname_e, ep->d_name);
+		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
+		if (c_read_proc_exist_at(proc_name, proc_name_len, fname))
 			return (unsigned int)atoi(ep->d_name);
 	}
 	if (closedir(dp) == -1)

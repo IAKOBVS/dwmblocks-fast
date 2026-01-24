@@ -16,14 +16,13 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "procfs.h"
-#	include "../macros.h"
-#	include "../utils.h"
+#include "../config.h"
+#include "procfs.h"
+#include "../macros.h"
+#include "../utils.h"
 
-#	define OBS_OPEN_ICON       "🎥 OBS"
-#	define OBS_OPEN_INTERVAL   2
-#	define OBS_RECORD_ICON     "🔴 Recording"
-#	define OBS_RECORD_INTERVAL 2
+#define OBS_OPEN_INTERVAL   2
+#define OBS_RECORD_INTERVAL 2
 
 unsigned int c_obs_recording_pid;
 unsigned int c_obs_open_pid;
@@ -34,7 +33,7 @@ c_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 	/* Need to search /proc/[pid] for proc. */
 	if (*pid_cache == 0) {
 		/* Cache the pid to avoid searching for next calls. */
-		*pid_cache = c_read_proc_exists(proc_name, proc_name_len);
+		*pid_cache = c_read_proc_exist(proc_name, proc_name_len);
 		if (*pid_cache == 0) {
 			/* OBS is not recording, but still on. Keep checking. */
 			if (pid_cache == &c_obs_recording_pid && c_obs_open_pid)
@@ -49,19 +48,19 @@ c_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
 		char *fnamep = fname;
 		/* /proc/ */
-		fnamep = xstpcpy_len(fnamep, S_LITERAL("/proc/"));
+		fnamep = u_stpcpy_len(fnamep, S_LITERAL("/proc/"));
 		/* /proc/[pid] */
-		fnamep = utoa_p(*pid_cache, fnamep);
+		fnamep = u_utoa_p(*pid_cache, fnamep);
 		/* /proc/[pid]/status */
-		fnamep = xstpcpy_len(fnamep, S_LITERAL("/status"));
+		fnamep = u_stpcpy_len(fnamep, S_LITERAL("/status"));
 		(void)fnamep;
-		if (!c_read_proc_exists_at(proc_name, proc_name_len, fname)) {
+		if (!c_read_proc_exist_at(proc_name, proc_name_len, fname)) {
 			*pid_cache = 0;
 			*interval = 0;
 			return dst;
 		}
 	}
-	dst = xstpcpy(dst, proc_icon);
+	dst = u_stpcpy(dst, proc_icon);
 	*interval = proc_interval;
 	return dst;
 	(void)unused;
@@ -71,7 +70,7 @@ c_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 char *
 c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return c_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), OBS_OPEN_INTERVAL, OBS_OPEN_ICON, &c_obs_open_pid);
+	return c_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), INTERVAL_OBS_OPEN, ICON_OBS_OPEN, &c_obs_open_pid);
 	(void)unused;
 	(void)dst_len;
 }
@@ -79,7 +78,7 @@ c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int
 char *
 c_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return c_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), OBS_RECORD_INTERVAL, OBS_RECORD_ICON, &c_obs_recording_pid);
+	return c_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), INTERVAL_OBS_RECORDING, ICON_OBS_RECORDING, &c_obs_recording_pid);
 	(void)unused;
 	(void)dst_len;
 }

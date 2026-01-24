@@ -16,15 +16,15 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
-#	include "procfs.h"
+#include <sys/sysinfo.h>
 
-#	include <stdlib.h>
-#	include <stdio.h>
-#	include <sys/sysinfo.h>
+#include "../config.h"
+#include "../macros.h"
+#include "../utils.h"
 
-#	include "../macros.h"
-#	include "../utils.h"
+#ifndef __linux__
+#	include "shell.h"
+#endif
 
 int
 c_read_ram_usage_percent(void)
@@ -39,18 +39,18 @@ c_read_ram_usage_percent(void)
 char *
 c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-#	ifdef __linux__
+#ifdef __linux__
 	int usage = c_read_ram_usage_percent();
 	if (usage < 0)
 		ERR(return dst);
 	char *p = dst;
-	p = utoa_p((unsigned int)usage, p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	p = u_utoa_p((unsigned int)usage, p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
 	(void)interval;
-#	else
+#else
 	return c_write_shell(dst, dst_len, CMD_RAM_USAGE);
-#	endif
+#endif
 }

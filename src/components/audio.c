@@ -16,35 +16,35 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
+#include "../config.h"
 
-#	ifdef USE_AUDIO
+#ifdef USE_AUDIO
 
-#		include <assert.h>
-#		include "../macros.h"
-#		include "../utils.h"
+#	include <assert.h>
+#	include "../macros.h"
+#	include "../utils.h"
 
-#		ifdef USE_ALSA
-#			include "audio-alsa.h"
-#		endif
+#	ifdef USE_ALSA
+#		include "audio-alsa.h"
+#	endif
 
-#		define C_SPEAKER_UNMUTED "🔉"
-#		define C_SPEAKER_MUTED   "🔇"
-#		define C_MIC_UNMUTED     "🎤"
-#		define C_MIC_MUTED       "🚫"
+#	define ICON_SPEAKER_UNMUTED "🔉"
+#	define ICON_SPEAKER_MUTED   "🔇"
+#	define ICON_MIC_UNMUTED     "🎤"
+#	define ICON_MIC_MUTED       "🚫"
 
 char *
 c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	if (!c_read_speaker_muted()) {
-		p = xstpcpy_len(p, S_LITERAL(C_SPEAKER_UNMUTED));
+		p = u_stpcpy_len(p, S_LITERAL(ICON_SPEAKER_UNMUTED));
 	} else {
-		p = xstpcpy_len(p, S_LITERAL(C_SPEAKER_MUTED));
+		p = u_stpcpy_len(p, S_LITERAL(ICON_SPEAKER_MUTED));
 	}
 	*p++ = ' ';
-	p = utoa_p((unsigned int)c_read_speaker_vol(), p);
-	p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	p = u_utoa_p((unsigned int)c_read_speaker_vol(), p);
+	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -56,15 +56,15 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 {
 	char *p = dst;
 	if (c_read_mic_muted()) {
-		p = xstpcpy_len(p, S_LITERAL(C_MIC_MUTED));
+		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_MUTED));
 	} else {
 		int vol = c_read_mic_vol();
 		if (vol == -1)
 			ERR();
-		p = xstpcpy_len(p, S_LITERAL(C_MIC_UNMUTED));
+		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_UNMUTED));
 		*p++ = ' ';
-		p = utoa_p((unsigned int)vol, p);
-		p = xstpcpy_len(p, S_LITERAL(UNIT_USAGE));
+		p = u_utoa_p((unsigned int)vol, p);
+		p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	}
 	return p;
 	(void)dst_len;
@@ -72,4 +72,4 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	(void)interval;
 }
 
-#	endif
+#endif

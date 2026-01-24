@@ -16,16 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
+#include "../config.h"
 
-#	ifdef USE_ALSA
-#		include <alsa/asoundlib.h>
-#		include <alsa/asoundef.h>
+#ifdef USE_ALSA
+#	include <alsa/asoundlib.h>
+#	include <alsa/asoundef.h>
 
-#		include "../macros.h"
+#	include "../macros.h"
 
-#		define C_AUDIO_ALSA_PLAYBACK 1
-#		define C_AUDIO_ALSA_CAPTURE  2
+#	define C_AUDIO_ALSA_PLAYBACK 1
+#	define C_AUDIO_ALSA_CAPTURE  2
 
 typedef struct {
 	const char *card;
@@ -122,7 +122,7 @@ c_audio_alsa_mic_init(void)
 }
 
 void
-c_audio_alsa_init()
+c_audio_alsa_inits()
 {
 	c_audio_alsa_speaker_init();
 	c_audio_alsa_mic_init();
@@ -132,7 +132,7 @@ int
 c_read_audio_alsa_vol(c_audio_alsa_ty *audio_alsa)
 {
 	if (audio_alsa->init == 0)
-		c_audio_alsa_init();
+		c_audio_alsa_inits();
 	audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 	if (audio_alsa->ret < 0)
 		ERR(c_audio_alsa_err(); return -1);
@@ -193,7 +193,7 @@ c_read_speaker_muted(void)
 	return c_read_audio_alsa_muted(&c_audio_alsa_speaker);
 }
 
-#		undef C_AUDIO_ALSA_PLAYBACK
-#		undef C_AUDIO_ALSA_CAPTURE
+#	undef C_AUDIO_ALSA_PLAYBACK
+#	undef C_AUDIO_ALSA_CAPTURE
 
-#	endif
+#endif

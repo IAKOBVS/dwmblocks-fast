@@ -16,19 +16,17 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#	include "../config.h"
+#include <assert.h>
+#include <unistd.h>
+#include <string.h>
 
-#	include <assert.h>
-#	include <unistd.h>
-#	include <string.h>
-
-#	include "../macros.h"
+#include "../macros.h"
 
 /* Execute shell script. */
 char *
 c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
-#	if HAVE_POPEN && HAVE_PCLOSE
+#if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
 	if (fp == NULL)
 		ERR(return NULL);
@@ -47,11 +45,11 @@ c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	/* Nul-terminate newline or end of string. */
 	dst = end ? end : dst + read_sz;
 	*dst = '\0';
-#	else
+#else
 	assert("c_write_cmd: calling c_write_cmd when popen or pclose is not available!");
 	(void)dst_len;
 	(void)cmd;
-#	endif
+#endif
 	(void)interval;
 	return dst;
 }
