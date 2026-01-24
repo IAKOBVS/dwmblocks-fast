@@ -84,9 +84,8 @@ alsa-lib: for monitoring audio volume
 Linux: for monitoring processes with procfs and RAM usage with sysinfo
 
 # Configuration
-Specify custom parameters in config.h, and to disable certain parts, comment
-them out in config.h and the Makefile. This is what the make functions are
-automating. For example, to disable NVML:
+To enable or disable certain features or libraries, comment them out in the config.h
+and the Makefile. For example, to disable NVML:
 ### Makefile
 ```
 # NVML (comment to disable)
