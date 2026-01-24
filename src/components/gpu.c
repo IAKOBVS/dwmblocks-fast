@@ -37,6 +37,7 @@ typedef struct {
 	unsigned int *temp;
 	nvmlReturn_t ret;
 	nvmlUtilization_t *utilization;
+	nvmlMemory_t *memory;
 	/* nvmlTemperature_t *temp; */
 } c_gpu_ty;
 c_gpu_ty c_gpu;
@@ -81,6 +82,9 @@ c_gpu_init()
 	c_gpu.utilization = (nvmlUtilization_t *)malloc(c_gpu.deviceCount * sizeof(nvmlUtilization_t));
 	if (c_gpu.utilization == NULL)
 		ERR(c_gpu_err());
+	c_gpu.memory = (nvmlMemory_t *)malloc(c_gpu.deviceCount * sizeof(nvmlMemory_t));
+	if (c_gpu.memory == NULL)
+		ERR(c_gpu_err());
 	for (unsigned int i = 0; i < c_gpu.deviceCount; ++i) {
 		c_gpu.ret = nvmlDeviceGetHandleByIndex(i, c_gpu.device + i);
 		if (c_gpu.ret != NVML_SUCCESS)
@@ -108,10 +112,10 @@ c_gpu_monitor(c_gpu_monitor_ty mon_type, unsigned int i)
 		return c_gpu.utilization[i].gpu;
 		break;
 	case C_GPU_MON_VRAM:
-		c_gpu.ret = nvmlDeviceGetUtilizationRates(c_gpu.device[i], c_gpu.utilization + i);
+		c_gpu.ret = nvmlDeviceGetMemoryInfo(c_gpu.device[i], c_gpu.memory + i);
 		if (c_gpu.ret != NVML_SUCCESS)
 			ERR(c_gpu_err());
-		return c_gpu.utilization[i].memory;
+		return 100 - (((long double)c_gpu.memory[i].free / (long double)c_gpu.memory[i].total) * (long double)100);
 		break;
 	default:
 		ERR();
@@ -157,6 +161,8 @@ typedef struct {
 	unsigned int temp;
 	unsigned int usage;
 	unsigned int vram;
+	unsigned long long memory_free;
+	unsigned long long memory_total;
 } c_gpu_values_ty;
 
 void
@@ -173,13 +179,19 @@ c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 		if (c_gpu.ret != NVML_SUCCESS)
 			ERR(c_gpu_err());
 		val->usage += c_gpu.utilization[i].gpu;
-		val->vram += c_gpu.utilization[i].memory;
+		c_gpu.ret = nvmlDeviceGetMemoryInfo(c_gpu.device[i], c_gpu.memory + i);
+		if (c_gpu.ret != NVML_SUCCESS)
+			ERR(c_gpu_err());
+		val->memory_free += c_gpu.memory[i].free;
+		val->memory_total += c_gpu.memory[i].total;
 	}
 	if (c_gpu.deviceCount > 0) {
 		val->temp /= c_gpu.deviceCount;
 		val->usage /= c_gpu.deviceCount;
-		val->vram /= c_gpu.deviceCount;
+		val->memory_free /= c_gpu.deviceCount;
+		val->memory_total /= c_gpu.deviceCount;
 	}
+	val->vram = 100 - (((long double)val->memory_free / (long double)val->memory_total) * (long double)100);
 }
 
 char *
