@@ -29,7 +29,8 @@ Or for a custom configuration
 $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
 # Building
-These dependencies can be excluded with make config.
+Install the dependencies with your package manager. These can be
+excluded with make config.
 ## Dependencies
 - alsa-lib: audio monitoring
 - cuda: GPU temperature monitoring with NVML
@@ -41,12 +42,11 @@ These dependencies can be excluded with make config.
 - pamixer: audio control
 - procps: send signals with pkill
 ```
-$ your-package-manager-install dependencies
 $ make config # additional instructions will appear
 $ cd src
 ```
-Optionally, manually configure config.h, blocks.h, components.h, and the Makefile.
-And return to the directory of the Makefile
+Optionally, manually configure config.h, blocks.h, components.h, and the Makefile,
+and return to the directory of the Makefile
 ```
 $ cd  ..
 $ sudo make install
