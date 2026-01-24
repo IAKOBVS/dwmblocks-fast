@@ -19,7 +19,7 @@ $ cd src/dwmblocks-fast/src
 # Return to the directory of the PKGBUILD
 $ cd ../../..
 $ makepkg -si -f
-# Or for custom configuration
+# Or for a custom configuration
 $ DWMBLOCKS_FAST_OPTIONS='disable-some-library' makepkg -si -f
 ```
 # Building
