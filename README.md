@@ -21,21 +21,15 @@ $ makepkg -si
 ```
 # Building
 ## Dependencies
-alsa-lib: audio monitoring
-
-cuda: GPU temperature monitoring with NVML
-
-libx11: printing to the status bar
+- alsa-lib: audio monitoring
+- cuda: GPU temperature monitoring with NVML
+- libx11: printing to the status bar
 ## Optional dependencies
-dwm: window manager
-
-gst-plugins-base-libs: sound notifications
-
-dunst: popup notifications
-
-pamixer: audio control
-
-procps: send signals with pkill
+- dwm: window manager
+- gst-plugins-base-libs: sound notifications
+- dunst: popup notifications
+- pamixer: audio control
+- procps: send signals with pkill
 ```
 $ your-package-manager-install dependencies
 $ make config
