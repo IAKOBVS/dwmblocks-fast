@@ -234,16 +234,30 @@ g_status_write(char *status)
 	return G_RET_SUCC;
 }
 
-/* Main loop. */
-g_ret_ty
-g_status_mainloop()
+static g_ret_ty
+g_status_init()
 {
 	if (g_setup_signals() == G_RET_ERR)
 		ERR(return G_RET_ERR);
 #ifdef USE_X11
 	if (g_setup_x11() == G_RET_ERR)
-		return EXIT_FAILURE;
+		return G_RET_ERR;
 #endif
+	return G_RET_ERR;
+}
+
+static void
+g_status_cleanup()
+{
+#ifdef USE_X11
+	XCloseDisplay(g_dpy);
+#endif
+}
+
+/* Main loop. */
+g_ret_ty
+g_status_mainloop()
+{
 	unsigned int i = 0;
 	g_getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
 	for (;;) {
@@ -255,9 +269,6 @@ g_status_mainloop()
 			break;
 		sleep(1);
 	}
-#ifdef USE_X11
-	XCloseDisplay(g_dpy);
-#endif
 	return G_RET_SUCC;
 }
 
@@ -266,8 +277,15 @@ g_status_mainloop()
 void
 g_handler_sig_dummy(int signum)
 {
-	fprintf(stderr, "dwmblocks-fast: sending unknown signal: %d\n", signum);
-	(void)signum;
+	char buf[S_LEN("dwmblocks-fast: sending unknown signal: ") + sizeof(size_t) * 8 + S_LEN("\n") + 1];
+	char *p = buf;
+	if (signum < 0)
+		*p++ = '-';
+	p = u_utoa_p((unsigned int)signum, buf);
+	*p++ = '\n';
+	*p = '\0';
+	/* fprintf is not reentrant. */
+	write(STDERR_FILENO, buf, (size_t)(p - buf));
 }
 #endif
 
@@ -295,7 +313,10 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
+	if (g_status_init() == G_RET_ERR)
+		ERR(return EXIT_FAILURE);
 	if (g_status_mainloop() == G_RET_ERR)
 		ERR(return EXIT_FAILURE);
+	g_status_cleanup();
 	return EXIT_SUCCESS;
 }
