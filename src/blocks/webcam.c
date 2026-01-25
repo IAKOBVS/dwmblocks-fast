@@ -25,7 +25,7 @@
 #include "../../include/config.h"
 
 char *
-c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	int fd = open("/proc/modules", O_RDONLY);
 	if (fd == -1)

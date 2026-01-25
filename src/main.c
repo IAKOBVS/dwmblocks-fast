@@ -189,7 +189,7 @@ g_status_get(char *dst)
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		p = u_stpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
-	if (p != dst)
+	if (likely(p != dst))
 		p -= DELIMLEN;
 	else
 		p = dst_s;
@@ -236,7 +236,7 @@ g_status_write(char *status)
 	unsigned int statuslen = p - status;
 	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
 	g_statuschanged = 0;
-	if (ret != statuslen)
+	if (unlikely(ret != statuslen))
 		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
@@ -270,9 +270,9 @@ g_status_mainloop()
 	for (;;) {
 		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
-			if (g_status_write(g_statusstr) == G_RET_ERR)
+			if (unlikely(g_status_write(g_statusstr) == G_RET_ERR))
 				DIE(return G_RET_ERR);
-		if (!g_statuscontinue)
+		if (unlikely(!g_statuscontinue))
 			break;
 #ifdef TEST
 		return G_RET_SUCC;
@@ -296,7 +296,8 @@ g_handler_sig_dummy(int signum)
 	*p++ = '\n';
 	*p = '\0';
 	/* fprintf is not reentrant. */
-	assert(write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf));
+	if (unlikely(write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf)))
+		DIE();
 }
 #endif
 
@@ -324,9 +325,9 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	if (g_status_init() == G_RET_ERR)
+	if (unlikely(g_status_init() == G_RET_ERR))
 		DIE(return EXIT_FAILURE);
-	if (g_status_mainloop() == G_RET_ERR)
+	if (unlikely(g_status_mainloop() == G_RET_ERR))
 		DIE(return EXIT_FAILURE);
 	g_status_cleanup();
 	return EXIT_SUCCESS;

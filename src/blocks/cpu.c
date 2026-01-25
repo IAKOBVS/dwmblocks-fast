@@ -26,7 +26,7 @@
 #include "../../include/utils.h"
 
 int
-c_atou_lt3(const char *s, int digits)
+b_atou_lt3(const char *s, int digits)
 {
 	if (digits == 2)
 		return (*s - '0') * 10 + (*(s + 1) - '0');
@@ -37,7 +37,7 @@ c_atou_lt3(const char *s, int digits)
 }
 
 int
-c_read_cpu_temp(void)
+b_read_cpu_temp(void)
 {
 	/* Milidegrees = degrees * 1000 */
 	char temp[S_LEN("100") + S_LEN("1000") + 1] = { 0 };
@@ -50,13 +50,13 @@ c_read_cpu_temp(void)
 	if (read_sz < 0)
 		DIE(return -1);
 	read_sz -= (int)S_LEN("1000");
-	return c_atou_lt3(temp, read_sz);
+	return b_atou_lt3(temp, read_sz);
 }
 
 char *
-c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	const int temp = c_read_cpu_temp();
+	const int temp = b_read_cpu_temp();
 	if (temp < 0)
 		DIE(return dst);
 	char *p = dst;
@@ -69,7 +69,7 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 }
 
 int
-c_read_cpu_usage()
+b_read_cpu_usage()
 {
 	char buf[4096];
 	int fd = open("/proc/stat", O_RDONLY);
@@ -107,9 +107,9 @@ c_read_cpu_usage()
 }
 
 char *
-c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	const int usage = c_read_cpu_usage();
+	const int usage = b_read_cpu_usage();
 	if (usage < 0)
 		DIE(return dst);
 	char *p = dst;
@@ -122,12 +122,12 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 }
 
 char *
-c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	const int temp = c_read_cpu_temp();
+	const int temp = b_read_cpu_temp();
 	if (temp < 0)
 		DIE(return dst);
-	const int usage = c_read_cpu_usage();
+	const int usage = b_read_cpu_usage();
 	if (usage < 0)
 		DIE(return dst);
 	char *p = dst;

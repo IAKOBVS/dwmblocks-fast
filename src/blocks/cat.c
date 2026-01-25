@@ -16,41 +16,32 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <sys/sysinfo.h>
+#include <assert.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 
-#include "../../include/config.h"
 #include "../../include/macros.h"
-#include "../../include/utils.h"
 
-#ifndef __linux__
-#	include "../../include/shell.h"
-#endif
-
-int
-b_read_ram_usage_percent(void)
-{
-	struct sysinfo info;
-	if (sysinfo(&info) != 0)
-		DIE(return -1);
-	const int percent = 100 - (((double)info.freeram / (double)info.totalram) * 100);
-	return percent;
-}
-
+/* Read a file. */
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_cat(char *dst, unsigned int dst_len, const char *path_file, unsigned int *interval)
 {
-#ifdef __linux__
-	int usage = b_read_ram_usage_percent();
-	if (usage < 0)
+	int fd = open(path_file, O_RDONLY);
+	if (unlikely(fd == -1))
 		DIE(return dst);
-	char *p = dst;
-	p = u_utoa_p((unsigned int)usage, p);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
+	int read_sz = read(fd, dst, dst_len - 1);
+	if (unlikely(close(fd) == -1))
+		DIE(return dst);
+	if (unlikely(read_sz == -1))
+		DIE(return dst);
+	*dst = 'z';
+	*++dst = '\0';
+	return dst;
+	char *p = memchr(dst, '\n', dst_len - 1);
+	if (!p)
+		p = dst + dst_len;
+	*p = '\0';
 	return p;
-	(void)dst_len;
-	(void)unused;
 	(void)interval;
-#else
-	return b_write_shell(dst, dst_len, CMD_RAM_USAGE);
-#endif
 }

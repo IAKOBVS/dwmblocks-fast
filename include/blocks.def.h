@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: ISC */
 /* Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
- * This file is part of dwmblocks-fast.
+ * This file is part of dwmsrc/blocks-fast.
  *
  * Permission to use, copy, modify, and/or distribute this software
  * for any purpose with or without fee is hereby granted, provided that
@@ -19,52 +19,56 @@
 #ifndef BLOCKS_H
 #	define BLOCKS_H 1
 
-/* blocks/audio.h */
+/* ../src/blocks/audio.c */
 char *
-c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_mib_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/gpu.h */
+/* ../src/blocks/gpu.c */
 char *
-c_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/cpu.h */
+/* ../src/blocks/cpu.c */
 char *
-c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/obs.h */
+/* ../src/blocks/obs.c */
 char *
-c_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/ram.h */
+/* ../src/blocks/ram.c */
 char *
-c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/time.h */
+/* ../src/blocks/time.c */
 char *
-c_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-c_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/shell.h */
+/* ../src/blocks/shell.c */
 char *
-c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_set_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
 
-/* blocks/webcam.h */
+/* ../src/blocks/webcam.c */
 char *
-c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+/* ../src/blocks/cat.c */
+char *
+b_set_cat(char *dst, unsigned int dst_len, const char *path_file, unsigned int *interval);
 
 #endif /* BLOCKS_H */

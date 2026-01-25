@@ -62,6 +62,7 @@ SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 CFGS = include/config.h include/blocks.h
 
 OBJS =\
+	src/blocks/cat.o\
 	./src/blocks/time.o\
 	./src/blocks/ram.o\
 	./src/blocks/obs.o\
@@ -179,13 +180,12 @@ disable-audio: $(config) $(disable-alsa)
 ################################################################################
 
 check: $(PROG) src/test.o
-	mkdir -p $(BIN)
 	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm src/test.o
 
 clean:
-	rm -f $(PROG) $(SCRIPTS) $(OBJS) src/*.o
+	rm -f $(PROG) $(SCRIPTS) $(OBJS) src/*.o src/blocks/*.o
 
 install: $(PROG) $(SCRIPTS)
 	strip $(PROG)
