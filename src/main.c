@@ -282,6 +282,7 @@ g_handler_sig_dummy(int signum)
 {
 	char buf[S_LEN("dwmblocks-fast: sending unknown signal: ") + sizeof(size_t) * 8 + S_LEN("\n") + 1];
 	char *p = buf;
+	p = u_stpcpy_len(p, S_LITERAL("dwmblocks-fast: sending unknown signal: "));
 	if (signum < 0)
 		*p++ = '-';
 	p = u_utoa_p((unsigned int)signum, buf);
