@@ -204,7 +204,7 @@ g_setup_x11()
 	pthread_mutex_init(&g_mutex, NULL);
 	g_dpy = XOpenDisplay(NULL);
 	if (!g_dpy) {
-		fprintf(stderr, "dwmblocks-fast: Failed to open display\n");
+		fprintf(stderr, "dwmblocks-fast: Failed to open display.\n");
 		ERR(return G_RET_ERR);
 	}
 	g_screen = DefaultScreen(g_dpy);
@@ -243,7 +243,7 @@ g_status_init()
 	if (g_setup_x11() == G_RET_ERR)
 		return G_RET_ERR;
 #endif
-	return G_RET_ERR;
+	return G_RET_SUCC;
 }
 
 static void
@@ -267,6 +267,9 @@ g_status_mainloop()
 				ERR(return G_RET_ERR);
 		if (!g_statuscontinue)
 			break;
+#ifdef TEST
+		return G_RET_SUCC;
+#endif
 		sleep(1);
 	}
 	return G_RET_SUCC;

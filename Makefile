@@ -69,8 +69,7 @@ OBJS =\
 	./src/blocks/audio-alsa.o\
 	./src/blocks/audio.o\
 	./src/blocks/gpu.o\
-	./src/blocks/cpu.o\
-	./src/main.o
+	./src/blocks/cpu.o
 
 # Always recompile $(OBJS) if $(REQ) changed
 REQ =\
@@ -90,11 +89,14 @@ all: options $(PROG) $(SCRIPTS)
 .c.o:
 	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
 
-$(PROG): $(CFGS) $(OBJS) $(REQ)
-	mkdir -p $(BIN)
-	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(OBJS) $(REQ) $(LDFLAGS)
+src/test.o: $(PROG)
+	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) src/main.c
 
-$(OBJS): $(REQ)
+$(PROG): $(CFGS) src/main.o $(OBJS) $(REQ)
+	mkdir -p $(BIN)
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) src/main.o $(OBJS) $(REQ) $(LDFLAGS)
+
+$(OBJS) src/main.o src/test.o: $(REQ)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
@@ -176,8 +178,14 @@ disable-audio: $(config) $(disable-alsa)
 
 ################################################################################
 
+check: $(PROG) src/test.o
+	mkdir -p $(BIN)
+	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	@./tests/test-run
+	@rm src/test.o
+
 clean:
-	rm -f $(PROG) $(SCRIPTS) $(OBJS)
+	rm -f $(PROG) $(SCRIPTS) $(OBJS) src/*.o
 
 install: $(PROG) $(SCRIPTS)
 	strip $(PROG)
@@ -188,4 +196,4 @@ install: $(PROG) $(SCRIPTS)
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
-.PHONY: all options clean install uninstall config
+.PHONY: all options clean install uninstall config check
