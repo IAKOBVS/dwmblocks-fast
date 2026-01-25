@@ -116,7 +116,7 @@ b_audio_alsa_speaker_init(void)
 }
 
 void
-b_audio_alsa_mib_init(void)
+b_audio_alsa_mic_init(void)
 {
 	b_audio_alsa_init_one(&b_audio_alsa_mic, "default", "Capture", C_AUDIO_ALSA_CAPTURE);
 }
@@ -125,7 +125,7 @@ void
 b_audio_alsa_inits()
 {
 	b_audio_alsa_speaker_init();
-	b_audio_alsa_mib_init();
+	b_audio_alsa_mic_init();
 }
 
 int
@@ -170,7 +170,7 @@ b_read_audio_alsa_muted(b_audio_alsa_ty *audio_alsa)
 }
 
 int
-b_read_mib_vol(void)
+b_read_mic_vol(void)
 {
 	return b_read_audio_alsa_vol(&b_audio_alsa_mic);
 }
@@ -182,7 +182,7 @@ b_read_speaker_vol(void)
 }
 
 int
-b_read_mib_muted(void)
+b_read_mic_muted(void)
 {
 	return b_read_audio_alsa_muted(&b_audio_alsa_mic);
 }

@@ -56,7 +56,7 @@ typedef enum {
 typedef enum {
 	G_WRITE_STATUSBAR = 0,
 	G_WRITE_STDOUT
-} g_write_ty;
+} g_set_ty;
 
 #ifndef __OpenBSD__
 void
@@ -84,9 +84,9 @@ g_setup_x11();
 static Display *g_dpy;
 static int g_screen;
 static Window g_win_root;
-static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
+static g_set_ty g_set_dst = G_WRITE_STATUSBAR;
 #else
-static g_write_ty g_write_dst = G_WRITE_STDOUT;
+static g_set_ty g_set_dst = G_WRITE_STDOUT;
 #endif
 pthread_mutex_t g_mutex;
 
@@ -225,7 +225,7 @@ g_status_write(char *status)
 {
 	char *p = g_status_get(status);
 #ifdef USE_X11
-	if (g_write_dst == G_WRITE_STATUSBAR) {
+	if (g_set_dst == G_WRITE_STATUSBAR) {
 		g_XStoreNameLen(g_dpy, g_win_root, status, p - status);
 		XFlush(g_dpy);
 		g_statuschanged = 0;
@@ -324,7 +324,7 @@ main(int argc, char **argv)
 	for (int i = 0; i < argc; ++i)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
-			g_write_dst = G_WRITE_STDOUT;
+			g_set_dst = G_WRITE_STDOUT;
 	if (unlikely(g_status_init() == G_RET_ERR))
 		DIE(return EXIT_FAILURE);
 	if (unlikely(g_status_mainloop() == G_RET_ERR))

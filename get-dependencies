@@ -1,0 +1,4 @@
+#!/bin/sh
+for file in $(find . -type f -name '*.c'); do
+	echo "$file: $(awk 'BEGIN {str=""} /"[^/].*.h"/ {gsub(/\.\.\//, ""); gsub(/"/, ""); printf("%s ", $NF)}' $file)";
+done

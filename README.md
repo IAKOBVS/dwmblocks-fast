@@ -78,13 +78,13 @@ static struct Block g_blocks[] = {
 ```
 static struct Block g_blocks[] = {
     /* Update_interval   Signal    Label    Function    Command*/
-    { 2,                 0,        "",      write_my,   NULL },
+    { 2,                 0,        "",      set_my,   NULL },
 }
 ```
 ### src/blocks.h
 ```
 static char *
-write_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+set_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
     /* Do something, output to dst. */
     return dst;

@@ -33,7 +33,7 @@ b_read_time(void)
 }
 
 char *
-b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	struct tm *tm = b_read_time();
 	if (tm == NULL)
@@ -69,7 +69,7 @@ b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 }
 
 char *
-b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	struct tm *tm = b_read_time();
 	if (tm == NULL)

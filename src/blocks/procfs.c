@@ -29,20 +29,20 @@
 #define PAGESZ 4096
 
 int
-b_prob_name_match(const char *prob_buf, unsigned int prob_buf_sz, const char *prob_name, unsigned int prob_name_len)
+b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
 {
-	const char *p = u_strstr_len(prob_buf, prob_buf_sz, S_LITERAL("Name:\t"));
+	const char *p = u_strstr_len(proc_buf, proc_buf_sz, S_LITERAL("Name:\t"));
 	if (p) {
 		p += S_LEN("Name:\t");
-		prob_buf_sz -= S_LEN("Name:\t");
-		if (prob_buf_sz > prob_name_len && !memcmp(p, prob_name, prob_name_len) && *(p + prob_name_len) == '\n')
+		proc_buf_sz -= S_LEN("Name:\t");
+		if (proc_buf_sz > proc_name_len && !memcmp(p, proc_name, proc_name_len) && *(p + proc_name_len) == '\n')
 			return 1;
 	}
 	return 0;
 }
 
 int
-b_read_prob_exist_at(const char *prob_name, unsigned int prob_name_len, const char *pid_status_path)
+b_get_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
 	int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
@@ -58,11 +58,11 @@ b_read_prob_exist_at(const char *prob_name, unsigned int prob_name_len, const ch
 	if (read_sz < 0)
 		DIE(return 0);
 	buf[read_sz] = '\0';
-	return b_prob_name_match(buf, read_sz, prob_name, prob_name_len);
+	return b_proc_name_match(buf, read_sz, proc_name, proc_name_len);
 }
 
 unsigned int
-b_read_prob_exist(const char *prob_name, unsigned int prob_name_len)
+b_get_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
 	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1] = "/proc/";
 	char *fnamep = fname + S_LEN("/proc/");
@@ -78,7 +78,7 @@ b_read_prob_exist(const char *prob_name, unsigned int prob_name_len)
 		char *fname_e = fnamep;
 		fname_e = u_stpcpy(fname_e, ep->d_name);
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
-		if (b_read_prob_exist_at(prob_name, prob_name_len, fname))
+		if (b_get_proc_exist_at(proc_name, proc_name_len, fname))
 			return (unsigned int)atoi(ep->d_name);
 	}
 	if (closedir(dp) == -1)

@@ -204,7 +204,7 @@
 #		define putchar(c) putchar(c)
 #	endif
 #	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FWRITE_UNLOCKED
-#		define io_fwrite(ptr, size, n, stream) fwrite_unlocked(ptr, size, n, stream)
+#		define io_fwrite(ptr, size, n, stream) fset_unlocked(ptr, size, n, stream)
 #	else
 #		define io_fwrite(ptr, size, n, stream) fwrite(ptr, size, n, stream)
 #	endif

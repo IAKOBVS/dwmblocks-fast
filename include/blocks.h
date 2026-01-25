@@ -23,7 +23,7 @@
 char *
 b_set_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-b_set_mib_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_set_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
 /* ../src/blocks/gpu.c */
 char *

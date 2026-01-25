@@ -37,7 +37,7 @@ b_read_ram_usage_percent(void)
 }
 
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 #ifdef __linux__
 	int usage = b_read_ram_usage_percent();
@@ -51,6 +51,6 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	(void)unused;
 	(void)interval;
 #else
-	return b_write_shell(dst, dst_len, CMD_RAM_USAGE);
+	return b_set_shell(dst, dst_len, CMD_RAM_USAGE);
 #endif
 }

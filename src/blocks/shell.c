@@ -24,7 +24,7 @@
 
 /* Execute shell script. */
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
+b_set_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
 #if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
@@ -46,7 +46,7 @@ b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	dst = end ? end : dst + read_sz;
 	*dst = '\0';
 #else
-	assert("b_write_cmd: calling b_write_cmd when popen or pclose is not available!");
+	assert("b_set_cmd: calling b_set_cmd when popen or pclose is not available!");
 	(void)dst_len;
 	(void)cmd;
 #endif

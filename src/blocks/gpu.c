@@ -150,7 +150,7 @@ b_gpu_monitor_devices(b_gpu_monitor_ty mon_type)
 }
 
 char *
-b_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, b_gpu_monitor_ty mon_type)
+b_set_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, b_gpu_monitor_ty mon_type)
 {
 	if (b_gpu.init == 0)
 		b_gpu_init();
@@ -210,7 +210,7 @@ b_gpu_monitor_devices_all(b_gpu_values_ty *val)
 }
 
 char *
-b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	if (b_gpu.init == 0)
 		b_gpu_init();
@@ -233,21 +233,21 @@ b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 }
 
 char *
-b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_TEMP);
+	return b_set_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_TEMP);
 }
 
 char *
-b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_USAGE);
+	return b_set_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_USAGE);
 }
 
 char *
-b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
+	return b_set_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
 }
 
 #elif defined USE_NVIDIA
@@ -255,33 +255,33 @@ b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 #	include "../blocks/shell.h"
 
 char *
-b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_TEMP, interval);
+	return b_set_shell(dst, dst_len, CMD_GPU_NVIDIA_TEMP, interval);
 	(void)unused;
 	(void)interval;
 }
 
 char *
-b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_USAGE, interval);
+	return b_set_shell(dst, dst_len, CMD_GPU_NVIDIA_USAGE, interval);
 	(void)unused;
 	(void)interval;
 }
 
 char *
-b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_VRAM, interval);
+	return b_set_shell(dst, dst_len, CMD_GPU_NVIDIA_VRAM, interval);
 	(void)unused;
 	(void)interval;
 }
 
 char *
-b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_ALL, interval);
+	return b_set_shell(dst, dst_len, CMD_GPU_NVIDIA_ALL, interval);
 	(void)dst_len;
 	(void)unused;
 	(void)interval;

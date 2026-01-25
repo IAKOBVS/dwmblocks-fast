@@ -54,7 +54,7 @@ b_read_cpu_temp(void)
 }
 
 char *
-b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	const int temp = b_read_cpu_temp();
 	if (temp < 0)
@@ -107,7 +107,7 @@ b_read_cpu_usage()
 }
 
 char *
-b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	const int usage = b_read_cpu_usage();
 	if (usage < 0)
@@ -122,7 +122,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 }
 
 char *
-b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	const int temp = b_read_cpu_temp();
 	if (temp < 0)

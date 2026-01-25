@@ -98,7 +98,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	/* Mic */
 #	ifdef USE_AUDIO
-	{ 0,    SIG_MIC,    NULL, b_set_mib_vol,           NULL },
+	{ 0,    SIG_MIC,    NULL, b_set_mic_vol,           NULL },
 #	endif
 
 	/* Date */

@@ -28,16 +28,16 @@ unsigned int b_obs_recording_pid;
 unsigned int b_obs_open_pid;
 
 char *
-b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *prob_name, unsigned int prob_name_len, unsigned int prob_interval, const char *prob_icon, unsigned int *pid_cache)
+b_set_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache)
 {
 	/* Need to search /proc/[pid] for proc. */
 	if (*pid_cache == 0) {
 		/* Cache the pid to avoid searching for next calls. */
-		*pid_cache = b_read_prob_exist(prob_name, prob_name_len);
+		*pid_cache = b_get_proc_exist(proc_name, proc_name_len);
 		if (*pid_cache == 0) {
 			/* OBS is not recording, but still on. Keep checking. */
 			if (pid_cache == &b_obs_recording_pid && b_obs_open_pid)
-				*interval = prob_interval;
+				*interval = proc_interval;
 			/* OBS is closed. Stop checking. */
 			else
 				*interval = 0;
@@ -54,31 +54,31 @@ b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 		/* /proc/[pid]/status */
 		fnamep = u_stpcpy_len(fnamep, S_LITERAL("/status"));
 		(void)fnamep;
-		if (!b_read_prob_exist_at(prob_name, prob_name_len, fname)) {
+		if (!b_get_proc_exist_at(proc_name, proc_name_len, fname)) {
 			*pid_cache = 0;
 			*interval = 0;
 			return dst;
 		}
 	}
-	dst = u_stpcpy(dst, prob_icon);
-	*interval = prob_interval;
+	dst = u_stpcpy(dst, proc_icon);
+	*interval = proc_interval;
 	return dst;
 	(void)unused;
 	(void)dst_len;
 }
 
 char *
-b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), INTERVAL_OBS_OPEN, ICON_OBS_OPEN, &b_obs_open_pid);
+	return b_set_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), INTERVAL_OBS_OPEN, ICON_OBS_OPEN, &b_obs_open_pid);
 	(void)unused;
 	(void)dst_len;
 }
 
 char *
-b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_set_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), INTERVAL_OBS_RECORDING, ICON_OBS_RECORDING, &b_obs_recording_pid);
+	return b_set_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), INTERVAL_OBS_RECORDING, ICON_OBS_RECORDING, &b_obs_recording_pid);
 	(void)unused;
 	(void)dst_len;
 }

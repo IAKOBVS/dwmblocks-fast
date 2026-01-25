@@ -197,3 +197,16 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
 .PHONY: all options clean install uninstall config check
+
+src/blocks/time.o: include/macros.h include/utils.h 
+src/blocks/procfs.o: include/macros.h include/utils.h 
+src/blocks/shell.o: include/macros.h 
+src/blocks/ram.o: include/config.h include/macros.h include/utils.h include/shell.h 
+src/blocks/obs.o: include/config.h include/blocks/procfs.h include/macros.h include/utils.h 
+src/blocks/webcam.o: include/macros.h include/utils.h include/config.h 
+src/blocks/audio-alsa.o: include/config.h include/macros.h 
+src/blocks/audio.o: include/config.h include/macros.h include/utils.h include/blocks/audio-alsa.h 
+src/blocks/gpu.o: include/config.h include/macros.h include/utils.h blocks/shell.h 
+src/blocks/cpu.o: include/config.h include/macros.h include/utils.h 
+src/blocks/cat.o: include/macros.h 
+src/main.o: include/config.h include/macros.h include/utils.h 

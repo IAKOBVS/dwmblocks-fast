@@ -24,11 +24,11 @@
 #	ifdef USE_ALSA
 
 int
-b_get_mib_vol(void);
+b_get_mic_vol(void);
 int
 b_get_speaker_vol(void);
 int
-b_get_mib_muted(void);
+b_get_mic_muted(void);
 int
 b_get_speaker_muted(void);
 
