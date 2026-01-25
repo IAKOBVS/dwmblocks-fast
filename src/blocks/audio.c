@@ -34,16 +34,16 @@
 #	define ICON_MIC_MUTED       "🚫"
 
 char *
-c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
-	if (!c_read_speaker_muted()) {
+	if (!b_read_speaker_muted()) {
 		p = u_stpcpy_len(p, S_LITERAL(ICON_SPEAKER_UNMUTED));
 	} else {
 		p = u_stpcpy_len(p, S_LITERAL(ICON_SPEAKER_MUTED));
 	}
 	*p++ = ' ';
-	p = u_utoa_p((unsigned int)c_read_speaker_vol(), p);
+	p = u_utoa_p((unsigned int)b_read_speaker_vol(), p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
@@ -52,13 +52,13 @@ c_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 }
 
 char *
-c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
-	if (c_read_mic_muted()) {
+	if (b_read_mic_muted()) {
 		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_MUTED));
 	} else {
-		int vol = c_read_mic_vol();
+		int vol = b_read_mic_vol();
 		if (vol == -1)
 			DIE(return dst);
 		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_UNMUTED));

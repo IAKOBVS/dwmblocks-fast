@@ -27,7 +27,7 @@
 #endif
 
 int
-c_read_ram_usage_percent(void)
+b_read_ram_usage_percent(void)
 {
 	struct sysinfo info;
 	if (sysinfo(&info) != 0)
@@ -37,10 +37,10 @@ c_read_ram_usage_percent(void)
 }
 
 char *
-c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 #ifdef __linux__
-	int usage = c_read_ram_usage_percent();
+	int usage = b_read_ram_usage_percent();
 	if (usage < 0)
 		DIE(return dst);
 	char *p = dst;
@@ -51,6 +51,6 @@ c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	(void)unused;
 	(void)interval;
 #else
-	return c_write_shell(dst, dst_len, CMD_RAM_USAGE);
+	return b_write_shell(dst, dst_len, CMD_RAM_USAGE);
 #endif
 }

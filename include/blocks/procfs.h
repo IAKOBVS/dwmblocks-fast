@@ -27,8 +27,8 @@
 #	include <errno.h>
 
 int
-c_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);
+b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);
 unsigned int
-c_read_proc_exist(const char *proc_name, unsigned int proc_name_len);
+b_read_proc_exist(const char *proc_name, unsigned int proc_name_len);
 
 #endif /* C_PROCFS_H */

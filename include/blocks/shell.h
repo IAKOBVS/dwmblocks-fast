@@ -20,6 +20,6 @@
 #	define C_SHELL_H 1
 
 char *
-c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
 
 #endif /* C_SHELL_H */

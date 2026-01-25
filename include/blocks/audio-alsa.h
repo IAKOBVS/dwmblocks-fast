@@ -24,13 +24,13 @@
 #	ifdef USE_ALSA
 
 int
-c_read_mic_vol(void);
+b_read_mic_vol(void);
 int
-c_read_speaker_vol(void);
+b_read_speaker_vol(void);
 int
-c_read_mic_muted(void);
+b_read_mic_muted(void);
 int
-c_read_speaker_muted(void);
+b_read_speaker_muted(void);
 
 #	endif
 

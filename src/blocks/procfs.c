@@ -29,7 +29,7 @@
 #define PAGESZ 4096
 
 int
-c_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
+b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
 {
 	const char *p = u_strstr_len(proc_buf, proc_buf_sz, S_LITERAL("Name:\t"));
 	if (p) {
@@ -42,7 +42,7 @@ c_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *pr
 }
 
 int
-c_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
+b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
 	int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
@@ -58,11 +58,11 @@ c_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 	if (read_sz < 0)
 		DIE(return 0);
 	buf[read_sz] = '\0';
-	return c_proc_name_match(buf, read_sz, proc_name, proc_name_len);
+	return b_proc_name_match(buf, read_sz, proc_name, proc_name_len);
 }
 
 unsigned int
-c_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
+b_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
 	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1] = "/proc/";
 	char *fnamep = fname + S_LEN("/proc/");
@@ -78,7 +78,7 @@ c_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		char *fname_e = fnamep;
 		fname_e = u_stpcpy(fname_e, ep->d_name);
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
-		if (c_read_proc_exist_at(proc_name, proc_name_len, fname))
+		if (b_read_proc_exist_at(proc_name, proc_name_len, fname))
 			return (unsigned int)atoi(ep->d_name);
 	}
 	if (closedir(dp) == -1)

@@ -70,7 +70,7 @@ dwmblocks -p # | some_window_manager
 #define SIG_SH 11
 static struct Block g_blocks[] = {
     /* Update_interval   Signal    Label    Function        Command*/
-    { 0,                 SIG_SH,   "",      c_write_shell,  "my_shell_script" },
+    { 0,                 SIG_SH,   "",      b_write_shell,  "my_shell_script" },
 }
 ```
 ## Adding a C function
