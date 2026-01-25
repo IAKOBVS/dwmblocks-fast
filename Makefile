@@ -181,7 +181,7 @@ disable-audio: $(config) $(disable-alsa)
 check: $(PROG) src/test.o
 	mkdir -p $(BIN)
 	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
-	@./tests/test-run
+	@./tests/test-run >/dev/null
 	@rm src/test.o
 
 clean:
