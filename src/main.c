@@ -288,7 +288,7 @@ g_handler_sig_dummy(int signum)
 	*p++ = '\n';
 	*p = '\0';
 	/* fprintf is not reentrant. */
-	write(STDERR_FILENO, buf, (size_t)(p - buf));
+	assert(write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf));
 }
 #endif
 
