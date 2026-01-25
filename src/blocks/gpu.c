@@ -86,26 +86,26 @@ c_gpu_init()
 {
 	c_gpu.ret = nvmlInit();
 	if (c_gpu.ret != NVML_SUCCESS)
-		ERR(nvmlErrorString(c_gpu.ret); exit(EXIT_FAILURE));
+		DIE_DO(nvmlErrorString(c_gpu.ret));
 	c_gpu.ret = nvmlDeviceGetCount(&c_gpu.deviceCount);
 	if (c_gpu.ret != NVML_SUCCESS)
-		ERR(c_gpu_err());
+		DIE_DO(c_gpu_err());
 	c_gpu.device = (nvmlDevice_t *)malloc(c_gpu.deviceCount * sizeof(nvmlDevice_t));
 	if (c_gpu.device == NULL)
-		ERR(c_gpu_err());
+		DIE_DO(c_gpu_err());
 	c_gpu.temp = (unsigned int *)malloc(c_gpu.deviceCount * sizeof(unsigned int));
 	if (c_gpu.temp == NULL)
-		ERR(c_gpu_err());
+		DIE_DO(c_gpu_err());
 	c_gpu.utilization = (nvmlUtilization_t *)malloc(c_gpu.deviceCount * sizeof(nvmlUtilization_t));
 	if (c_gpu.utilization == NULL)
-		ERR(c_gpu_err());
+		DIE_DO(c_gpu_err());
 	c_gpu.memory = (nvmlMemory_t *)malloc(c_gpu.deviceCount * sizeof(nvmlMemory_t));
 	if (c_gpu.memory == NULL)
-		ERR(c_gpu_err());
+		DIE_DO(c_gpu_err());
 	for (unsigned int i = 0; i < c_gpu.deviceCount; ++i) {
 		c_gpu.ret = nvmlDeviceGetHandleByIndex(i, c_gpu.device + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			DIE_DO(c_gpu_err());
 	}
 	c_gpu.init = 1;
 }
@@ -117,23 +117,23 @@ c_gpu_monitor(c_gpu_monitor_ty mon_type, unsigned int i)
 	case C_GPU_MON_TEMP:
 		c_gpu.ret = c_gpu_nvmlDeviceGetTemperature(c_gpu.device[i], NVML_TEMPERATURE_GPU, c_gpu.temp + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			DIE_DO(c_gpu_err());
 		return c_gpu.temp[i];
 		break;
 	case C_GPU_MON_USAGE:
 		c_gpu.ret = nvmlDeviceGetUtilizationRates(c_gpu.device[i], c_gpu.utilization + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			DIE_DO(c_gpu_err());
 		return c_gpu.utilization[i].gpu;
 		break;
 	case C_GPU_MON_VRAM:
 		c_gpu.ret = nvmlDeviceGetMemoryInfo(c_gpu.device[i], c_gpu.memory + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			DIE_DO(c_gpu_err());
 		return 100 - (((long double)c_gpu.memory[i].free / (long double)c_gpu.memory[i].total) * (long double)100);
 		break;
 	default:
-		ERR();
+		DIE();
 		break;
 	}
 }
@@ -187,15 +187,15 @@ c_gpu_monitor_devices_all(c_gpu_values_ty *val)
 	for (unsigned int i = 0; i < c_gpu.deviceCount; ++i) {
 		c_gpu.ret = nvmlDeviceGetTemperature(c_gpu.device[i], NVML_TEMPERATURE_GPU, c_gpu.temp + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR_DO(c_gpu_err());
+			DIE_DO(c_gpu_err());
 		val->temp += c_gpu.temp[i];
 		c_gpu.ret = nvmlDeviceGetUtilizationRates(c_gpu.device[i], c_gpu.utilization + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			DIE_DO(c_gpu_err());
 		val->usage += c_gpu.utilization[i].gpu;
 		c_gpu.ret = nvmlDeviceGetMemoryInfo(c_gpu.device[i], c_gpu.memory + i);
 		if (c_gpu.ret != NVML_SUCCESS)
-			ERR(c_gpu_err());
+			DIE_DO(c_gpu_err());
 		val->memory_free += c_gpu.memory[i].free;
 		val->memory_total += c_gpu.memory[i].total;
 	}

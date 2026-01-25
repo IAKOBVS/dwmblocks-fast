@@ -22,18 +22,24 @@
 #	include <stdio.h>
 #	include <assert.h>
 
-#	define ERR(x)                          \
+#	define DIE(x)                          \
 		do {                            \
 			perror("errno error:"); \
 			assert(0);              \
 			x;                      \
 		} while (0)
 
-#	define ERR_DO(x)                       \
+#	define DIE_DO(x)                       \
 		do {                            \
 			perror("errno error:"); \
-			x;                      \
 			assert(0);              \
+			x;                      \
+		} while (0)
+
+#	define DIE_RET(x)                      \
+		do {                            \
+			perror("errno error:"); \
+			return x;               \
 		} while (0)
 
 #	ifndef ATTR_INLINE

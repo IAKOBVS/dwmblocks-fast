@@ -29,14 +29,14 @@ c_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned 
 {
 	int fd = open("/proc/modules", O_RDONLY);
 	if (fd == -1)
-		ERR();
+		DIE(return dst);
 	char buf[4096];
 	ssize_t read_sz;
 	read_sz = read(fd, buf, sizeof(buf));
 	if (close(fd) == -1)
-		ERR();
+		DIE(return dst);
 	if (read_sz < 0)
-		ERR();
+		DIE(return dst);
 	buf[read_sz] = '\0';
 	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
 		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));

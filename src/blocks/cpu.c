@@ -43,12 +43,12 @@ c_read_cpu_temp(void)
 	char temp[S_LEN("100") + S_LEN("1000") + 1] = { 0 };
 	int fd = open(CPU_TEMP_FILE, O_RDONLY);
 	if (fd == -1)
-		ERR(return -1);
+		DIE(return -1);
 	int read_sz = read(fd, temp, S_LEN(temp));
 	if (close(fd) == -1)
-		ERR(return -1);
+		DIE(return -1);
 	if (read_sz < 0)
-		ERR(return -1);
+		DIE(return -1);
 	read_sz -= (int)S_LEN("1000");
 	return c_atou_lt3(temp, read_sz);
 }
@@ -58,7 +58,7 @@ c_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned i
 {
 	const int temp = c_read_cpu_temp();
 	if (temp < 0)
-		ERR(return NULL);
+		DIE(return dst);
 	char *p = dst;
 	p = u_utoa_p((unsigned int)temp, dst);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
@@ -74,12 +74,12 @@ c_read_cpu_usage()
 	char buf[4096];
 	int fd = open("/proc/stat", O_RDONLY);
 	if (fd == -1)
-		ERR();
+		DIE(return -1);
 	ssize_t read_sz = read(fd, buf, sizeof(buf));
 	if (close(fd) == -1)
-		ERR();
+		DIE(return -1);
 	if (read_sz < 0)
-		ERR();
+		DIE(return -1);
 	buf[read_sz] = '\0';
 	static int l_user, l_nice, l_system, l_idle, l_iowait, l_irq, l_softirq;
 	int user = l_user, nice = l_nice, system = l_system, idle = l_idle, iowait = l_iowait, irq = l_irq, softirq = l_softirq;
@@ -111,7 +111,7 @@ c_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 {
 	const int usage = c_read_cpu_usage();
 	if (usage < 0)
-		ERR(return NULL);
+		DIE(return dst);
 	char *p = dst;
 	p = u_utoa_p((unsigned int)usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
@@ -126,10 +126,10 @@ c_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 {
 	const int temp = c_read_cpu_temp();
 	if (temp < 0)
-		ERR(return NULL);
+		DIE(return dst);
 	const int usage = c_read_cpu_usage();
 	if (usage < 0)
-		ERR(return NULL);
+		DIE(return dst);
 	char *p = dst;
 	p = u_utoa_p((unsigned int)temp, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));

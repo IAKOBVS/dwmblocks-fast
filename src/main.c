@@ -158,23 +158,23 @@ g_setup_signals()
 	/* Initialize all real time signals with dummy handler. */
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
 		if (signal(i, g_handler_sig_dummy) == SIG_ERR)
-			ERR(return G_RET_ERR);
+			DIE(return G_RET_ERR);
 #endif
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0) {
 #ifndef __OpenBSD__
 			if (g_blocks[i].signal > (unsigned int)SIGRTMAX) {
 				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
-				ERR();
+				DIE();
 			}
 #endif
 			if (signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR)
-				ERR(return G_RET_ERR);
+				DIE(return G_RET_ERR);
 		}
 	if (signal(SIGTERM, g_handler_term) == SIG_ERR)
-		ERR(return G_RET_ERR);
+		DIE(return G_RET_ERR);
 	if (signal(SIGINT, g_handler_term) == SIG_ERR)
-		ERR(return G_RET_ERR);
+		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
 
@@ -212,7 +212,7 @@ g_setup_x11()
 	g_dpy = XOpenDisplay(NULL);
 	if (!g_dpy) {
 		fprintf(stderr, "dwmblocks-fast: Failed to open display.\n");
-		ERR(return G_RET_ERR);
+		DIE(return G_RET_ERR);
 	}
 	g_screen = DefaultScreen(g_dpy);
 	g_win_root = RootWindow(g_dpy, g_screen);
@@ -237,7 +237,7 @@ g_status_write(char *status)
 	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
 	g_statuschanged = 0;
 	if (ret != statuslen)
-		ERR(return G_RET_ERR);
+		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
 
@@ -245,10 +245,10 @@ static g_ret_ty
 g_status_init()
 {
 	if (g_setup_signals() == G_RET_ERR)
-		ERR(return G_RET_ERR);
+		DIE(return G_RET_ERR);
 #ifdef USE_X11
 	if (g_setup_x11() == G_RET_ERR)
-		return G_RET_ERR;
+		DIE(return G_RET_ERR);
 #endif
 	return G_RET_SUCC;
 }
@@ -271,7 +271,7 @@ g_status_mainloop()
 		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
 			if (g_status_write(g_statusstr) == G_RET_ERR)
-				ERR(return G_RET_ERR);
+				DIE(return G_RET_ERR);
 		if (!g_statuscontinue)
 			break;
 #ifdef TEST
@@ -325,9 +325,9 @@ main(int argc, char **argv)
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
 	if (g_status_init() == G_RET_ERR)
-		ERR(return EXIT_FAILURE);
+		DIE(return EXIT_FAILURE);
 	if (g_status_mainloop() == G_RET_ERR)
-		ERR(return EXIT_FAILURE);
+		DIE(return EXIT_FAILURE);
 	g_status_cleanup();
 	return EXIT_SUCCESS;
 }

@@ -60,7 +60,7 @@ c_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	} else {
 		int vol = c_read_mic_vol();
 		if (vol == -1)
-			ERR();
+			DIE(return dst);
 		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_UNMUTED));
 		*p++ = ' ';
 		p = u_utoa_p((unsigned int)vol, p);

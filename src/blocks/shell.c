@@ -29,17 +29,17 @@ c_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 #if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
 	if (fp == NULL)
-		ERR(return NULL);
+		DIE(return dst);
 	int fd;
 	ssize_t read_sz;
 	fd = io_fileno(fp);
 	if (fd == -1)
-		ERR(pclose(fp); return NULL);
+		DIE(pclose(fp); return dst);
 	read_sz = read(fd, dst, dst_len);
 	if (pclose(fp) < 0)
-		ERR(return NULL);
+		DIE(return dst);
 	if (read_sz == -1)
-		ERR(return NULL);
+		DIE(return dst);
 	/* Chop newline. */
 	char *end = (char *)memchr(dst, '\n', read_sz);
 	/* Nul-terminate newline or end of string. */

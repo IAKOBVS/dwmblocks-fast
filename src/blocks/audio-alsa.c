@@ -61,8 +61,8 @@ c_audio_alsa_cleanup()
 void
 c_audio_alsa_err(void)
 {
-	fprintf(stderr, "%s\n\n", snd_strerror(c_audio_alsa_speaker.ret));
-	fprintf(stderr, "%s\n\n", snd_strerror(c_audio_alsa_mic.ret));
+	fprintf(stderr, "alsa error (speaker): %s\n", snd_strerror(c_audio_alsa_speaker.ret));
+	fprintf(stderr, "alsa error (mic): %s\n", snd_strerror(c_audio_alsa_mic.ret));
 	c_audio_alsa_cleanup();
 }
 
@@ -76,36 +76,36 @@ c_audio_alsa_init_one(c_audio_alsa_ty *audio_alsa, const char *card, const char 
 	audio_alsa->playback_or_capture = playback_or_capture;
 	snd_mixer_selem_id_malloc(&audio_alsa->sid);
 	if (audio_alsa->sid == NULL)
-		ERR();
+		DIE();
 	audio_alsa->ret = snd_mixer_open(&audio_alsa->handle, 0);
 	if (audio_alsa->ret != 0)
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	audio_alsa->ret = snd_mixer_attach(audio_alsa->handle, audio_alsa->card);
 	if (audio_alsa->ret != 0)
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	audio_alsa->ret = snd_mixer_selem_register(audio_alsa->handle, NULL, NULL);
 	if (audio_alsa->ret != 0)
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	audio_alsa->ret = snd_mixer_load(audio_alsa->handle);
 	if (audio_alsa->ret != 0)
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	snd_mixer_selem_id_set_index(audio_alsa->sid, 0);
 	snd_mixer_selem_id_set_name(audio_alsa->sid, audio_alsa->selem_name);
 	audio_alsa->elem = snd_mixer_find_selem(audio_alsa->handle, audio_alsa->sid);
 	if (audio_alsa->elem == NULL)
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	if (playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 		snd_mixer_selem_get_playback_volume_range(audio_alsa->elem, &audio_alsa->min_vol, &audio_alsa->max_vol);
 	else if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 		snd_mixer_selem_get_capture_volume_range(audio_alsa->elem, &audio_alsa->min_vol, &audio_alsa->max_vol);
 	else
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	if (playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 		audio_alsa->has_mute = snd_mixer_selem_has_playback_switch(audio_alsa->elem);
 	else if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 		audio_alsa->has_mute = snd_mixer_selem_has_capture_switch(audio_alsa->elem);
 	else
-		ERR(c_audio_alsa_err());
+		DIE_DO(c_audio_alsa_err());
 	audio_alsa->init = 1;
 }
 
@@ -135,13 +135,13 @@ c_read_audio_alsa_vol(c_audio_alsa_ty *audio_alsa)
 		c_audio_alsa_inits();
 	audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 	if (audio_alsa->ret < 0)
-		ERR(c_audio_alsa_err(); return -1);
+		DIE_DO(c_audio_alsa_err());
 	if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 		audio_alsa->ret = snd_mixer_selem_get_playback_volume(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio_alsa->curr_vol);
 	if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 		audio_alsa->ret = snd_mixer_selem_get_capture_volume(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio_alsa->curr_vol);
 	if (audio_alsa->ret != 0)
-		ERR(c_audio_alsa_err(); return -1);
+		DIE_DO(c_audio_alsa_err());
 	const int percent = (int)(100.0f * (audio_alsa->curr_vol - audio_alsa->min_vol) / (audio_alsa->max_vol - audio_alsa->min_vol));
 	return percent;
 }
@@ -154,16 +154,16 @@ c_read_audio_alsa_muted(c_audio_alsa_ty *audio_alsa)
 			c_audio_alsa_speaker_init();
 		audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 		if (audio_alsa->ret < 0)
-			ERR(c_audio_alsa_err());
+			DIE_DO(c_audio_alsa_err());
 		int i = 1;
 		if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_PLAYBACK)
 			audio_alsa->ret = snd_mixer_selem_get_playback_switch(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &i);
 		else if (audio_alsa->playback_or_capture == C_AUDIO_ALSA_CAPTURE)
 			audio_alsa->ret = snd_mixer_selem_get_capture_switch(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &i);
 		else
-			ERR(c_audio_alsa_err());
+			DIE_DO(c_audio_alsa_err());
 		if (audio_alsa->ret != 0)
-			ERR(c_audio_alsa_err());
+			DIE_DO(c_audio_alsa_err());
 		return !i;
 	}
 	return 0;

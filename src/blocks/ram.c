@@ -31,7 +31,7 @@ c_read_ram_usage_percent(void)
 {
 	struct sysinfo info;
 	if (sysinfo(&info) != 0)
-		ERR(return -1);
+		DIE(return -1);
 	const int percent = 100 - (((double)info.freeram / (double)info.totalram) * 100);
 	return percent;
 }
@@ -42,7 +42,7 @@ c_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 #ifdef __linux__
 	int usage = c_read_ram_usage_percent();
 	if (usage < 0)
-		ERR(return dst);
+		DIE(return dst);
 	char *p = dst;
 	p = u_utoa_p((unsigned int)usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
