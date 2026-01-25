@@ -161,9 +161,16 @@ g_setup_signals()
 			ERR(return G_RET_ERR);
 #endif
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		if (g_blocks[i].signal > 0)
+		if (g_blocks[i].signal > 0) {
+#ifndef __OpenBSD__
+			if (g_blocks[i].signal > (unsigned int)SIGRTMAX) {
+				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
+				ERR();
+			}
+#endif
 			if (signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR)
 				ERR(return G_RET_ERR);
+		}
 	if (signal(SIGTERM, g_handler_term) == SIG_ERR)
 		ERR(return G_RET_ERR);
 	if (signal(SIGINT, g_handler_term) == SIG_ERR)
