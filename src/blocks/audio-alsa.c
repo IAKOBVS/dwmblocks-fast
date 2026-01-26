@@ -142,7 +142,7 @@ b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 		audio_alsa->ret = snd_mixer_selem_get_capture_volume(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio_alsa->curr_vol);
 	if (audio_alsa->ret != 0)
 		DIE_DO(b_audio_alsa_err());
-	const int percent = (int)(100.0f * (audio_alsa->curr_vol - audio_alsa->min_vol) / (audio_alsa->max_vol - audio_alsa->min_vol));
+	const int percent = (int)((double)100 * ((double)(audio_alsa->curr_vol - audio_alsa->min_vol) / (double)(audio_alsa->max_vol - audio_alsa->min_vol)));
 	return percent;
 }
 
