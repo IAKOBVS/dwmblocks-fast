@@ -48,22 +48,36 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	 * To use a C function, set command to NULL.
 	 *
 	 * Update_interval    Signal    Icon    Function    Command */
+#ifdef HAVE_RPOCFS
 	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
+#endif
+
+#ifdef HAVE_PROCFS
 	/* ================================================================================================= */
 	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
 	/* ================================================================================================= */
 	{ 0,    SIG_OBS,    NULL, b_write_obs_on,            NULL },
 	{ 0,    SIG_OBS,    NULL, b_write_obs_recording,     NULL },
 	/* ================================================================================================= */
+#endif
+
 #	ifdef USE_AUDIO
 	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
 #	endif
+
 	{ 3600, 0,          "📅", b_write_date,              NULL },
+
+#ifdef HAVE_PROCFS
 	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
+#endif
+
+#ifdef HAVE_PROCFS
 	/* b_write_cpu_all: [temp] [usage] */
 	{ 2,    0,          "💻", b_write_cpu_all,           NULL },
 	/* { 2,    0,          "💻", b_write_cpu_temp,          NULL }, */
 	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
+#endif
+
 #	ifdef USE_NVIDIA
 	/* b_write_gpu_all: [temp] [usage] [vram] */
 	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
@@ -71,10 +85,14 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* { 2,    0,          "🚀", b_write_gpu_usage,         NULL }, */
 	/* { 2,    0,          "🚀", b_write_gpu_vram,          NULL }, */
 #	endif
+
 #	ifdef USE_AUDIO
 	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
-	/* { 0,    SIG_AUDIO,  NULL, b_write_shell,       "wpctl get-volume @DEFAULT_AUDIO_SINK@" }, */
 #	endif
+
+#if defined HAVE_POPEN && defined HAVE_PCLOSE
+	/* { 0,    SIG_AUDIO,  "my command:", b_write_shell,       "some_command | other_command" }, */
+#endif
 	{ 60,   0,          "⏰", b_write_time,              NULL },
 };
 
