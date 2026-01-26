@@ -34,6 +34,6 @@ b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 char *
 b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#	endif /* USE_GPU */
+#	endif /* USE_NVIDIA */
 
 #endif /* C_GPU_H */

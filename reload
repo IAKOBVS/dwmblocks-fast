@@ -2,3 +2,4 @@
 BIN=dwmblocks-fast
 killall "$BIN"
 sudo make install
+nohup dwmblocks-fast >/dev/null &

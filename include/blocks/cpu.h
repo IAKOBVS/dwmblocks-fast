@@ -17,7 +17,11 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef C_CPU_H
-#define C_CPU_H 1
+#	define C_CPU_H 1
+
+#	include "../macros.h"
+
+#	ifdef HAVE_PROCFS
 
 /* ../../src/blocks/cpu.c */
 
@@ -27,5 +31,7 @@ char *
 b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+#	endif /* HAVE_PROCFS */
 
 #endif /* C_CPU_H */

@@ -221,4 +221,8 @@
 #		define io_fflush(stream) fflush(stream)
 #	endif
 
+#ifdef __linux__
+#	define HAVE_PROCFS 1
+#endif
+
 #endif /* MACROS_H */

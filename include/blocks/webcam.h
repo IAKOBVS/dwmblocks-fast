@@ -19,9 +19,11 @@
 #ifndef C_WEBCAM_H
 #	define C_WEBCAM_H 1
 
-/* ../../src/blocks/webcam.c */
+#	include "../macros.h"
 
-#	ifdef __linux__
+#	ifdef HAVE_PROCFS
+
+/* ../../src/blocks/webcam.c */
 
 char *
 b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
