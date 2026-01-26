@@ -30,7 +30,8 @@ clean:
 objs.mk: objs-build.mk
 
 objs-build.mk: Makefile.base config.mk src/* src/*/* include/* include/*/*
-	@./build-make
+	./build-make
+	$(MAKE)
 src/blocks/time.o: src/blocks/time.c 
 	$(CC) -o src/blocks/time.o -c src/blocks/time.c $(CFLAGS) $(CPPFLAGS)
 src/blocks/procfs.o: src/blocks/procfs.c 
