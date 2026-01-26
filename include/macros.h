@@ -52,8 +52,8 @@
 #		endif
 #	endif
 
-#	ifdef __glibb_has_attribute
-#		define HAS_ATTRIBUTE(attr) __glibb_has_attribute(attr)
+#	ifdef __glibc_has_attribute
+#		define HAS_ATTRIBUTE(attr) __glibc_has_attribute(attr)
 #	elif defined __has_attribute
 #		define HAS_ATTRIBUTE(attr) __has_attribute(attr)
 #	else
