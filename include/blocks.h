@@ -44,22 +44,22 @@ typedef struct {
 
 /* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
 static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
-	/* To use a shell script, set func to b_write_cmd and command to the shell script.
+	/* To use a shell script, set func to b_write_shell and command to the shell script.
 	 * To use a C function, set command to NULL.
 	 *
 	 * Update_interval    Signal    Icon    Function    Command */
-#ifdef HAVE_RPOCFS
+#	ifdef HAVE_RPOCFS
 	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
-#endif
+#	endif
 
-#ifdef HAVE_PROCFS
+#	ifdef HAVE_PROCFS
 	/* ================================================================================================= */
 	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
 	/* ================================================================================================= */
 	{ 0,    SIG_OBS,    NULL, b_write_obs_on,            NULL },
 	{ 0,    SIG_OBS,    NULL, b_write_obs_recording,     NULL },
 	/* ================================================================================================= */
-#endif
+#	endif
 
 #	if defined USE_AUDIO && defined USE_ALSA
 	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
@@ -67,16 +67,16 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	{ 3600, 0,          "📅", b_write_date,              NULL },
 
-#ifdef __linux__
+#	ifdef __linux__
 	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
-#endif
+#	endif
 
-#ifdef HAVE_PROCFS
+#	ifdef HAVE_PROCFS
 	/* b_write_cpu_all: [temp] [usage] */
 	{ 2,    0,          "💻", b_write_cpu_all,           NULL },
 	/* { 2,    0,          "💻", b_write_cpu_temp,          NULL }, */
 	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
-#endif
+#	endif
 
 #	if defined USE_NVIDIA && defined USE_NVML
 	/* b_write_gpu_all: [temp] [usage] [vram] */
@@ -90,9 +90,9 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
 #	endif
 
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+#	if defined HAVE_POPEN && defined HAVE_PCLOSE
 	/* { 0,    SIG_AUDIO,  "my command:", b_write_shell,       "some_command | other_command" }, */
-#endif
+#	endif
 	{ 60,   0,          "⏰", b_write_time,              NULL },
 };
 
