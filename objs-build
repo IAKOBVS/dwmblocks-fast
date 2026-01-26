@@ -1,0 +1,21 @@
+#!/bin/sh
+for file in $(./get-sources); do
+	ofile=$(echo $file | sed 's/\.c/\.o/')
+	./get-prereq1 $file |
+		grep -vF -e 'macros' -e 'config' -e 'utils' -e 'blocks.h' |
+		awk -v file="$file" -v ofile="$ofile" '\
+		BEGIN\
+		{\
+			prereq=""; \
+		}\
+		{\
+			gsub(/\.h/, ".o");\
+			gsub(/include/, "src");\
+			prereq = prereq "$0";
+		}\
+		END \
+		{\
+			printf("%s: %s %s\n\t$(CC) -o %s -c %s $(CFLAGS) $(CPPFLAGS)\n", ofile, file, prereqs, ofile, file);\
+		}' &
+done
+wait

@@ -1,8 +1,0 @@
-#!/bin/sh
-for file in $(./get-source); do
-	ofile=$(echo $file | sed 's/\.c/\.o/')
-	prereqs=$(./get-prereq1 $file | grep -v -F 'macros' | grep -v -F 'config' | grep -v -F 'utils' | grep -v -F 'blocks.h' | sed 's/include/src/; s/\.h/\.o/' | tr '\n' ' ')
-	echo "$ofile: $file $prereqs"
-	echo "	\$(CC) -o $ofile -c $file \$(CFLAGS) \$(CPPFLAGS)"
-done
-wait

@@ -1,6 +1,5 @@
 #!/bin/sh
 file=$1
-ofile=$(echo $file | sed 's/\.c/\.o/')
 awk '\
 	/#[ \t]*include.*\.h"/ \
 	{ \

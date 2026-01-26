@@ -1,4 +1,5 @@
 #!/bin/sh
+str='OBJS ='
 for file in $(find src -type f -name '*.c'); do
 	str="$str $(echo $file | sed 's/\.[ch]/\.o/') "
 done
