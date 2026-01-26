@@ -185,7 +185,7 @@ void
 b_gpu_monitor_devices_all(b_gpu_values_ty *val)
 {
 	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i) {
-		b_gpu.ret = nvmlDeviceGetTemperature(b_gpu.device[i], NVML_TEMPERATURE_GPU, b_gpu.temp + i);
+		b_gpu.ret = b_gpu_nvmlDeviceGetTemperature(b_gpu.device[i], NVML_TEMPERATURE_GPU, b_gpu.temp + i);
 		if (b_gpu.ret != NVML_SUCCESS)
 			DIE_DO(b_gpu_err());
 		val->temp += b_gpu.temp[i];
