@@ -55,9 +55,40 @@ $ sudo make install
 - procps: send signals with pkill
 
 # Usage
-## In ~/.xinitrc (for dwm, and other window managers that use WM_NAME)
+## .xinitrc (for window managers that use WM_NAME)
 ```
 dwmblocks-fast &
+```
+## .xinitrc (pipewire-alsa)
+For Pipewire, since the program depends on alsa-lib for audio,
+Pipewire needs to be already running before dwmblocks-fast.
+Otherwise, the program will fail when it tries to call
+alsa-lib functions.
+```
+# Start Pipewire
+if ps -e -o comm | grep -q -F 'systemd'; then
+	systemctl --user start pipewire.service
+	systemctl --user start wireplumber.service
+else
+	pipewire &
+	wireplumber &
+fi
+
+{
+	retry=5
+    # Retry until Pipewire is running.
+	while [ $retry -gt 0 ]; do
+        # Check if pipewire is running.
+		if ps -e -o comm | grep -q -F 'pipewire' && dwmblocks-fast; then
+            # Success
+			exit
+		fi
+        # Retry
+		retry=$((retry - 1))
+		sleep 1
+	done
+	exit 1 
+} &
 ```
 ## Print to stdout (for other window managers that read stdin)
 ```
