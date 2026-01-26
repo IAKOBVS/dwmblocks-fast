@@ -19,12 +19,7 @@
 #ifndef C_PROCFS_H
 #	define C_PROCFS_H 1
 
-#	include <fcntl.h>
-#	include <dirent.h>
-#	include <stdlib.h>
-#	include <assert.h>
-#	include <unistd.h>
-#	include <errno.h>
+/* ../../src/blocks/procfs.c */
 
 int
 b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);

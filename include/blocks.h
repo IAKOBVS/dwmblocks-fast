@@ -19,52 +19,65 @@
 #ifndef BLOCKS_H
 #	define BLOCKS_H 1
 
-/* ../src/blocks/audio.c */
-char *
-b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+#	include "config.h"
 
-/* ../src/blocks/gpu.c */
-char *
-b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+#	include "blocks/webcam.h"
+#	include "blocks/time.h"
+#	include "blocks/procfs.h"
+#	include "blocks/shell.h"
+#	include "blocks/obs.h"
+#	include "blocks/audio.h"
+#	include "blocks/cpu.h"
+#	include "blocks/ram.h"
+#	include "blocks/gpu.h"
+#	include "blocks/webcam.h"
 
-/* ../src/blocks/cpu.c */
-char *
-b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+typedef struct {
+	unsigned int interval;
+	const unsigned int signal;
+	const char *icon;
+	char *(*func)(char *, unsigned int, const char *, unsigned int *);
+	const char *command;
+} g_block_ty;
 
-/* ../src/blocks/obs.c */
-char *
-b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+/* clang-format off */
 
-/* ../src/blocks/ram.c */
-char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
+static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
+	/* To use a shell script, set func to b_write_cmd and command to the shell script.
+	 * To use a C function, set command to NULL.
+	 *
+	 * Update_interval    Signal    Icon    Function    Command */
+	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
+	/* ================================================================================================= */
+	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
+	/* ================================================================================================= */
+	{ 0,    SIG_OBS,    NULL, b_write_obs_on,            NULL },
+	{ 0,    SIG_OBS,    NULL, b_write_obs_recording,     NULL },
+	/* ================================================================================================= */
+#	ifdef USE_AUDIO
+	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
+#	endif
+	{ 3600, 0,          "📅", b_write_date,              NULL },
+	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
+	/* b_write_cpu_all: [temp] [usage] */
+	{ 2,    0,          "💻", b_write_cpu_all,           NULL },
+	/* { 2,    0,          "💻", b_write_cpu_temp,          NULL }, */
+	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
+#	ifdef USE_NVIDIA
+	/* b_write_gpu_all: [temp] [usage] [vram] */
+	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
+	/* { 2,    0,          "🚀", b_write_gpu_temp,          NULL }, */
+	/* { 2,    0,          "🚀", b_write_gpu_usage,         NULL }, */
+	/* { 2,    0,          "🚀", b_write_gpu_vram,          NULL }, */
+#	endif
+#	ifdef USE_AUDIO
+	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
+	/* { 0,    SIG_AUDIO,  NULL, b_write_shell,       "wpctl get-volume @DEFAULT_AUDIO_SINK@" }, */
+#	endif
+	{ 60,   0,          "⏰", b_write_time,              NULL },
+};
 
-/* ../src/blocks/time.c */
-char *
-b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-
-/* ../src/blocks/shell.c */
-char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
-
-/* ../src/blocks/webcam.c */
-char *
-b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+/* clang-format on */
 
 #endif /* BLOCKS_H */

@@ -23,6 +23,8 @@
 
 #	ifdef USE_ALSA
 
+/* ../../src/blocks/audio-alsa.c */
+
 int
 b_read_mic_vol(void);
 int
@@ -32,6 +34,6 @@ b_read_mic_muted(void);
 int
 b_read_speaker_muted(void);
 
-#	endif
+#	endif /* USE_ALSA */
 
 #endif /* C_AUDIO_ALSA_H */

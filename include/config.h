@@ -24,8 +24,6 @@
 #ifndef CONFIG_H
 #	define CONFIG_H 1
 
-#	include <stdlib.h>
-#	include "blocks.h"
 #	include "macros.h"
 
 /* Use libx11. Comment to disable. */
@@ -70,52 +68,6 @@
 /* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
 #	define DELIM    " | "
 #	define DELIMLEN (S_LEN(DELIM))
-
-typedef struct {
-	unsigned int interval;
-	const unsigned int signal;
-	const char *icon;
-	char *(*func)(char *, unsigned int, const char *, unsigned int *);
-	const char *command;
-} g_block_ty;
-
-/* clang-format off */
-
-/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
-static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
-	/* To use a shell script, set func to b_write_cmd and command to the shell script.
-	 * To use a C function, set command to NULL.
-	 *
-	 * Update_interval    Signal    Label    Function    Command */
-	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
-	/* ================================================================================================= */
-	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
-	/* ================================================================================================= */
-	{ 0,    SIG_OBS,    NULL, b_write_obs_on,            NULL },
-	{ 0,    SIG_OBS,    NULL, b_write_obs_recording,     NULL },
-	/* ================================================================================================= */
-#	ifdef USE_AUDIO
-	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
-#	endif
-	{ 3600, 0,          "📅", b_write_date,              NULL },
-	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
-	/* b_write_cpu_all: [temp] [usage] */
-	{ 2,    0,          "💻", b_write_cpu_all,           NULL },
-	/* { 2,    0,          "💻", b_write_cpu_temp,          NULL }, */
-	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
-#	ifdef USE_NVIDIA
-	/* b_write_gpu_all: [temp] [usage] [vram] */
-	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
-	/* { 2,    0,          "🚀", b_write_gpu_temp,          NULL }, */
-	/* { 2,    0,          "🚀", b_write_gpu_usage,         NULL }, */
-	/* { 2,    0,          "🚀", b_write_gpu_vram,          NULL }, */
-#	endif
-#	ifdef USE_AUDIO
-	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
-	/* { 0,    SIG_AUDIO,  NULL, b_write_shell,       "wpctl get-volume @DEFAULT_AUDIO_SINK@" }, */
-#	endif
-	{ 60,   0,          "⏰", b_write_time,              NULL },
-};
 
 /* clang-format on */
 

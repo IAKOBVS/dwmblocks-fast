@@ -24,6 +24,8 @@
 #include "../../include/utils.h"
 #include "../../include/config.h"
 
+/* ../../include/blocks/webcam.h */
+
 char *
 b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {

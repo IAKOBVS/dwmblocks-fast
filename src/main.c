@@ -34,6 +34,7 @@
 #	include <X11/Xatom.h>
 #endif
 
+#include "../include/blocks.h"
 #include "../include/macros.h"
 #include "../include/utils.h"
 

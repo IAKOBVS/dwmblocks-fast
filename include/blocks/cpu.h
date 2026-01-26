@@ -16,18 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef C_CPU_H
+#define C_CPU_H 1
 
-#include "../macros.h"
-
-/* ../../src/blocks/shell.c */
-
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+/* ../../src/blocks/cpu.c */
 
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
-
-#endif /* C_SHELL_H */
+#endif /* C_CPU_H */

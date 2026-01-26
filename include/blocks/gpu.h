@@ -16,18 +16,24 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef C_GPU_H
+#	define C_GPU_H 1
 
-#include "../macros.h"
+#	include "../config.h"
 
-/* ../../src/blocks/shell.c */
+#	ifdef USE_NVIDIA
 
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+/* ../../src/blocks/gpu.c */
 
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
+#	endif /* USE_GPU */
 
-#endif /* C_SHELL_H */
+#endif /* C_GPU_H */

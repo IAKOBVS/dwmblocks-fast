@@ -16,18 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef C_OBS_H
+#define C_OBS_H 1
 
-#include "../macros.h"
-
-/* ../../src/blocks/shell.c */
-
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+/* ../../src/blocks/obs.c */
 
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache);
+char *
+b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
-
-#endif /* C_SHELL_H */
+#endif /* C_OBS_H */

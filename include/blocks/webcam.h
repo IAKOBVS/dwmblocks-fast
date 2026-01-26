@@ -16,18 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef C_WEBCAM_H
+#	define C_WEBCAM_H 1
 
-#include "../macros.h"
+/* ../../src/blocks/webcam.c */
 
-/* ../../src/blocks/shell.c */
-
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+#	ifdef __linux__
 
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
+#	endif
 
-#endif /* C_SHELL_H */
+#endif /* C_WEBCAM_H */

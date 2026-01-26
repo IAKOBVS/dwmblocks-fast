@@ -16,18 +16,12 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef C_RAM_H
+#define C_RAM_H 1
 
-#include "../macros.h"
-
-/* ../../src/blocks/shell.c */
-
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+/* ../../src/blocks/ram.c */
 
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
-
-#endif /* C_SHELL_H */
+#endif /* C_RAM_H */

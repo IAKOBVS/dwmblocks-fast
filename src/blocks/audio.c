@@ -26,6 +26,8 @@
 
 #	ifdef USE_ALSA
 #		include "../../include/blocks/audio-alsa.h"
+#else
+#		error "USE_AUDIO requires USE_ALSA"
 #	endif
 
 #	define ICON_SPEAKER_UNMUTED "🔉"

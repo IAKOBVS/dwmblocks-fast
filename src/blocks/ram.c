@@ -23,23 +23,28 @@
 #include "../../include/utils.h"
 
 #ifndef __linux__
-#	include "../../include/shell.h"
+#	if defined HAVE_POPEN && defined HAVE_PCLOSE
+#		include "../../include/blocks/shell.h"
+#	endif
 #endif
 
 int
 b_read_ram_usage_percent(void)
 {
+#ifdef __linux__
 	struct sysinfo info;
 	if (sysinfo(&info) != 0)
 		DIE(return -1);
 	const int percent = 100 - (((double)info.freeram / (double)info.totalram) * 100);
 	return percent;
+#else
+	return b_write_shell(dst, dst_len, CMD_RAM_USAGE);
+#endif
 }
 
 char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-#ifdef __linux__
 	int usage = b_read_ram_usage_percent();
 	if (usage < 0)
 		DIE(return dst);
@@ -50,7 +55,4 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	(void)dst_len;
 	(void)unused;
 	(void)interval;
-#else
-	return b_write_shell(dst, dst_len, CMD_RAM_USAGE);
-#endif
 }

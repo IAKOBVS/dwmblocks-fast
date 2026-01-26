@@ -16,18 +16,20 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef C_AUDIO_H
+#	define C_AUDIO_H 1
 
-#include "../macros.h"
+#include "../config.h"
 
-/* ../../src/blocks/shell.c */
+#	if defined USE_AUDIO && defined USE_ALSA
 
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+/* ../../src/blocks/audio.c */
 
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
+b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
+#	endif /* USE_AUDIO && USE_ALSA */
 
-#endif /* C_SHELL_H */
+#endif /* C_AUDIO_H */

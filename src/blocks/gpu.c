@@ -250,7 +250,7 @@ b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 	return b_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
 }
 
-#elif defined USE_NVIDIA
+#elif defined USE_NVIDIA && defined HAVE_POPEN && defined HAVE_PCLOSE
 
 #	include "../blocks/shell.h"
 
