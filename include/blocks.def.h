@@ -19,13 +19,13 @@
 #ifndef BLOCKS_H
 #	define BLOCKS_H 1
 
-/* blocks/audio.h */
+/* ../src/blocks/audio.c */
 char *
 b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/gpu.h */
+/* ../src/blocks/gpu.c */
 char *
 b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
@@ -35,7 +35,7 @@ b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 char *
 b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/cpu.h */
+/* ../src/blocks/cpu.c */
 char *
 b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
@@ -43,27 +43,27 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 char *
 b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/obs.h */
+/* ../src/blocks/obs.c */
 char *
 b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/ram.h */
+/* ../src/blocks/ram.c */
 char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/time.h */
+/* ../src/blocks/time.c */
 char *
 b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
 b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-/* blocks/shell.h */
+/* ../src/blocks/shell.c */
 char *
 b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
 
-/* blocks/webcam.h */
+/* ../src/blocks/webcam.c */
 char *
 b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 

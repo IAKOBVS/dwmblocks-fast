@@ -41,7 +41,7 @@ b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	if (read_sz == -1)
 		DIE(return dst);
 	/* Chop newline. */
-	char *end = (char *)memchr(dst, '\n', read_sz);
+	char *end = (char *)memchr(dst, '\n', (size_t)read_sz);
 	/* Nul-terminate newline or end of string. */
 	dst = end ? end : dst + read_sz;
 	*dst = '\0';
