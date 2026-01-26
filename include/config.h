@@ -56,12 +56,17 @@
 #	define INTERVAL_OBS_RECORDING 2
 #	define INTERVAL_OBS_OPEN      2
 
+#	define UNIT_USAGE "%"
+#	define UNIT_TEMP  "°"
+
+/* clang-format off */
+
 /* Shell scripts to execute if C functions are not available */
-#	define CMD_RAM_USAGE        "free | awk '/^Mem:/ {printf(\" %d %%\", 100 - ($4/$2 * 100))}'"
+#	define CMD_RAM_USAGE        "free | awk '/^Mem:/ { printf(\"%d" UNIT_USAGE "\", 100 - ($4/$2 * 100))}'"
 #	define CMD_GPU_NVIDIA_TEMP  "nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits -i 0"
 #	define CMD_GPU_NVIDIA_USAGE "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits -i 0"
-#	define CMD_GPU_NVIDIA_VRAM  "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits -i 0 | awk -F', ' '{ printf(\" %d %%\n \", ($1/$2)*100) }'"
-#	define CMD_GPU_NVIDIA_ALL   "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits -i 0 | awk -F', ' '{ printf(\" %d %%%d %%%d %%\n \", $1, $2, ($3/$4)*100) }'"
+#	define CMD_GPU_NVIDIA_VRAM  "nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader,nounits -i 0 | awk -F', ' '{ printf(\"%d" UNIT_USAGE "\", ($1/$2)*100) }'"
+#	define CMD_GPU_NVIDIA_ALL   "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits -i 0 | awk -F', ' '{ printf(\"%d" UNIT_TEMP " %d" UNIT_USAGE " %d" UNIT_USAGE "\", $1, $2, ($3/$4)*100) }'"
 #	define CMD_TIME             "date '+%I:%M %p'"
 #	define CMD_DATE             "date '+%a, %d %b %Y'"
 #	define CMD_CPU_TEMP         "head -c2 " CPU_TEMP_FILE
@@ -69,8 +74,7 @@
 #	define CMD_OBS_OPEN         "pgrep 'obs' > /dev/null && echo '🎥 |' || echo ''"
 #	define CMD_OBS_RECORDING    "pgrep 'obs-ffmpeg-mux' > /dev/null && echo ' 🔴 |'"
 
-#	define UNIT_USAGE "%"
-#	define UNIT_TEMP  "°"
+/* clang-format on */
 
 /* These will be copied to each shell script in ./scripts as shell variables. */
 #	define SIG_AUDIO  1

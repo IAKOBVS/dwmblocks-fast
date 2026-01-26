@@ -2,4 +2,4 @@
 ./objs > objs.mk &
 ./objs-build > objs-build.mk
 wait
-cat config.mk objs.mk Makefile.base objs-build.mk > Makefile
+cat config.mk objs.mk Makefile objs-build.mk > makefile
