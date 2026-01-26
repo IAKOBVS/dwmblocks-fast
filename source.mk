@@ -1,0 +1,1 @@
+SRC = src/blocks/time.c src/blocks/procfs.c src/blocks/shell.c src/blocks/ram.c src/blocks/obs.c src/blocks/webcam.c src/blocks/audio-alsa.c src/blocks/audio.c src/blocks/gpu.c src/blocks/cpu.c src/main.c

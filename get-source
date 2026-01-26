@@ -1,0 +1,5 @@
+#!/bin/sh
+for file in $(find src -type f -name '*.c'); do
+	str="$str $(echo $file) "
+done
+echo $str

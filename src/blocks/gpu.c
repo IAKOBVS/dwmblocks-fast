@@ -252,7 +252,7 @@ b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 
 #elif defined USE_NVIDIA && defined HAVE_POPEN && defined HAVE_PCLOSE
 
-#	include "../blocks/shell.h"
+#	include "../../include/blocks/shell.h"
 
 char *
 b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
