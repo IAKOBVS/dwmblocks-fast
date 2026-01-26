@@ -61,13 +61,13 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* ================================================================================================= */
 #endif
 
-#	ifdef USE_AUDIO
+#	if defined USE_AUDIO && defined USE_ALSA
 	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
 #	endif
 
 	{ 3600, 0,          "📅", b_write_date,              NULL },
 
-#ifdef HAVE_PROCFS
+#ifdef __linux__
 	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
 #endif
 
@@ -78,7 +78,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
 #endif
 
-#	ifdef USE_NVIDIA
+#	if defined USE_NVIDIA && defined USE_NVML
 	/* b_write_gpu_all: [temp] [usage] [vram] */
 	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
 	/* { 2,    0,          "🚀", b_write_gpu_temp,          NULL }, */
@@ -86,7 +86,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* { 2,    0,          "🚀", b_write_gpu_vram,          NULL }, */
 #	endif
 
-#	ifdef USE_AUDIO
+#	if defined USE_AUDIO && defined USE_ALSA
 	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
 #	endif
 
