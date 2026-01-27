@@ -1,5 +1,5 @@
 #!/bin/sh
-./tests/dwmblocks-fast-test -p >/dev/null
+./tests/test-run-bin -p >/dev/null
 ret=$?
 if [ $ret -eq 0 ]; then
 	echo "PASS: $(basename $0)"
