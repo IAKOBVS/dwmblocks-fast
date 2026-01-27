@@ -53,7 +53,7 @@ CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
 LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
-CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
+CFLAGS += -O2 -Wpedantic -pedantic -Wall -Wextra -Wuninitialized -Wshadow -Warray-bounds -Wnull-dereference -Wformat -Wunused -Wwrite-strings
 SRC = src
 BIN = bin
 HFILES = src/*.h
@@ -97,7 +97,7 @@ all: options $(PROG) $(SCRIPTS)
 
 check: $(PROG) $(SRC)/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/test-run-bin $(CFLAGS) -fanalyzer -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/test-run-bin $(CFLAGS) -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm $(SRC)/test.o
 
