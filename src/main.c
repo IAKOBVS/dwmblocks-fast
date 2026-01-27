@@ -38,6 +38,8 @@
 #include "../include/macros.h"
 #include "../include/utils.h"
 
+#define DO_CLEANUP 0
+
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1
 #	define SIGMINUS SIGUSR1 - 1
@@ -254,7 +256,7 @@ g_status_init()
 	return G_RET_SUCC;
 }
 
-static void
+static ATTR_MAYBE_UNUSED void
 g_status_cleanup()
 {
 #ifdef USE_X11
@@ -330,6 +332,9 @@ main(int argc, char **argv)
 		DIE(return EXIT_FAILURE);
 	if (g_status_mainloop() == G_RET_ERR)
 		DIE(return EXIT_FAILURE);
+#if DO_CLEANUP
+	/* No need to free, since we're exiting. */
 	g_status_cleanup();
+#endif
 	return EXIT_SUCCESS;
 }
