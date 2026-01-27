@@ -31,6 +31,8 @@
 #	include "blocks/ram.h"
 #	include "blocks/gpu.h"
 #	include "blocks/webcam.h"
+#	include "blocks/temp.h"
+#	include "blocks/cat.h"
 
 typedef struct {
 	unsigned int interval;
@@ -48,10 +50,13 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	 * To use a C function, set command to NULL.
 	 *
 	 * Update_interval    Signal    Icon    Function    Command */
+
+	/* Webcam */
 #	ifdef HAVE_RPOCFS
 	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
 #	endif
 
+	/* Obs */
 #	ifdef HAVE_PROCFS
 	/* ================================================================================================= */
 	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
@@ -61,38 +66,55 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* ================================================================================================= */
 #	endif
 
+	/* Audio volume (mic) */
 #	if defined USE_AUDIO && defined USE_ALSA
 	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
 #	endif
 
+	/* Date */
 	{ 3600, 0,          "📅", b_write_date,              NULL },
 
+	/* Ram */
 #	ifdef __linux__
-	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
+	/* { 30,   0,          "🧠", b_write_ram_usage_percent, NULL }, */
 #	endif
 
+	/* Read a file */
+	/* { 2,   0,          "my_file:", b_write_cat, "/home/james/.xinitrc" }, */
+
+	/* Temp file */
 #	ifdef HAVE_PROCFS
-	/* b_write_cpu_all: [temp] [usage] */
+	/* { 2,    0,          "my_temp: ", b_write_temp,"/path/to/temp" }, */
+#	endif
+
+	/* CPU temp, usage */
+#	ifdef HAVE_PROCFS
+	/* format: [temp] [usage] */
 	{ 2,    0,          "💻", b_write_cpu_all,           NULL },
 	/* { 2,    0,          "💻", b_write_cpu_temp,          NULL }, */
 	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
 #	endif
 
+	/* GPU temp, usage */
 #	if defined USE_NVIDIA && defined USE_NVML
-	/* b_write_gpu_all: [temp] [usage] [vram] */
+	/* format: [temp] [usage] [vram] */
 	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
 	/* { 2,    0,          "🚀", b_write_gpu_temp,          NULL }, */
 	/* { 2,    0,          "🚀", b_write_gpu_usage,         NULL }, */
 	/* { 2,    0,          "🚀", b_write_gpu_vram,          NULL }, */
 #	endif
 
+	/* Audio volume (speaker) */
 #	if defined USE_AUDIO && defined USE_ALSA
 	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
 #	endif
 
+	/* Shell script or command */
 #	if defined HAVE_POPEN && defined HAVE_PCLOSE
 	/* { 0,    SIG_AUDIO,  "my command:", b_write_shell,       "some_command | other_command" }, */
 #	endif
+
+	/* Time */
 	{ 60,   0,          "⏰", b_write_time,              NULL },
 };
 

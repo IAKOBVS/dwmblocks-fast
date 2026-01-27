@@ -63,6 +63,7 @@ SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 CFGS = include/config.h include/blocks.h
 
 OBJS =\
+	./src/blocks/cat.o\
 	./src/blocks/time.o\
 	./src/blocks/ram.o\
 	./src/blocks/obs.o\
@@ -74,12 +75,13 @@ OBJS =\
 
 # Always recompile $(OBJS) if $(REQ) changed
 REQ =\
+	src/blocks/temp.o\
 	src/blocks/procfs.o\
 	src/blocks/shell.o\
 	include/macros.h\
 	include/utils.h\
 	include/config.h\
-	include/blocks.h
+	include/blocks.h\
 
 ################################################################################
 # Targets
@@ -89,7 +91,7 @@ all: options $(PROG) $(SCRIPTS)
 
 check: $(PROG) src/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) -fsanitize=address -fanalyzer -fsanitize=address $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm src/test.o
 

@@ -17,7 +17,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef C_RAM_H
-#define C_RAM_H 1
+#	define C_RAM_H 1
 
 /* ../../src/blocks/ram.c */
 

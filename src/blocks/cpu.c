@@ -24,75 +24,7 @@
 
 #include "../../include/macros.h"
 #include "../../include/utils.h"
-
-int
-b_atou_lt3(const char *s, int digits)
-{
-	if (digits == 2)
-		return (*s - '0') * 10 + (*(s + 1) - '0');
-	else if (digits == 1)
-		return (*s - '0');
-	else /* digits == 3 */
-		return (*s - '0') * 100 + (*(s + 1) - '0') * 10 + (*(s + 2) - '0') * 1;
-}
-
-int
-b_read_cpu_temp(void)
-{
-	/* Milidegrees = degrees * 1000 */
-	char temp[S_LEN("100") + S_LEN("1000") + 1] = { 0 };
-	int fd = open(CPU_TEMP_FILE, O_RDONLY);
-	if (fd == -1)
-		DIE(return -1);
-	int read_sz = read(fd, temp, S_LEN(temp));
-	if (close(fd) == -1)
-		DIE(return -1);
-	if (read_sz < 0)
-		DIE(return -1);
-	/* Don't read the milidegrees. */
-	read_sz -= (int)S_LEN("1000");
-	return b_atou_lt3(temp, read_sz);
-}
-
-char *
-b_write_cpu_temp_internal(char *dst, unsigned int dst_len)
-{
-	int fd = open(CPU_TEMP_FILE, O_RDONLY);
-	if (fd == -1)
-		DIE(return dst);
-	/* Milidegrees = degrees * 1000 */
-	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("1000"));
-	if (close(fd) == -1)
-		DIE(return dst);
-	if (read_sz < 0)
-		DIE(return dst);
-	/* Don't read the milidegrees. */
-	read_sz -= (int)S_LEN("1000");
-	*(dst + read_sz) = '\0';
-	return dst + read_sz;
-	(void)dst_len;
-}
-
-char *
-b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	char *p = dst;
-#if 1
-	p = b_write_cpu_temp_internal(p, dst_len);
-	if (p == dst)
-		DIE(return dst);
-#else
-	const int temp = b_read_cpu_temp();
-	if (temp < 0)
-		DIE(return dst);
-	p = u_utoa_p((unsigned int)temp, dst);
-#endif
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
-	return p;
-	(void)dst_len;
-	(void)unused;
-	(void)interval;
-}
+#include "../../include/blocks/temp.h"
 
 int
 b_read_cpu_usage()
@@ -148,22 +80,22 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 }
 
 char *
+b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+{
+	return b_write_temp(dst, dst_len, CPU_TEMP_FILE, interval);
+	(void)unused;
+}
+
+char *
 b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
 	if (usage < 0)
 		DIE(return dst);
-#if 1
-	p = b_write_cpu_temp_internal(p, dst_len);
+	p = b_write_temp_internal(p, dst_len, CPU_TEMP_FILE);
 	if (p == dst)
 		DIE(return dst);
-#else
-	const int temp = b_read_cpu_temp();
-	if (temp < 0)
-		DIE(return dst);
-	p = u_utoa_p((unsigned int)temp, p);
-#endif
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
 	p = u_utoa_p((unsigned int)usage, p);

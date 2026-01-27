@@ -17,7 +17,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #ifndef C_OBS_H
-#define C_OBS_H 1
+#	define C_OBS_H 1
 
 /* ../../src/blocks/obs.c */
 
