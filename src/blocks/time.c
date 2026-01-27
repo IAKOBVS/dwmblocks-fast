@@ -51,12 +51,12 @@ b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 			*p++ = '0';
 	}
 	/* Write hour */
-	p = u_utoa_p(h, p);
+	p = u_utoa_lt2_p(h, p);
 	*p++ = ':';
 	if (tm->tm_min < 10)
 		*p++ = '0';
 	/* Write minutes */
-	p = u_utoa_p((unsigned int)tm->tm_min, p);
+	p = u_utoa_lt2_p((unsigned int)tm->tm_min, p);
 	*p++ = ' ';
 	/* AM or PM */
 	*p++ = meridiem;
@@ -85,7 +85,7 @@ b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	case 5: p = u_stpcpy_len(p, S_LITERAL("Thu, ")); break;
 	case 6: p = u_stpcpy_len(p, S_LITERAL("Fri, ")); break;
 	}
-	p = u_utoa_p((unsigned int)tm->tm_mday, p);
+	p = u_utoa_lt2_p((unsigned int)tm->tm_mday, p);
 	*p++ = ' ';
 	/* Write month */
 	switch (tm->tm_mon) {

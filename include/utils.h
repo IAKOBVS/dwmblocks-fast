@@ -40,6 +40,42 @@ u_utoa_p(unsigned int number, char *buf)
 	return (char *)end;
 }
 
+
+static ATTR_MAYBE_UNUSED char *
+u_utoa_lt2_p(unsigned int number, char *buf)
+{
+	if (number > 9) {
+		*(buf + 0) = (number / 10) + '0';
+		*(buf + 1) = (number % 10) + '0';
+		*(buf + 2) = '\0';
+		return buf + 2;
+	}
+	*(buf + 0) = number + '0';
+	*(buf + 1) = '\0';
+	return buf + 1;
+}
+
+static ATTR_MAYBE_UNUSED char *
+u_utoa_lt3_p(unsigned int number, char *buf)
+{
+	if (number > 99) {
+		*(buf + 0) = (number / 100) + '0';
+		*(buf + 1) = ((number / 10) % 10) + '0';
+		*(buf + 2) = (number % 10) + '0';
+		*(buf + 3) = '\0';
+		return buf + 3;
+	}
+	if (number > 9) {
+		*(buf + 0) = (number / 10) + '0';
+		*(buf + 1) = (number % 10) + '0';
+		*(buf + 2) = '\0';
+		return buf + 2;
+	}
+	*(buf + 0) = number + '0';
+	*(buf + 1) = '\0';
+	return buf + 1;
+}
+
 static ATTR_INLINE int
 u_isdigit(int c)
 {

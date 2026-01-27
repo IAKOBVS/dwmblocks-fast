@@ -67,7 +67,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	const int usage = b_read_cpu_usage();
 	if (unlikely(usage == -1))
 		DIE(return dst);
-	p = u_utoa_p((unsigned int)usage, p);
+	p = u_utoa_lt3_p((unsigned int)usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
@@ -94,7 +94,7 @@ b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 		DIE(return dst);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
-	p = u_utoa_p((unsigned int)usage, p);
+	p = u_utoa_lt3_p((unsigned int)usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;

@@ -156,7 +156,7 @@ b_write_gpu_monitor(char *dst, unsigned int dst_len, const char *unused, unsigne
 		b_gpu_init();
 	unsigned int avg = b_gpu_monitor_devices(mon_type);
 	char *p = dst;
-	p = u_utoa_p(avg, p);
+	p = u_utoa_lt3_p(avg, p);
 	switch (mon_type) {
 	case C_GPU_MON_TEMP:
 		p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
@@ -217,13 +217,13 @@ b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	b_gpu_values_ty val = { 0 };
 	b_gpu_monitor_devices_all(&val);
 	char *p = dst;
-	p = u_utoa_p(val.temp, p);
+	p = u_utoa_lt3_p(val.temp, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
-	p = u_utoa_p(val.usage, p);
+	p = u_utoa_lt3_p(val.usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p++ = ' ';
-	p = u_utoa_p(val.vram, p);
+	p = u_utoa_lt3_p(val.vram, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	*p = '\0';
 	return p;
