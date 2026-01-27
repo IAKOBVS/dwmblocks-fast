@@ -49,18 +49,44 @@ b_read_cpu_temp(void)
 		DIE(return -1);
 	if (read_sz < 0)
 		DIE(return -1);
+	/* Don't read the milidegrees. */
 	read_sz -= (int)S_LEN("1000");
 	return b_atou_lt3(temp, read_sz);
 }
 
 char *
+b_write_cpu_temp_internal(char *dst, unsigned int dst_len)
+{
+	int fd = open(CPU_TEMP_FILE, O_RDONLY);
+	if (fd == -1)
+		DIE(return dst);
+	/* Milidegrees = degrees * 1000 */
+	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("1000"));
+	if (close(fd) == -1)
+		DIE(return dst);
+	if (read_sz < 0)
+		DIE(return dst);
+	/* Don't read the milidegrees. */
+	read_sz -= (int)S_LEN("1000");
+	*(dst + read_sz) = '\0';
+	return dst + read_sz;
+	(void)dst_len;
+}
+
+char *
 b_write_cpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
+	char *p = dst;
+#if 1
+	p = b_write_cpu_temp_internal(p, dst_len);
+	if (p == dst)
+		DIE(return dst);
+#else
 	const int temp = b_read_cpu_temp();
 	if (temp < 0)
 		DIE(return dst);
-	char *p = dst;
 	p = u_utoa_p((unsigned int)temp, dst);
+#endif
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	return p;
 	(void)dst_len;
@@ -109,10 +135,10 @@ b_read_cpu_usage()
 char *
 b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
+	char *p = dst;
 	const int usage = b_read_cpu_usage();
 	if (usage < 0)
 		DIE(return dst);
-	char *p = dst;
 	p = u_utoa_p((unsigned int)usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
@@ -124,14 +150,20 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 char *
 b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	const int temp = b_read_cpu_temp();
-	if (temp < 0)
-		DIE(return dst);
+	char *p = dst;
 	const int usage = b_read_cpu_usage();
 	if (usage < 0)
 		DIE(return dst);
-	char *p = dst;
+#if 1
+	p = b_write_cpu_temp_internal(p, dst_len);
+	if (p == dst)
+		DIE(return dst);
+#else
+	const int temp = b_read_cpu_temp();
+	if (temp < 0)
+		DIE(return dst);
 	p = u_utoa_p((unsigned int)temp, p);
+#endif
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
 	p = u_utoa_p((unsigned int)usage, p);

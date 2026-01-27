@@ -17,6 +17,7 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.POSIX:
 
 ################################################################################
 # User configuration
@@ -86,26 +87,23 @@ REQ =\
 
 all: options $(PROG) $(SCRIPTS)
 
-.c.o:
-	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
-
-src/test.o: $(PROG)
-	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) src/main.c
-
-$(PROG): $(CFGS) src/main.o $(OBJS) $(REQ)
+check: $(PROG) src/test.o
 	mkdir -p $(BIN)
-	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) src/main.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	@./tests/test-run
+	@rm src/test.o
 
-$(OBJS) src/main.o src/test.o: $(REQ)
+clean:
+	rm -f $(PROG) $(SCRIPTS) $(OBJS) src/*.o
 
-$(SCRIPTS):
-	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
+install: $(PROG) $(SCRIPTS)
+	strip $(PROG)
+	chmod 755 $^
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
-include/config.h:
-	cp include/config.def.h $@
-
-include/blocks.h:
-	cp include/blocks.def.h $@
+uninstall: 
+	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
 options:
 	@echo dwmblocks-fast build options:
@@ -178,22 +176,25 @@ disable-audio: $(config) $(disable-alsa)
 
 ################################################################################
 
-check: $(PROG) src/test.o
+.c.o:
+	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
+
+src/test.o: $(PROG)
+	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) src/main.c
+
+$(PROG): $(CFGS) src/main.o $(OBJS) $(REQ)
 	mkdir -p $(BIN)
-	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
-	@./tests/test-run
-	@rm src/test.o
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) src/main.o $(OBJS) $(REQ) $(LDFLAGS)
 
-clean:
-	rm -f $(PROG) $(SCRIPTS) $(OBJS) src/*.o
+$(OBJS) src/main.o src/test.o: $(REQ)
 
-install: $(PROG) $(SCRIPTS)
-	strip $(PROG)
-	chmod 755 $^
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
+$(SCRIPTS):
+	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
-uninstall: 
-	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
+include/config.h:
+	cp include/config.def.h $@
+
+include/blocks.h:
+	cp include/blocks.def.h $@
 
 .PHONY: all options clean install uninstall config check
