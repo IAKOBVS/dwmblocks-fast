@@ -6,7 +6,7 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 - Accepts [C functions](#adding-a-c-function) or [shell scripts](#adding-a-shell-script).
 - Only updates the statusbar when no change has occured.
 - Improved input validation and error handling for signals.
-- Nvidia GPU temperature, usage, and VRAM usage monitoring.
+- Monitors Nvidia GPU temperature, usage, and VRAM usage.
 
 # Installation
 ## Arch Linux
