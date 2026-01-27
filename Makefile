@@ -50,7 +50,7 @@ LDFLAGS_CUDA += -L$(LIB_NVML) -lnvidia-ml
 ################################################################################
 
 CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
-LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
+LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
