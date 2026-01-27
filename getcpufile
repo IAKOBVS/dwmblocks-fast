@@ -1,0 +1,10 @@
+#!/bin/sh
+pkg_temp='x86_pkg_temp'
+for file in $(echo /sys/class/thermal/thermal_zone*/type); do
+	temp_file=$(echo $file | sed 's/type/temp/')
+	grep -qF -e "$pkg_temp" "$file" && echo "#define CPU_TEMP_FILE \"$temp_file\"" && exit
+done
+echo "getcpufile: can not find $pkg_temp in $(echo /sys/class/thermal/thermal_zone*/type)!" >&2
+echo "Probably running on a non-x86_64 architecture." >&2
+echo "Need to manually set the path to cpu temperature in $cpu_file." >&2
+exit 1

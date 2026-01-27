@@ -46,7 +46,7 @@ u_isdigit(int c)
 	return ((unsigned)c - '0' < 10);
 }
 
-static ATTR_INLINE unsigned int
+static ATTR_MAYBE_UNUSED unsigned int
 u_strtou10(char *p, char **endp)
 {
 	unsigned int n = 0;

@@ -49,7 +49,7 @@ LDFLAGS_NVML += -L$(LIB_NVML) -lnvidia-ml
 # Variables
 ################################################################################
 
-CFLAGS += $(CFLAGS_OPTIMIZE)
+CFLAGS += $(CFLAGS_OPTIMIZE) -fanalyzer
 LDFLAGS += $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
@@ -60,7 +60,13 @@ HFILES = src/*.h
 SCRIPTSBASE = dwmblocks-fast-*
 PROG = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
-CFGS = include/config.h include/blocks.h
+INCLUDE = include
+CONFIG = $(INCLUDE)/config.h
+BLOCKS = $(INCLUDE)/blocks.h
+CONFIG_DEF = $(INCLUDE)/config.def.h
+BLOCKS_DEF = $(INCLUDE)/blocks.def.h
+CPU_TEMP_GENERATED = $(INCLUDE)/cpu-temp-file.generated.h
+CFGS = $(CONFIG) $(BLOCKS) $(CPU_TEMP_GENERATED)
 
 OBJS =\
 	./src/blocks/cat.o\
@@ -78,10 +84,10 @@ REQ =\
 	src/blocks/temp.o\
 	src/blocks/procfs.o\
 	src/blocks/shell.o\
-	include/macros.h\
-	include/utils.h\
-	include/config.h\
-	include/blocks.h\
+	$(INCLUDE)/macros.h\
+	$(INCLUDE)/utils.h\
+	$(INCLUDE)/config.h\
+	$(INCLUDE)/blocks.h\
 
 ################################################################################
 # Targets
@@ -91,7 +97,7 @@ all: options $(PROG) $(SCRIPTS)
 
 check: $(PROG) src/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) -fsanitize=address -fanalyzer -fsanitize=address $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) -fanalyzer -fsanitize=address $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm src/test.o
 
@@ -133,10 +139,10 @@ config: $(CFGS)
 
 # Comment out parts of the config.h and the Makefile
 disable-nvml: $(config)
-	@mv include/config.h include/config.h.bak
+	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
 	# Comment out USE_NVML line
-	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
-	@rm include/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
 	# Comment out LDFLAGS_NVML line
 	@sed 's/^\(LDFLAGS_NVML.*\)/# \1/' Makefile.bak > Makefile
@@ -145,33 +151,33 @@ disable-nvml: $(config)
 disable-cuda: disable-nvml
 
 disable-nvidia: $(config) $(disable-nvml)
-	@mv include/config.h include/config.h.bak
-	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
-	@rm include/config.h.bak
+	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_NVIDIA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-x11: $(config)
-	@mv include/config.h include/config.h.bak
-	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
-	@rm include/config.h.bak
+	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_X11.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-alsa: $(config)
-	@mv include/config.h include/config.h.bak
-	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
-	@rm include/config.h.bak
+	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-audio: $(config) $(disable-alsa)
-	@mv include/config.h include/config.h.bak
-	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' include/config.h.bak > include/config.h
-	@rm include/config.h.bak
+	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_AUDIO.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
@@ -193,10 +199,13 @@ $(OBJS) src/main.o src/test.o: $(REQ)
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
-include/config.h:
-	cp include/config.def.h $@
+$(CONFIG):
+	cp $(CONFIG_DEF) $@
 
-include/blocks.h:
-	cp include/blocks.def.h $@
+$(BLOCKS):
+	cp $(BLOCKS_DEF) $@
 
+$(CPU_TEMP_GENERATED):
+	./getcpufile > $@
+	
 .PHONY: all options clean install uninstall config check

@@ -45,8 +45,6 @@ b_read_cpu_usage()
 	/* clang-format off */
 	p += S_LEN("CPU  ");
 	l_user = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	if (user == 0)
-		return 0;
 	l_nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
 	l_system = (int)u_strtou10(p, &p); p += S_LEN(" ");
 	l_idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
@@ -57,8 +55,6 @@ b_read_cpu_usage()
 	const int tot = nice + user + system + idle + iowait + irq + softirq;
 	const int l_tot = l_nice + l_user + l_system + l_idle + l_iowait + l_irq + l_softirq;
 	const int sum = tot - l_tot;
-	if (sum == 0)
-		return 0;
 	const int l_tot2 = l_user + l_nice + l_system + l_irq + l_softirq;
 	const int tot2 = user + nice + system + irq + softirq;
 	return (int)((long double)100 * ((long double)(tot2 - l_tot2) / (long double)sum));

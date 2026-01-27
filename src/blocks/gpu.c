@@ -90,7 +90,7 @@ b_gpu_init()
 	b_gpu.ret = nvmlDeviceGetCount(&b_gpu.deviceCount);
 	if (b_gpu.ret != NVML_SUCCESS)
 		DIE_DO(b_gpu_err());
-	b_gpu.device = (nvmlDevice_t *)malloc(b_gpu.deviceCount * sizeof(nvmlDevice_t));
+	b_gpu.device = (nvmlDevice_t *)calloc(b_gpu.deviceCount, sizeof(nvmlDevice_t));
 	if (b_gpu.device == NULL)
 		DIE_DO(b_gpu_err());
 	b_gpu.temp = (unsigned int *)malloc(b_gpu.deviceCount * sizeof(unsigned int));
@@ -130,7 +130,7 @@ b_gpu_monitor(b_gpu_monitor_ty mon_type, unsigned int i)
 		b_gpu.ret = nvmlDeviceGetMemoryInfo(b_gpu.device[i], b_gpu.memory + i);
 		if (b_gpu.ret != NVML_SUCCESS)
 			DIE_DO(b_gpu_err());
-		return 100 - (((long double)b_gpu.memory[i].free / (long double)b_gpu.memory[i].total) * (long double)100);
+		return 100 - (unsigned int)(((long double)b_gpu.memory[i].free / (long double)b_gpu.memory[i].total) * (long double)100);
 		break;
 	default:
 		DIE();
@@ -184,6 +184,8 @@ static ATTR_INLINE
 void
 b_gpu_monitor_devices_all(b_gpu_values_ty *val)
 {
+	if (b_gpu.init == 0)
+		b_gpu_init();
 	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i) {
 		b_gpu.ret = b_gpu_nvmlDeviceGetTemperature(b_gpu.device[i], NVML_TEMPERATURE_GPU, b_gpu.temp + i);
 		if (b_gpu.ret != NVML_SUCCESS)
@@ -206,14 +208,12 @@ b_gpu_monitor_devices_all(b_gpu_values_ty *val)
 		val->memory_free /= b_gpu.deviceCount;
 		val->memory_total /= b_gpu.deviceCount;
 	}
-	val->vram = 100 - (((long double)val->memory_free / (long double)val->memory_total) * 100);
+	val->vram = 100 - (unsigned int)(((long double)val->memory_free / (long double)val->memory_total) * (long double)100);
 }
 
 char *
 b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	if (b_gpu.init == 0)
-		b_gpu_init();
 	b_gpu_values_ty val = { 0 };
 	b_gpu_monitor_devices_all(&val);
 	char *p = dst;
@@ -248,43 +248,6 @@ char *
 b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	return b_write_gpu_monitor(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
-}
-
-#elif defined USE_NVIDIA && defined HAVE_POPEN && defined HAVE_PCLOSE
-
-#	include "../blocks/shell.h"
-
-char *
-b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_TEMP, interval);
-	(void)unused;
-	(void)interval;
-}
-
-char *
-b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_USAGE, interval);
-	(void)unused;
-	(void)interval;
-}
-
-char *
-b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_VRAM, interval);
-	(void)unused;
-	(void)interval;
-}
-
-char *
-b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	return b_write_shell(dst, dst_len, CMD_GPU_NVIDIA_ALL, interval);
-	(void)dst_len;
-	(void)unused;
-	(void)interval;
 }
 
 #endif

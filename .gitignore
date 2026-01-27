@@ -3,7 +3,8 @@ src/blocks.h
 src/config.h
 src/components.h
 bin/*
-tests/dwmblocks-fast-test
+tests/*-bin
+*.generated.h
 
 # Prerequisites
 *.d
