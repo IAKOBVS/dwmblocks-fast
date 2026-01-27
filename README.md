@@ -43,7 +43,7 @@ $ cd src
 ```
 Optionally, manually [configure](#manual) config.h, blocks.h, and the Makefile.
 ```
-$ cd  ..
+$ cd ..
 $ sudo make install
 ```
 ## Dependencies
