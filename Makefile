@@ -49,8 +49,8 @@ LDFLAGS_NVML += -L$(LIB_NVML) -lnvidia-ml
 # Variables
 ################################################################################
 
-CFLAGS += $(CFLAGS_OPTIMIZE) -fanalyzer
-LDFLAGS += $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
+CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
+LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_NVML) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
 CFLAGS += -pedantic -Wall -Wextra -Wno-deprecated-declarations -O2
@@ -111,7 +111,7 @@ install: $(PROG) $(SCRIPTS)
 	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
-	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks-fast $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
+	rm -f $(DESTDIR)$(PREFIX)/$(PROG) $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
 options:
 	@echo dwmblocks-fast build options:
