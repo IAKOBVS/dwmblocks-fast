@@ -21,25 +21,29 @@
 
 #	include <stdio.h>
 #	include <assert.h>
+#	include <errno.h>
 
-#	define DIE(x)                          \
-		do {                            \
-			perror("errno error:"); \
-			assert(0);              \
-			x;                      \
+#	define DIE(x)                                  \
+		do {                                    \
+			if (errno)                      \
+				perror("errno error:"); \
+			assert(0);                      \
+			x;                              \
 		} while (0)
 
-#	define DIE_DO(x)                       \
-		do {                            \
-			perror("errno error:"); \
-			assert(0);              \
-			x;                      \
+#	define DIE_DO(x)                               \
+		do {                                    \
+			if (errno)                      \
+				perror("errno error:"); \
+			assert(0);                      \
+			x;                              \
 		} while (0)
 
-#	define DIE_RET(x)                      \
-		do {                            \
-			perror("errno error:"); \
-			return x;               \
+#	define DIE_RET(x)                              \
+		do {                                    \
+			if (errno)                      \
+				perror("errno error:"); \
+			return x;                       \
 		} while (0)
 
 #	ifndef ATTR_INLINE
@@ -225,9 +229,9 @@
 #		define io_fflush(stream) fflush(stream)
 #	endif
 
-#ifdef __linux__
-#	define HAVE_PROCFS 1
-#	define HAVE_SYSINFO 1
-#endif
+#	ifdef __linux__
+#		define HAVE_PROCFS  1
+#		define HAVE_SYSINFO 1
+#	endif
 
 #endif /* MACROS_H */
