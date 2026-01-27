@@ -85,10 +85,10 @@ void
 b_gpu_init()
 {
 	b_gpu.ret = nvmlInit();
-	if (b_gpu.ret != NVML_SUCCESS)
+	if (unlikely(unlikely(b_gpu.ret != NVML_SUCCESS)))
 		DIE_DO(nvmlErrorString(b_gpu.ret));
 	b_gpu.ret = nvmlDeviceGetCount(&b_gpu.deviceCount);
-	if (b_gpu.ret != NVML_SUCCESS)
+	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
 	b_gpu.device = (nvmlDevice_t *)calloc(b_gpu.deviceCount, sizeof(nvmlDevice_t));
 	if (b_gpu.device == NULL)
@@ -104,7 +104,7 @@ b_gpu_init()
 		DIE_DO(b_gpu_err());
 	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i) {
 		b_gpu.ret = nvmlDeviceGetHandleByIndex(i, b_gpu.device + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 	}
 	b_gpu.init = 1;
@@ -116,19 +116,19 @@ b_gpu_monitor(b_gpu_monitor_ty mon_type, unsigned int i)
 	switch (mon_type) {
 	case C_GPU_MON_TEMP:
 		b_gpu.ret = b_gpu_nvmlDeviceGetTemperature(b_gpu.device[i], NVML_TEMPERATURE_GPU, b_gpu.temp + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 		return b_gpu.temp[i];
 		break;
 	case C_GPU_MON_USAGE:
 		b_gpu.ret = nvmlDeviceGetUtilizationRates(b_gpu.device[i], b_gpu.utilization + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 		return b_gpu.utilization[i].gpu;
 		break;
 	case C_GPU_MON_VRAM:
 		b_gpu.ret = nvmlDeviceGetMemoryInfo(b_gpu.device[i], b_gpu.memory + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 		return 100 - (unsigned int)(((long double)b_gpu.memory[i].free / (long double)b_gpu.memory[i].total) * (long double)100);
 		break;
@@ -188,15 +188,15 @@ b_gpu_monitor_devices_all(b_gpu_values_ty *val)
 		b_gpu_init();
 	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i) {
 		b_gpu.ret = b_gpu_nvmlDeviceGetTemperature(b_gpu.device[i], NVML_TEMPERATURE_GPU, b_gpu.temp + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 		val->temp += b_gpu.temp[i];
 		b_gpu.ret = nvmlDeviceGetUtilizationRates(b_gpu.device[i], b_gpu.utilization + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 		val->usage += b_gpu.utilization[i].gpu;
 		b_gpu.ret = nvmlDeviceGetMemoryInfo(b_gpu.device[i], b_gpu.memory + i);
-		if (b_gpu.ret != NVML_SUCCESS)
+		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 		val->memory_free += b_gpu.memory[i].free;
 		val->memory_total += b_gpu.memory[i].total;

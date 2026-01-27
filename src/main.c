@@ -160,23 +160,23 @@ g_setup_signals()
 #ifndef __OpenBSD__
 	/* Initialize all real time signals with dummy handler. */
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
-		if (signal(i, g_handler_sig_dummy) == SIG_ERR)
+		if (unlikely(signal(i, g_handler_sig_dummy) == SIG_ERR))
 			DIE(return G_RET_ERR);
 #endif
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0) {
 #ifndef __OpenBSD__
-			if (g_blocks[i].signal > (unsigned int)SIGRTMAX) {
+			if (unlikely(g_blocks[i].signal > (unsigned int)SIGRTMAX)) {
 				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
 				DIE();
 			}
 #endif
-			if (signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR)
+			if (unlikely(signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR))
 				DIE(return G_RET_ERR);
 		}
-	if (signal(SIGTERM, g_handler_term) == SIG_ERR)
+	if (unlikely(signal(SIGTERM, g_handler_term) == SIG_ERR))
 		DIE(return G_RET_ERR);
-	if (signal(SIGINT, g_handler_term) == SIG_ERR)
+	if (unlikely(signal(SIGINT, g_handler_term) == SIG_ERR))
 		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
@@ -213,7 +213,7 @@ g_setup_x11()
 {
 	pthread_mutex_init(&g_mutex, NULL);
 	g_dpy = XOpenDisplay(NULL);
-	if (!g_dpy) {
+	if (unlikely(g_dpy == NULL)) {
 		fprintf(stderr, "dwmblocks-fast: Failed to open display.\n");
 		DIE(return G_RET_ERR);
 	}
@@ -239,7 +239,7 @@ g_status_write(char *status)
 	unsigned int statuslen = p - status;
 	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
 	g_statuschanged = 0;
-	if (ret != statuslen)
+	if (unlikely(ret != statuslen))
 		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
@@ -247,10 +247,10 @@ g_status_write(char *status)
 static g_ret_ty
 g_status_init()
 {
-	if (g_setup_signals() == G_RET_ERR)
+	if (unlikely(g_setup_signals() == G_RET_ERR))
 		DIE(return G_RET_ERR);
 #ifdef USE_X11
-	if (g_setup_x11() == G_RET_ERR)
+	if (unlikely(g_setup_x11() == G_RET_ERR))
 		DIE(return G_RET_ERR);
 #endif
 	return G_RET_SUCC;
@@ -273,7 +273,7 @@ g_status_mainloop()
 	for (;;) {
 		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
-			if (g_status_write(g_statusstr) == G_RET_ERR)
+			if (unlikely(g_status_write(g_statusstr) == G_RET_ERR))
 				DIE(return G_RET_ERR);
 		if (!g_statuscontinue)
 			break;
@@ -299,7 +299,7 @@ g_handler_sig_dummy(int signum)
 	*p++ = '\n';
 	*p = '\0';
 	/* fprintf is not reentrant. */
-	if (write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf))
+	if (unlikely(write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf)))
 		DIE();
 }
 #endif
@@ -328,9 +328,9 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	if (g_status_init() == G_RET_ERR)
+	if (unlikely(g_status_init() == G_RET_ERR))
 		DIE(return EXIT_FAILURE);
-	if (g_status_mainloop() == G_RET_ERR)
+	if (unlikely(g_status_mainloop() == G_RET_ERR))
 		DIE(return EXIT_FAILURE);
 #if DO_CLEANUP
 	/* No need to free, since we're exiting. */

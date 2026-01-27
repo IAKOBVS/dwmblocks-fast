@@ -29,19 +29,19 @@ char *
 b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
 	FILE *fp = popen(cmd, "r");
-	if (fp == NULL)
+	if (unlikely(fp == NULL))
 		DIE(return dst);
 	int fd;
 	ssize_t read_sz;
 	fd = io_fileno(fp);
-	if (fd == -1) {
+	if (unlikely(fd == -1)) {
 		pclose(fp);
 		DIE(return dst);
 	}
 	read_sz = read(fd, dst, dst_len);
-	if (pclose(fp) == -1)
+	if (unlikely(pclose(fp) == -1))
 		DIE(return dst);
-	if (read_sz == -1)
+	if (unlikely(read_sz == -1))
 		DIE(return dst);
 	/* Chop newline. */
 	char *end = (char *)memchr(dst, '\n', (size_t)read_sz);

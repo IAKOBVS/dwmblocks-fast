@@ -46,16 +46,16 @@ b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 {
 	int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
-		if (errno == ENOMEM)
+		if (unlikely(errno == ENOMEM))
 			DIE(return 0);
 		return 0;
 	}
 	char buf[PAGESZ];
 	/* Read /proc/[pid]/status */
 	ssize_t read_sz = read(fd, buf, PAGESZ);
-	if (close(fd) == -1)
+	if (unlikely(close(fd) == -1))
 		DIE(return 0);
-	if (read_sz < 0)
+	if (unlikely(read_sz == -1))
 		DIE(return 0);
 	buf[read_sz] = '\0';
 	return b_proc_name_match(buf, read_sz, proc_name, proc_name_len);
@@ -68,7 +68,7 @@ b_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 	char *fnamep = fname + S_LEN("/proc/");
 	/* Open /proc/ */
 	DIR *dp = opendir("/proc/");
-	if (dp == NULL)
+	if (unlikely(dp == NULL))
 		DIE(return 0);
 	struct dirent *ep;
 	while ((ep = readdir(dp))) {
@@ -81,7 +81,7 @@ b_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		if (b_read_proc_exist_at(proc_name, proc_name_len, fname))
 			return (unsigned int)atoi(ep->d_name);
 	}
-	if (closedir(dp) == -1)
+	if (unlikely(closedir(dp) == -1))
 		DIE(return 0);
 	return 0;
 }

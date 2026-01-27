@@ -28,7 +28,7 @@ int
 b_read_ram_usage_percent(void)
 {
 	struct sysinfo info;
-	if (sysinfo(&info) != 0)
+	if (unlikely(sysinfo(&info) != 0))
 		DIE(return -1);
 	const int percent = 100 - (int)(((long double)info.freeram / (long double)info.totalram) * (long double)100);
 	return percent;
@@ -38,7 +38,7 @@ char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	int usage = b_read_ram_usage_percent();
-	if (usage < 0)
+	if (unlikely(usage == -1))
 		DIE(return dst);
 	char *p = dst;
 	p = u_utoa_p((unsigned int)usage, p);

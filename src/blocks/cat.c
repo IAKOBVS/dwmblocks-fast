@@ -26,13 +26,13 @@ char *
 b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval)
 {
 	int fd = open(filename, O_RDONLY);
-	if (fd == -1)
+	if (unlikely(fd == -1))
 		DIE(return dst);
 	/* Milidegrees = degrees * 1000 */
 	int read_sz = read(fd, dst, dst_len);
-	if (close(fd) == -1)
+	if (unlikely(close(fd) == -1))
 		DIE(return dst);
-	if (read_sz < 0)
+	if (unlikely(read_sz == -1))
 		DIE(return dst);
 	char *nl = memchr(dst, '\n', dst_len);
 	if (nl)

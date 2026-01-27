@@ -31,12 +31,12 @@ b_read_cpu_usage()
 {
 	char buf[4096];
 	int fd = open("/proc/stat", O_RDONLY);
-	if (fd == -1)
+	if (unlikely(fd == -1))
 		DIE(return -1);
 	ssize_t read_sz = read(fd, buf, sizeof(buf));
-	if (close(fd) == -1)
+	if (unlikely(close(fd) == -1))
 		DIE(return -1);
-	if (read_sz < 0)
+	if (unlikely(read_sz == -1))
 		DIE(return -1);
 	buf[read_sz] = '\0';
 	static int l_user, l_nice, l_system, l_idle, l_iowait, l_irq, l_softirq;
@@ -65,7 +65,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
-	if (usage < 0)
+	if (unlikely(usage == -1))
 		DIE(return dst);
 	p = u_utoa_p((unsigned int)usage, p);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
@@ -87,10 +87,10 @@ b_write_cpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned in
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
-	if (usage < 0)
+	if (unlikely(usage == -1))
 		DIE(return dst);
 	p = b_write_temp_internal(p, dst_len, CPU_TEMP_FILE);
-	if (p == dst)
+	if (unlikely(p == dst))
 		DIE(return dst);
 	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	*p++ = ' ';
