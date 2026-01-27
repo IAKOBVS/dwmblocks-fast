@@ -22,21 +22,24 @@
 
 #include "../../include/macros.h"
 
+#if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
+
 /* Execute shell script. */
 char *
 b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
-#if HAVE_POPEN && HAVE_PCLOSE
 	FILE *fp = popen(cmd, "r");
 	if (fp == NULL)
 		DIE(return dst);
 	int fd;
 	ssize_t read_sz;
 	fd = io_fileno(fp);
-	if (fd == -1)
-		DIE(pclose(fp); return dst);
+	if (fd == -1) {
+		pclose(fp);
+		DIE(return dst);
+	}
 	read_sz = read(fd, dst, dst_len);
-	if (pclose(fp) < 0)
+	if (pclose(fp) == -1)
 		DIE(return dst);
 	if (read_sz == -1)
 		DIE(return dst);
@@ -45,11 +48,8 @@ b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	/* Nul-terminate newline or end of string. */
 	dst = end ? end : dst + read_sz;
 	*dst = '\0';
-#else
-	assert("b_write_cmd: calling b_write_cmd when popen or pclose is not available!");
-	(void)dst_len;
-	(void)cmd;
-#endif
 	(void)interval;
 	return dst;
 }
+
+#endif

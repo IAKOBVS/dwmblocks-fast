@@ -97,7 +97,7 @@ all: options $(PROG) $(SCRIPTS)
 
 check: $(PROG) src/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/dwmblocks-fast-test $(CFLAGS) -fanalyzer -fsanitize=address $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/test-run-bin $(CFLAGS) -fanalyzer -fsanitize=address $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm src/test.o
 

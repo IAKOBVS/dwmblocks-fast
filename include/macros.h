@@ -85,6 +85,10 @@
 #		define HAVE_PCLOSE 1
 #	endif
 
+#	ifdef _POSIX_C_SOURCE
+#		define HAVE_FILENO 1
+#	endif
+
 #	if XGLIBC_PREREQ(2, 10) && (_POSIX_C_SOURCE - 0) >= 200809L \
 	|| defined _GNU_SOURCE
 #		define HAVE_STPCPY 1

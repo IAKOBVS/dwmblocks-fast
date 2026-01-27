@@ -23,7 +23,7 @@
 
 /* ../../src/blocks/shell.c */
 
-#if defined HAVE_POPEN && defined HAVE_PCLOSE
+#if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
 
 char *
 b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);

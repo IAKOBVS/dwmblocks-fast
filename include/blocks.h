@@ -110,7 +110,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	endif
 
 	/* Shell script or command */
-#	if defined HAVE_POPEN && defined HAVE_PCLOSE
+#	if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
 	/* { 0,    SIG_AUDIO,  "my command:", b_write_shell,       "some_command | other_command" }, */
 #	endif
 
