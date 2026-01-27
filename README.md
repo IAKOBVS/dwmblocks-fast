@@ -5,7 +5,7 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 # Features
 - Accepts [C functions](#adding-a-c-function) or [shell scripts](#adding-a-shell-script).
 - Only updates the statusbar when no change has occured.
-- Improved input validation and error handling for signals
+- Improved input validation and error handling for signals.
 
 # Installation
 ## Arch Linux
