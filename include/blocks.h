@@ -75,8 +75,8 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	{ 3600, 0,          "📅", b_write_date,              NULL },
 
 	/* Ram */
-#	ifdef __linux__
-	/* { 30,   0,          "🧠", b_write_ram_usage_percent, NULL }, */
+#	ifdef HAVE_SYSINFO
+	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
 #	endif
 
 	/* Read a file */

@@ -19,7 +19,7 @@
 #ifndef C_AUDIO_H
 #	define C_AUDIO_H 1
 
-#include "../config.h"
+#	include "../config.h"
 
 #	if defined USE_ALSA
 

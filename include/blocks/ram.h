@@ -19,9 +19,15 @@
 #ifndef C_RAM_H
 #	define C_RAM_H 1
 
+#	include "../macros.h"
+
 /* ../../src/blocks/ram.c */
+
+#	ifdef HAVE_SYSINFO
 
 char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+
+#	endif
 
 #endif /* C_RAM_H */

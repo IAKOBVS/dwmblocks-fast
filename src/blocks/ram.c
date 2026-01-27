@@ -16,30 +16,22 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <sys/sysinfo.h>
-
 #include "../../include/config.h"
 #include "../../include/macros.h"
 #include "../../include/utils.h"
 
-#ifndef __linux__
-#	if defined HAVE_POPEN && defined HAVE_PCLOSE
-#		include "../../include/blocks/shell.h"
-#	endif
-#endif
+#ifdef HAVE_SYSINFO
+
+#include <sys/sysinfo.h>
 
 int
 b_read_ram_usage_percent(void)
 {
-#ifdef __linux__
 	struct sysinfo info;
 	if (sysinfo(&info) != 0)
 		DIE(return -1);
 	const int percent = 100 - (int)(((long double)info.freeram / (long double)info.totalram) * (long double)100);
 	return percent;
-#else
-	return b_write_shell(dst, dst_len, CMD_RAM_USAGE);
-#endif
 }
 
 char *
@@ -56,3 +48,5 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	(void)unused;
 	(void)interval;
 }
+
+#endif

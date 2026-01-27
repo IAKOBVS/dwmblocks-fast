@@ -69,21 +69,21 @@ CPU_TEMP_GENERATED = $(INCLUDE)/cpu-temp-file.generated.h
 CFGS = $(CONFIG) $(BLOCKS) $(CPU_TEMP_GENERATED)
 
 OBJS =\
-	./src/blocks/cat.o\
-	./src/blocks/time.o\
-	./src/blocks/ram.o\
-	./src/blocks/obs.o\
-	./src/blocks/webcam.o\
-	./src/blocks/audio-alsa.o\
-	./src/blocks/audio.o\
-	./src/blocks/gpu.o\
-	./src/blocks/cpu.o
+	$(SRC)/blocks/cat.o\
+	$(SRC)/blocks/time.o\
+	$(SRC)/blocks/ram.o\
+	$(SRC)/blocks/obs.o\
+	$(SRC)/blocks/webcam.o\
+	$(SRC)/blocks/audio-alsa.o\
+	$(SRC)/blocks/audio.o\
+	$(SRC)/blocks/gpu.o\
+	$(SRC)/blocks/cpu.o
 
 # Always recompile $(OBJS) if $(REQ) changed
 REQ =\
-	src/blocks/temp.o\
-	src/blocks/procfs.o\
-	src/blocks/shell.o\
+	$(SRC)/blocks/temp.o\
+	$(SRC)/blocks/procfs.o\
+	$(SRC)/blocks/shell.o\
 	$(INCLUDE)/macros.h\
 	$(INCLUDE)/utils.h\
 	$(INCLUDE)/config.h\
@@ -95,14 +95,14 @@ REQ =\
 
 all: options $(PROG) $(SCRIPTS)
 
-check: $(PROG) src/test.o
+check: $(PROG) $(SRC)/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/test-run-bin $(CFLAGS) -fanalyzer -fsanitize=address $(CPPFLAGS) src/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/test-run-bin $(CFLAGS) -fanalyzer -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
-	@rm src/test.o
+	@rm $(SRC)/test.o
 
 clean:
-	rm -f $(PROG) $(SCRIPTS) $(OBJS) src/*.o
+	rm -f $(PROG) $(SCRIPTS) $(OBJS) $(SRC)/*.o
 
 install: $(PROG) $(SCRIPTS)
 	strip $(PROG)
@@ -167,14 +167,14 @@ disable-alsa: $(config)
 .c.o:
 	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
 
-src/test.o: $(PROG)
-	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) src/main.c
+$(SRC)/test.o: $(PROG)
+	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) $(SRC)/main.c
 
-$(PROG): $(CFGS) src/main.o $(OBJS) $(REQ)
+$(PROG): $(CFGS) $(SRC)/main.o $(OBJS) $(REQ)
 	mkdir -p $(BIN)
-	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) src/main.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/main.o $(OBJS) $(REQ) $(LDFLAGS)
 
-$(OBJS) src/main.o src/test.o: $(REQ)
+$(OBJS) $(SRC)/main.o $(SRC)/test.o: $(REQ)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
