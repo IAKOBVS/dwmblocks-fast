@@ -3,7 +3,7 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 
 ![Alt text](./dwmblocks-fast.png?raw=true "dwmblocks-fast")
 # Features
-- Accepts [C functions](#adding-a-c-function) or [shell scripts](#adding-a-shell-script).
+- Blocks are implemented as [C functions](#adding-a-c-function) or [shell scripts](#adding-a-shell-script).
 - Only updates the statusbar when no change has occured.
 - Improved input validation and error handling for signals.
 - Monitors Nvidia GPU temperature, usage, and VRAM usage.
