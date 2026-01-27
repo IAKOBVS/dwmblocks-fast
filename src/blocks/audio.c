@@ -18,22 +18,10 @@
 
 #include "../../include/config.h"
 
-#ifdef USE_AUDIO
-
-#	include <assert.h>
-#	include "../../include/macros.h"
+#ifdef USE_ALSA
+#	include "../../include/blocks/audio-alsa.h"
 #	include "../../include/utils.h"
-
-#	ifdef USE_ALSA
-#		include "../../include/blocks/audio-alsa.h"
-#else
-#		error "USE_AUDIO requires USE_ALSA"
-#	endif
-
-#	define ICON_SPEAKER_UNMUTED "🔉"
-#	define ICON_SPEAKER_MUTED   "🔇"
-#	define ICON_MIC_UNMUTED     "🎤"
-#	define ICON_MIC_MUTED       "🚫"
+#	include "../../include/config.h"
 
 char *
 b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)

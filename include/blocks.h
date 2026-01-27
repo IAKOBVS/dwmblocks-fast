@@ -67,7 +67,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	endif
 
 	/* Audio volume (mic) */
-#	if defined USE_AUDIO && defined USE_ALSA
+#	if defined USE_ALSA
 	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
 #	endif
 
@@ -96,7 +96,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	endif
 
 	/* GPU temp, usage */
-#	if defined USE_NVIDIA && defined USE_NVML
+#	if defined USE_CUDA
 	/* format: [temp] [usage] [vram] */
 	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
 	/* { 2,    0,          "🚀", b_write_gpu_temp,          NULL }, */
@@ -105,7 +105,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	endif
 
 	/* Audio volume (speaker) */
-#	if defined USE_AUDIO && defined USE_ALSA
+#	if defined USE_ALSA
 	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
 #	endif
 

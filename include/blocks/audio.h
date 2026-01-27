@@ -21,7 +21,7 @@
 
 #include "../config.h"
 
-#	if defined USE_AUDIO && defined USE_ALSA
+#	if defined USE_ALSA
 
 /* ../../src/blocks/audio.c */
 
@@ -30,6 +30,6 @@ b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 char *
 b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#	endif /* USE_AUDIO && USE_ALSA */
+#	endif /* USE_ALSA */
 
 #endif /* C_AUDIO_H */

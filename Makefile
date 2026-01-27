@@ -37,7 +37,7 @@ LDFLAGS_ALSA += -lasound
 
 # NVML (comment to disable)
 LIB_NVML = /opt/cuda/lib64
-LDFLAGS_NVML += -L$(LIB_NVML) -lnvidia-ml
+LDFLAGS_CUDA += -L$(LIB_NVML) -lnvidia-ml
 
 # # FreeBSD (uncomment)
 # LDFLAGS_FREEBSD += -L/usr/local/lib -I/usr/local/include
@@ -124,38 +124,26 @@ config: $(CFGS)
 	@echo 'Automated configuration:'
 	@echo 'Usage: make [OPTION]...'
 	@echo ''
-	@echo 'disable-nvidia'
-	@echo 'disable-nvml'
-	@echo 'disable-cuda (equal to disable-nvml)'
+	@echo 'disable-cuda'
 	@echo 'disable-x11'
 	@echo 'disable-alsa'
 	@echo ''
-	@echo 'For example, to disable NVML, run:'
-	@echo 'make disable-nvml'
+	@echo 'For example, to disable CUDA, run:'
+	@echo 'make disable-cuda'
 
 ################################################################################
 # Configuration scripts
 ################################################################################
 
 # Comment out parts of the config.h and the Makefile
-disable-nvml: $(config)
+disable-cuda: $(config) $(disable-nvml)
 	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	# Comment out USE_NVML line
-	@sed 's/\(^#.*define.*USE_NVML.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	# # Comment out USE_CUDA line
+	@sed 's/\(^#.*define.*USE_CUDA.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
 	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
-	# Comment out LDFLAGS_NVML line
-	@sed 's/^\(LDFLAGS_NVML.*\)/# \1/' Makefile.bak > Makefile
-	@rm Makefile.bak
-
-disable-cuda: disable-nvml
-
-disable-nvidia: $(config) $(disable-nvml)
-	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	@sed 's/\(^#.*define.*USE_NVIDIA.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
-	@rm $(INCLUDE)/config.h.bak
-	@cp Makefile Makefile.bak
-	@sed 's/^\(LDFLAGS_NVIDIA.*\)/# \1/' Makefile.bak > Makefile
+	# # Comment out LDFLAGS_CUDA line
+	@sed 's/^\(LDFLAGS_CUDA\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 disable-x11: $(config)
@@ -172,14 +160,6 @@ disable-alsa: $(config)
 	@rm $(INCLUDE)/config.h.bak
 	@cp Makefile Makefile.bak
 	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' Makefile.bak > Makefile
-	@rm Makefile.bak
-
-disable-audio: $(config) $(disable-alsa)
-	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	@sed 's/\(^#.*define.*USE_AUDIO.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
-	@rm $(INCLUDE)/config.h.bak
-	@cp Makefile Makefile.bak
-	@sed 's/^\(LDFLAGS_AUDIO.*\)/# \1/' Makefile.bak > Makefile
 	@rm Makefile.bak
 
 ################################################################################

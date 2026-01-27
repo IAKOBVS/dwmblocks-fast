@@ -21,7 +21,7 @@
 
 #	include "../config.h"
 
-#	ifdef USE_NVIDIA
+#	ifdef USE_CUDA
 
 /* ../../src/blocks/gpu.c */
 
@@ -34,6 +34,6 @@ b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 char *
 b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#	endif /* USE_NVIDIA */
+#	endif /* USE_CUDA */
 
 #endif /* C_GPU_H */

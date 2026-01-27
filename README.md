@@ -157,5 +157,5 @@ $ make disable-cuda
 ### config.h
 ```
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
-/* #define USE_NVML 1 */
+/* #define USE_CUDA 1 */
 ```

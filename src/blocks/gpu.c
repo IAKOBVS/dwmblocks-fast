@@ -18,7 +18,7 @@
 
 #include "../../include/config.h"
 
-#ifdef USE_NVML
+#ifdef USE_CUDA
 #	ifndef NVML_HEADER
 #		define NVML_HEADER "/opt/cuda/include/nvml.h"
 #	endif

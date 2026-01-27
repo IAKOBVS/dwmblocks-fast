@@ -25,25 +25,19 @@
 #	define CONFIG_H 1
 
 #	include "macros.h"
+#	include "cpu-temp-file.generated.h"
 
 /* Use libx11. Comment to disable. */
 #	define USE_X11 1
 
-/* Monitor audio volume. Comment to disable. */
-#	define USE_AUDIO 1
 /* Monitor audio volume, requires ALSA. Comment to disable. */
 #	define USE_ALSA 1
 
-/* Monitor Nvidia GPU. nvidia-settings as fallback. Comment to disable. */
-#	define USE_NVIDIA 1
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
-#	define USE_NVML    1
+#	define USE_CUDA 1
 /* May not work for older versions of CUDA, in which case, comment it out. */
 #	define USE_NVML_DEVICEGETTEMPERATUREV 1
-#	define NVML_HEADER "/opt/cuda/include/nvml.h"
-
-/* Path to CPU temperature */
-#	define CPU_TEMP_FILE "/sys/class/thermal/thermal_zone1/temp"
+#	define NVML_HEADER                    "/opt/cuda/include/nvml.h"
 
 #	define ICON_WEBCAM_ON       "📸"
 #	define ICON_OBS_RECORDING   "🔴 Recording"
