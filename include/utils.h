@@ -23,12 +23,12 @@
 #	include "macros.h"
 
 static ATTR_MAYBE_UNUSED char *
-u_utoa_p(unsigned int number, char *buf)
+u_utoa_p(unsigned int num, char *buf)
 {
 	char *start = buf;
 	do
-		*buf++ = number % 10 + '0';
-	while ((number /= 10) != 0);
+		*buf++ = num % 10 + '0';
+	while ((num /= 10) != 0);
 	char *end = buf;
 	*buf-- = '\0';
 	int c;
@@ -40,40 +40,44 @@ u_utoa_p(unsigned int number, char *buf)
 	return (char *)end;
 }
 
-
 static ATTR_MAYBE_UNUSED char *
-u_utoa_lt2_p(unsigned int number, char *buf)
+u_utoa_lt2_p(unsigned int num, char *buf)
 {
-	if (number > 9) {
-		*(buf + 0) = (number / 10) + '0';
-		*(buf + 1) = (number % 10) + '0';
+	/* digits == 2 */
+	if (num > 9) {
+		*(buf + 0) = (num / 10) + '0';
+		*(buf + 1) = (num % 10) + '0';
 		*(buf + 2) = '\0';
 		return buf + 2;
 	}
-	*(buf + 0) = number + '0';
+	/* digits == 1 */
+	*(buf + 0) = num + '0';
 	*(buf + 1) = '\0';
 	return buf + 1;
 }
 
 static ATTR_MAYBE_UNUSED char *
-u_utoa_lt3_p(unsigned int number, char *buf)
+u_utoa_lt3_p(unsigned int num, char *buf)
 {
-	if (number > 99) {
-		*(buf + 0) = (number / 100) + '0';
-		*(buf + 1) = ((number / 10) % 10) + '0';
-		*(buf + 2) = (number % 10) + '0';
-		*(buf + 3) = '\0';
-		return buf + 3;
-	}
-	if (number > 9) {
-		*(buf + 0) = (number / 10) + '0';
-		*(buf + 1) = (number % 10) + '0';
+	/* digits == 2 */
+	if (likely((unsigned int)(num - 10) < 90)) {
+		*(buf + 0) = (num / 10) + '0';
+		*(buf + 1) = (num % 10) + '0';
 		*(buf + 2) = '\0';
 		return buf + 2;
 	}
-	*(buf + 0) = number + '0';
-	*(buf + 1) = '\0';
-	return buf + 1;
+	/* digits == 1 */
+	if (num < 10) {
+		*(buf + 0) = num + '0';
+		*(buf + 1) = '\0';
+		return buf + 1;
+	}
+	/* digits == 3 */
+	*(buf + 0) = (num / 100) + '0';
+	*(buf + 1) = ((num / 10) % 10) + '0';
+	*(buf + 2) = (num % 10) + '0';
+	*(buf + 3) = '\0';
+	return buf + 3;
 }
 
 static ATTR_INLINE int

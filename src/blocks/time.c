@@ -32,6 +32,7 @@ b_read_time(void)
 	return localtime(&t);
 }
 
+/* Format: 9:00 PM */
 char *
 b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
@@ -47,16 +48,21 @@ b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 		h -= 12;
 	} else {
 		meridiem = 'A';
-		if (h < 10)
-			*p++ = '0';
 	}
 	/* Write hour */
 	p = u_utoa_lt2_p(h, p);
+	/* Write : */
 	*p++ = ':';
-	if (tm->tm_min < 10)
-		*p++ = '0';
 	/* Write minutes */
-	p = u_utoa_lt2_p((unsigned int)tm->tm_min, p);
+	if (tm->tm_min < 10) {
+		/* One digit */
+		*p++ = '0';
+		*p++ = tm->tm_min + '0';
+	} else {
+		/* Two digits */
+		*p++ = (tm->tm_min / 10) + '0';
+		*p++ = (tm->tm_min % 10) + '0';
+	}
 	*p++ = ' ';
 	/* AM or PM */
 	*p++ = meridiem;
