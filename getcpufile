@@ -1,8 +1,11 @@
 #!/bin/sh
 pkg_temp='x86_pkg_temp'
 for file in $(echo /sys/class/thermal/thermal_zone*/type); do
-	temp_file=$(echo $file | sed 's/type/temp/')
-	grep -qF -e "$pkg_temp" "$file" && echo "#define CPU_TEMP_FILE \"$temp_file\"" && exit
+	dir=$(readlink -f $(dirname $file))
+	if grep -qF -e "$pkg_temp" "$file"; then
+		temp_file="$dir/temp"
+		echo "#define CPU_TEMP_FILE \"$temp_file\"" && exit
+	fi
 done
 echo "getcpufile: can not find $pkg_temp in $(echo /sys/class/thermal/thermal_zone*/type)!" >&2
 echo "Probably running on a non-x86_64 architecture." >&2
