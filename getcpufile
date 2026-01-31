@@ -1,13 +1,15 @@
 #!/bin/sh
-pkg_temp='x86_pkg_temp'
-for file in $(echo /sys/class/thermal/thermal_zone*/type); do
-	dir=$(readlink -f $(dirname $file))
-	if grep -qF -e "$pkg_temp" "$file"; then
-		temp_file="$dir/temp"
-		echo "#define CPU_TEMP_FILE \"$temp_file\"" && exit
+pkg_temp='coretemp'
+files=$(find /sys/devices/platform -type f -name 'name')
+for file in $files; do
+	if grep -qF "$pkg_temp" "$file"; then
+		echo "#define CPU_TEMP_FILE \"$file\"" | sed 's/name/temp1_input/'
+		exit
 	fi
 done
-echo "getcpufile: can not find $pkg_temp in $(echo /sys/class/thermal/thermal_zone*/type)!" >&2
-echo "Probably running on a non-x86_64 architecture." >&2
-echo "Need to manually set the path to cpu temperature in $cpu_file." >&2
+echo "getcpufile: $pkg_temp not found. in $files!"
+echo 'Need to manually add CPU_TEMP_FILE macro to cpu.generated.h.'
+echo 'If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class.'
+echo 'Example cpu.generated.h:'
+echo '#define CPU_TEMP_FILE "/path/to/cpu_temp'
 exit 1

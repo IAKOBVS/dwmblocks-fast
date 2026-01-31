@@ -49,10 +49,10 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* To use a shell script, set func to b_write_shell and command to the shell script.
 	 * To use a C function, set command to NULL.
 	 *
-	 * Update_interval    Signal    Icon    Function    Command */
+	 * Update_interval    Signal    Icon    Function    Command/File */
 
 	/* Webcam */
-#	ifdef HAVE_RPOCFS
+#	ifdef HAVE_PROCFS
 	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
 #	endif
 
@@ -84,14 +84,17 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	/* Temp file */
 #	ifdef HAVE_PROCFS
+	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
 	/* { 2,    0,          "my_temp: ", b_write_temp,"/path/to/temp" }, */
 #	endif
 
 	/* CPU temp, usage */
 #	ifdef HAVE_PROCFS
 	/* format: [temp] [usage] */
-	{ 2,    0,          "💻", b_write_cpu_all,           NULL },
-	/* { 2,    0,          "💻", b_write_cpu_temp,          NULL }, */
+#ifdef HAVE_SYSFS
+	{ 2,    0,          "💻", b_write_cpu_all,           CPU_TEMP_FILE },
+	/* { 2,    0,          "💻", b_write_cpu_temp,          CPU_TEMP_FILE }, */
+#endif
 	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
 #	endif
 

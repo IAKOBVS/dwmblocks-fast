@@ -251,6 +251,7 @@
 #	ifdef __linux__
 #		define HAVE_PROCFS  1
 #		define HAVE_SYSINFO 1
+#		define HAVE_SYSFS   1
 #	endif
 
 #endif /* MACROS_H */

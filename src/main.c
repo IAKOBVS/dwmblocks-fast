@@ -37,8 +37,15 @@
 #include "../include/blocks.h"
 #include "../include/macros.h"
 #include "../include/utils.h"
+#include "../include/path.h"
 
 #define DO_CLEANUP 0
+
+#ifdef DEBUG
+#	define DBG(x) (x)
+#else
+#	define DBG(x)
+#endif
 
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1
@@ -244,15 +251,51 @@ g_status_write(char *status)
 	return G_RET_SUCC;
 }
 
+/* Update hwmon/hwmon[0-9]* and thermal/thermal_zone[0-9]* to point to
+ * the real file, given that the number may change between reboots. */
+static g_ret_ty
+g_paths_sysfs_resolve()
+{
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
+		if (g_blocks[i].command) {
+			const char *pattern;
+			const char *pattern_glob;
+			if (strstr(g_blocks[i].command, "hwmon/hwmon")) {
+				pattern = "hwmon/hwmon";
+				pattern_glob = "hwmon/hwmon[0-9]*";
+
+			} else if (strstr(g_blocks[i].command, "thermal/thermal_zone")) {
+				pattern = "thermal/thermal_zone";
+				pattern_glob = "thermal/thermal_zone[0-9]*";
+			} else {
+				continue;
+			}
+			char *p = path_sysfs_resolve(g_blocks[i].command, pattern, pattern_glob);
+			if (unlikely(p == NULL))
+				DIE();
+			if (p != g_blocks[i].command) {
+				DBG(fprintf(stderr, "%s doesn't exist, resolved to %s (which is malloc'd).\n", g_blocks[i].command, p));
+				/* Set new path. */
+				g_blocks[i].command = p;
+			} else {
+				DBG(fprintf(stderr, "%s exists.\n", p));
+			}
+		}
+	}
+	return G_RET_SUCC;
+}
+
 static g_ret_ty
 g_status_init()
 {
-	if (unlikely(g_setup_signals() == G_RET_ERR))
+	if (unlikely(g_setup_signals() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
 #ifdef USE_X11
-	if (unlikely(g_setup_x11() == G_RET_ERR))
+	if (unlikely(g_setup_x11() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
 #endif
+	if (unlikely(g_paths_sysfs_resolve() != G_RET_SUCC))
+		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
 
@@ -273,7 +316,7 @@ g_status_mainloop()
 	for (;;) {
 		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
-			if (unlikely(g_status_write(g_statusstr) == G_RET_ERR))
+			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
 		if (!g_statuscontinue)
 			break;
@@ -328,9 +371,9 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	if (unlikely(g_status_init() == G_RET_ERR))
+	if (unlikely(g_status_init() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
-	if (unlikely(g_status_mainloop() == G_RET_ERR))
+	if (unlikely(g_status_mainloop() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
 #if DO_CLEANUP
 	/* No need to free, since we're exiting. */
