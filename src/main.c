@@ -41,12 +41,6 @@
 
 #define DO_CLEANUP 0
 
-#ifdef DEBUG
-#	define DBG(x) (x)
-#else
-#	define DBG(x)
-#endif
-
 #ifdef __OpenBSD__
 #	define SIGPLUS  SIGUSR1 + 1
 #	define SIGMINUS SIGUSR1 - 1

@@ -2,11 +2,11 @@
 /* Copyright 2026 James Tirta Halim <tirtajames45 at gmail dot com>
  * This file is part of dwmblocks-fast.
  *
- * Permission to use, copy, modify, and/or distribute this software 
- * for any purpose with or without fee is hereby granted, provided 
- * that the above copyright notice and this permission notice appear 
+ * Permission to use, copy, modify, and/or distribute this software
+ * for any purpose with or without fee is hereby granted, provided
+ * that the above copyright notice and this permission notice appear
  * in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
  * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -56,6 +56,7 @@ path_sysfs_resolve(const char *filename, const char *pattern, const char *patter
 			DIE();
 		getcwd(path, sizeof(path));
 		const char *p = filename + strlen(platform_prefix);
+		/* Copy platform from "/sys/devices/platform/%s" */
 		char platform[256];
 		char *platform_e = platform;
 		while (*p != '/' && *p != '\0')
@@ -68,27 +69,28 @@ path_sysfs_resolve(const char *filename, const char *pattern, const char *patter
 		int ret = glob(pattern_glob, 0, NULL, &g_dir);
 		/* Match */
 		if (ret == 0) {
-			const char *label = strrchr(filename, '/');
-			if (label) {
-				++label;
-				for (unsigned int i = 0; i < g_dir.gl_pathc; ++i) {
-					const char *dir = g_dir.gl_pathv[i];
-					if (chdir(dir) == -1)
-						DIE();
-					globfree(&g_dir);
-					if (access(label, F_OK) == -1)
-						DIE();
-					char *heap = (char *)malloc(PATH_MAX);
-					if (heap == NULL)
-						DIE();
-					if (realpath(label, heap) != heap)
-						DIE();
-					if (unlikely(chdir(cwd_orig)) == -1)
-						DIE();
-					return heap;
-				}
-			} else {
-				DIE();
+			for (unsigned int i = 0; i < g_dir.gl_pathc; ++i) {
+				const char *dir = g_dir.gl_pathv[i];
+				if (unlikely(chdir(dir) == -1))
+					DIE();
+				globfree(&g_dir);
+				const char *tail = filename + strlen(filename) - 1;
+				/* Handle trailing slashes */
+				for (; tail > filename && *tail == '/'; --tail) {}
+				/* Get tail from filename, as in /path/to/file/%s */
+				for (; tail > filename && *tail != '/'; --tail) {}
+				if (*tail == '/')
+					++tail;
+				if (unlikely(access(tail, F_OK) == -1))
+					DIE();
+				char *heap = (char *)malloc(PATH_MAX);
+				if (unlikely(heap == NULL))
+					DIE();
+				if (unlikely(realpath(tail, heap) != heap))
+					DIE();
+				if (unlikely(chdir(cwd_orig)) == -1)
+					DIE();
+				return heap;
 			}
 		} else {
 			if (ret == GLOB_NOMATCH)

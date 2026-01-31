@@ -88,6 +88,7 @@ REQ =\
 	$(INCLUDE)/utils.h\
 	$(INCLUDE)/config.h\
 	$(INCLUDE)/blocks.h\
+	$(INCLUDE)/path.h
 
 ################################################################################
 # Targets

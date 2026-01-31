@@ -23,6 +23,12 @@
 #	include <assert.h>
 #	include <errno.h>
 
+#	ifdef DEBUG
+#		define DBG(x) x
+#	else
+#		define DBG(x)
+#	endif
+
 #	define DIE(x)                                  \
 		do {                                    \
 			if (errno)                      \
