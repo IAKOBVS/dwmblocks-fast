@@ -252,27 +252,15 @@ g_paths_sysfs_resolve()
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (g_blocks[i].command) {
-			const char *pattern;
-			const char *pattern_glob;
-			if (strstr(g_blocks[i].command, "hwmon/hwmon")) {
-				pattern = "hwmon/hwmon";
-				pattern_glob = "hwmon/hwmon[0-9]*";
-
-			} else if (strstr(g_blocks[i].command, "thermal/thermal_zone")) {
-				pattern = "thermal/thermal_zone";
-				pattern_glob = "thermal/thermal_zone[0-9]*";
-			} else {
-				continue;
-			}
-			char *p = path_sysfs_resolve(g_blocks[i].command, pattern, pattern_glob);
+			char *p = path_sysfs_resolve(g_blocks[i].command);
 			if (unlikely(p == NULL))
 				DIE();
 			if (p != g_blocks[i].command) {
-				DBG(fprintf(stderr, "%s doesn't exist, resolved to %s (which is malloc'd).\n", g_blocks[i].command, p));
+				DBG(fprintf(stderr, "%s:%d:%s: %s doesn't exist, resolved to %s (which is malloc'd).\n", __FILE__, __LINE__, ASSERT_FUNC, g_blocks[i].command, p));
 				/* Set new path. */
 				g_blocks[i].command = p;
 			} else {
-				DBG(fprintf(stderr, "%s exists.\n", p));
+				DBG(fprintf(stderr, "%s:%d:%s %s exists.\n", __FILE__, __LINE__, ASSERT_FUNC, p));
 			}
 		}
 	}

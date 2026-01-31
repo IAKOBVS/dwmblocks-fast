@@ -41,63 +41,55 @@
  * Example pattern: hwmon/hwmon and thermal/thermal_zone
  * Example pattern_glob: hwmon/hwmon[0-9]* and thermal/thermal_zone[0-9]* */
 static char *
-path_sysfs_resolve(const char *filename, const char *pattern, const char *pattern_glob)
+path_sysfs_resolve(const char *filename)
 {
 	if (access(filename, F_OK) == 0)
 		return (char *)filename;
-	const char *platform_prefix = "/sys/devices/platform/";
-	/* "hwmon/hwmon" */
-	if (strstr(filename, platform_prefix) == filename
-	    && strstr(filename, pattern)) {
-		char path[PATH_MAX];
-		char cwd_orig[PATH_MAX];
-		getcwd(cwd_orig, sizeof(cwd_orig));
-		if (unlikely(chdir(platform_prefix) == -1))
-			DIE();
-		getcwd(path, sizeof(path));
-		const char *p = filename + strlen(platform_prefix);
-		/* Copy platform from "/sys/devices/platform/%s" */
-		char platform[256];
-		char *platform_e = platform;
-		while (*p != '/' && *p != '\0')
-			*platform_e++ = *p++;
-		*platform_e = '\0';
-		if (unlikely(chdir(platform) == -1))
-			DIE();
-		glob_t g_dir;
-		/* "hwmon/hwmon[0-9]*" */
-		int ret = glob(pattern_glob, 0, NULL, &g_dir);
-		/* Match */
-		if (ret == 0) {
-			for (unsigned int i = 0; i < g_dir.gl_pathc; ++i) {
-				const char *dir = g_dir.gl_pathv[i];
-				if (unlikely(chdir(dir) == -1))
-					DIE();
-				globfree(&g_dir);
-				const char *tail = filename + strlen(filename) - 1;
-				/* Handle trailing slashes */
-				for (; tail > filename && *tail == '/'; --tail) {}
-				/* Get tail from filename, as in /path/to/file/%s */
-				for (; tail > filename && *tail != '/'; --tail) {}
-				if (*tail == '/')
-					++tail;
-				if (unlikely(access(tail, F_OK) == -1))
-					DIE();
-				char *heap = (char *)malloc(PATH_MAX);
-				if (unlikely(heap == NULL))
-					DIE();
-				if (unlikely(realpath(tail, heap) != heap))
-					DIE();
-				if (unlikely(chdir(cwd_orig)) == -1)
-					DIE();
-				return heap;
-			}
-		} else {
-			if (ret == GLOB_NOMATCH)
-				globfree(&g_dir);
-			DIE();
-		}
+	char platform[NAME_MAX];
+	char monitor_dir[NAME_MAX];
+	char monitor_subdir[NAME_MAX];
+	char tail[PATH_MAX];
+	/* %[^/]: match non slash. */
+	if (unlikely(sscanf(filename, "/sys/devices/platform/%[^/]/%[^/]/%[^/0-9]%*[0-9]/%s", platform, monitor_dir, monitor_subdir, tail) < 0))
+		return NULL;
+	char glob_pattern[PATH_MAX];
+	const char pat[] = "[0-9]*";
+	/* Construct the glob pattern. */
+	int len = sprintf(glob_pattern,
+	              "/sys/devices/platform/%s/%s/%s%s/%.*s",
+	              platform,
+	              monitor_dir,
+	              monitor_subdir,
+	              pat,
+	              (int)(sizeof(glob_pattern) - 1 - strlen(platform) - strlen(monitor_dir) - strlen(monitor_subdir) - strlen(pat)),
+	              tail);
+	if (unlikely(len < 0))
+		return NULL;
+	DBG(fprintf(stderr, "%s:%d:%s: platform: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, platform));
+	DBG(fprintf(stderr, "%s:%d:%s: monitor_dir: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, monitor_dir));
+	DBG(fprintf(stderr, "%s:%d:%s: monitor_subdir: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, monitor_subdir));
+	DBG(fprintf(stderr, "%s:%d:%s: tail: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, tail));
+	DBG(fprintf(stderr, "%s:%d:%s: glob_pattern: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, glob_pattern));
+	glob_t g;
+	int ret = glob(glob_pattern, 0, NULL, &g);
+	/* Match */
+	if (ret == 0) {
+		if (access(g.gl_pathv[0], F_OK) == -1)
+			return NULL;
+		len += strlen(g.gl_pathv[0] + len - S_LEN(pat));
+		char *tmp = (char *)malloc((size_t)len + 1);
+		if (unlikely(tmp == NULL))
+			return NULL;
+		memcpy(tmp, g.gl_pathv[0], (size_t)len);
+		*(tmp + len) = '\0';
+		DBG(fprintf(stderr, "%s:%d:%s: tmp (malloc'd): %s.\n", __FILE__, __LINE__, ASSERT_FUNC, tmp));
+		globfree(&g);
+		return tmp;
 	}
+	if (ret == GLOB_NOMATCH)
+		globfree(&g);
+	else
+		return NULL;
 	return NULL;
 }
 
