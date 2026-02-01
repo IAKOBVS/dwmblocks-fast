@@ -43,6 +43,16 @@
 static char *
 path_sysfs_resolve(const char *filename)
 {
+#	if !defined NAME_MAX || !defined PATH_MAX
+	enum {
+#		ifndef NAME_MAX
+		NAME_MAX = 256,
+#		endif
+#		ifndef PATH_MAX
+		PATH_MAX = 4096,
+#		endif
+	};
+#	endif
 	if (access(filename, F_OK) == 0)
 		return (char *)filename;
 	char platform[NAME_MAX];
@@ -55,14 +65,7 @@ path_sysfs_resolve(const char *filename)
 	char glob_pattern[PATH_MAX];
 	const char pat[] = "[0-9]*";
 	/* Construct the glob pattern. */
-	int len = sprintf(glob_pattern,
-	              "/sys/devices/platform/%s/%s/%s%s/%.*s",
-	              platform,
-	              monitor_dir,
-	              monitor_subdir,
-	              pat,
-	              (int)(sizeof(glob_pattern) - 1 - strlen(platform) - strlen(monitor_dir) - strlen(monitor_subdir) - strlen(pat)),
-	              tail);
+	int len = snprintf(glob_pattern, sizeof(glob_pattern), "/sys/devices/platform/%s/%s/%s%s/%s", platform, monitor_dir, monitor_subdir, pat, tail);
 	if (unlikely(len < 0))
 		return NULL;
 	DBG(fprintf(stderr, "%s:%d:%s: platform: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, platform));
@@ -74,12 +77,16 @@ path_sysfs_resolve(const char *filename)
 	int ret = glob(glob_pattern, 0, NULL, &g);
 	/* Match */
 	if (ret == 0) {
-		if (access(g.gl_pathv[0], F_OK) == -1)
+		if (access(g.gl_pathv[0], F_OK) == -1) {
+			globfree(&g);
 			return NULL;
+		}
 		len += strlen(g.gl_pathv[0] + len - S_LEN(pat));
 		char *tmp = (char *)malloc((size_t)len + 1);
-		if (unlikely(tmp == NULL))
+		if (unlikely(tmp == NULL)) {
+			globfree(&g);
 			return NULL;
+		}
 		memcpy(tmp, g.gl_pathv[0], (size_t)len);
 		*(tmp + len) = '\0';
 		DBG(fprintf(stderr, "%s:%d:%s: tmp (malloc'd): %s.\n", __FILE__, __LINE__, ASSERT_FUNC, tmp));
