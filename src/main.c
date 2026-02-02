@@ -27,7 +27,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <pthread.h>
+#include <fcntl.h>
 
 #ifdef USE_X11
 #	include <X11/Xlib.h>
@@ -92,7 +92,6 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-pthread_mutex_t g_mutex;
 
 static char g_statusbar[LEN(g_blocks)][G_CMDLENGTH];
 static char g_statusstr[G_STATUSLEN];
@@ -212,7 +211,6 @@ g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 g_ret_ty
 g_setup_x11()
 {
-	pthread_mutex_init(&g_mutex, NULL);
 	g_dpy = XOpenDisplay(NULL);
 	if (unlikely(g_dpy == NULL)) {
 		fprintf(stderr, "dwmblocks-fast: Failed to open display.\n");
@@ -329,13 +327,12 @@ g_handler_sig_dummy(int signum)
 }
 #endif
 
+/* FIXME: */
 void
 g_handler_sig(int signum)
 {
-	pthread_mutex_lock(&g_mutex);
 	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
 	g_status_write(g_statusstr);
-	pthread_mutex_unlock(&g_mutex);
 }
 
 void
