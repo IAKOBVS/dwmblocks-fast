@@ -36,7 +36,6 @@
 
 typedef struct {
 	unsigned int interval;
-	const unsigned int signal;
 	const char *icon;
 	char *(*func)(char *, unsigned int, const char *, unsigned int *);
 	const char *command;
@@ -53,7 +52,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	/* Webcam */
 #	ifdef HAVE_PROCFS
-	{ 0,    SIG_WEBCAM, NULL, b_write_webcam_on,         NULL },
+	{ 0,    NULL,       b_write_webcam_on,         NULL                   },
 #	endif
 
 	/* Obs */
@@ -61,64 +60,63 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* ================================================================================================= */
 	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
 	/* ================================================================================================= */
-	{ 0,    SIG_OBS,    NULL, b_write_obs_on,            NULL },
-	{ 0,    SIG_OBS,    NULL, b_write_obs_recording,     NULL },
+	{ 0,    NULL,       b_write_obs_on,            NULL                   },
+	{ 0,    NULL,       b_write_obs_recording,     NULL                   },
 	/* ================================================================================================= */
 #	endif
-
 	/* Audio volume (mic) */
 #	if defined USE_ALSA
-	{ 0,    SIG_MIC,    NULL, b_write_mic_vol,           NULL },
+	{ 0,    NULL,       b_write_mic_vol,           NULL                   },
 #	endif
 
 	/* Date */
-	{ 3600, 0,          "📅", b_write_date,              NULL },
+	{ 3600, "📅",       b_write_date,              NULL                   },
 
 	/* Ram */
 #	ifdef HAVE_SYSINFO
-	{ 30,   0,          "🧠", b_write_ram_usage_percent, NULL },
+	{ 30,   "🧠",       b_write_ram_usage_percent, NULL                   },
 #	endif
 
 	/* Read a file */
-	/* { 2,   0,          "my_file:", b_write_cat, "/home/james/.xinitrc" }, */
+	/* { 2,    "my_file:", b_write_cat,               "/home/james/.xinitrc" }, */
 
 	/* Temp file */
 #	ifdef HAVE_PROCFS
 	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
-	/* { 2,    0,          "my_temp: ", b_write_temp,"/path/to/temp" }, */
+	/* { 2,    "my_temp:", b_write_temp,              "/path/to/temp"        }, */
 #	endif
 
 	/* CPU temp, usage */
 #	ifdef HAVE_PROCFS
 	/* format: [temp] [usage] */
-#ifdef HAVE_SYSFS
-	{ 2,    0,          "💻", b_write_cpu_all,           CPU_TEMP_FILE },
-	/* { 2,    0,          "💻", b_write_cpu_temp,          CPU_TEMP_FILE }, */
-#endif
-	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
+#		ifdef HAVE_SYSFS
+	{ 2,    "💻",       b_write_cpu_all,           CPU_TEMP_FILE          },
+	/* { 2,    "💻",       b_write_cpu_temp,          CPU_TEMP_FILE          }, */
+#		endif
+	/* { 2,    "💻",       b_write_cpu_usage,         NULL                   }, */
 #	endif
 
 	/* GPU temp, usage */
 #	if defined USE_CUDA
 	/* format: [temp] [usage] [vram] */
-	{ 2,    0,          "🚀", b_write_gpu_all,           NULL },
-	/* { 2,    0,          "🚀", b_write_gpu_temp,          NULL }, */
-	/* { 2,    0,          "🚀", b_write_gpu_usage,         NULL }, */
-	/* { 2,    0,          "🚀", b_write_gpu_vram,          NULL }, */
+	{ 2,    "🚀",       b_write_gpu_all,           NULL                   },
+	/* { 2,    "🚀", b_write_gpu_temp,          NULL }, */
+	/* { 2,    "🚀", b_write_gpu_usage,         NULL }, */
+	/* { 2,    "🚀", b_write_gpu_vram,          NULL }, */
 #	endif
 
 	/* Audio volume (speaker) */
 #	if defined USE_ALSA
-	{ 0,    SIG_AUDIO,  NULL, b_write_speaker_vol,       NULL },
+	{ 0,    NULL,       b_write_speaker_vol,       NULL                   },
 #	endif
 
 	/* Shell script or command */
 #	if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
-	/* { 0,    SIG_AUDIO,  "my command:", b_write_shell,       "some_command | other_command" }, */
+	/* { 0,    "my command:", b_write_shell,       "some_command | other_command" }, */
 #	endif
 
 	/* Time */
-	{ 60,   0,          "⏰", b_write_time,              NULL },
+	{ 60,   "⏰",       b_write_time,              NULL                   },
 };
 
 /* clang-format on */

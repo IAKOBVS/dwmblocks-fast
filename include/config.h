@@ -49,12 +49,6 @@
 #	define UNIT_USAGE "%"
 #	define UNIT_TEMP  "°"
 
-/* These will be copied to each shell script in ./scripts as shell variables. */
-#	define SIG_AUDIO  1
-#	define SIG_OBS    2
-#	define SIG_MIC    3
-#	define SIG_WEBCAM 4
-
 /* sets delimeter between status commands. NULL character ('\0') means no delimeter. */
 #	define DELIM    " | "
 #	define DELIMLEN (S_LEN(DELIM))

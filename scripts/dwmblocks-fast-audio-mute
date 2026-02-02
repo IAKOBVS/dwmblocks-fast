@@ -1,6 +1,7 @@
 #!/bin/sh
 pamixer -t
-pkill -RTMIN+"$SIG_AUDIO" dwmblocks-fast &
+killall dwmblocks-fast
+nohup dwmblocks-fast >/dev/null &
 # ffplay -nodisp -autoexit /usr/share/sounds/freedesktop/stereo/bell.oga &
 gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/bell.oga &
 if [ $(dwmblocks-fast-mic-ismuted) = 'true' ]; then

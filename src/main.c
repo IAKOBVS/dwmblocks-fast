@@ -27,7 +27,6 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <fcntl.h>
 
 #ifdef USE_X11
 #	include <X11/Xlib.h>
@@ -62,18 +61,8 @@ typedef enum {
 	G_WRITE_STDOUT
 } g_write_ty;
 
-#ifndef __OpenBSD__
-void
-g_handler_sig_dummy(int num);
-#endif
-void
+int
 g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
-void
-g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len);
-g_ret_ty
-g_setup_signals();
-void
-g_handler_sig(int signum);
 char *
 g_status_get(char *str);
 g_ret_ty
@@ -97,8 +86,6 @@ static char g_statusbar[LEN(g_blocks)][G_CMDLENGTH];
 static char g_statusstr[G_STATUSLEN];
 /* G_CMDLENGTH fits in an unsigned char. */
 static unsigned char g_statusbarlen[LEN(g_blocks)];
-static int g_statuscontinue = 1;
-static int g_statuschanged = 0;
 
 /* Run command or execute C function. */
 char *
@@ -124,9 +111,10 @@ g_getcmd(g_block_ty *block, char *output)
 }
 
 /* Run commands or functions according to their interval. */
-void
+int
 g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
+	int changed = 0;
 	g_block_ty *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
 		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == (unsigned int)-1) {
@@ -139,41 +127,15 @@ g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsign
 				u_stpcpy_len(g_statusbar[i], tmp, tmp_len);
 				statusbar_len[i] = tmp_len;
 				/* Mark change. */
-				g_statuschanged = 1;
+				changed = 1;
 			}
 		}
-}
-
-/* Same as g_getcmds but executed when receiving a signal. */
-void
-g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
-{
-	g_block_ty *curr = blocks;
-	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
-		if (curr->signal == signal)
-			g_statusbarlen[i] = g_getcmd(curr, g_statusbar[i]) - g_statusbar[i];
+	return changed;
 }
 
 g_ret_ty
 g_setup_signals()
 {
-#ifndef __OpenBSD__
-	/* Initialize all real time signals with dummy handler. */
-	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
-		if (unlikely(signal(i, g_handler_sig_dummy) == SIG_ERR))
-			DIE(return G_RET_ERR);
-#endif
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		if (g_blocks[i].signal > 0) {
-#ifndef __OpenBSD__
-			if (unlikely(g_blocks[i].signal > (unsigned int)SIGRTMAX)) {
-				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
-				DIE();
-			}
-#endif
-			if (unlikely(signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR))
-				DIE(return G_RET_ERR);
-		}
 	if (unlikely(signal(SIGTERM, g_handler_term) == SIG_ERR))
 		DIE(return G_RET_ERR);
 	if (unlikely(signal(SIGINT, g_handler_term) == SIG_ERR))
@@ -226,21 +188,28 @@ g_ret_ty
 g_status_write(char *status)
 {
 	char *p = g_status_get(status);
-#ifdef USE_X11
-	if (g_write_dst == G_WRITE_STATUSBAR) {
+	switch (g_write_dst) {
+	case G_WRITE_STATUSBAR:;
 		g_XStoreNameLen(g_dpy, g_win_root, status, p - status);
 		XFlush(g_dpy);
-		g_statuschanged = 0;
-		return G_RET_SUCC;
+		break;
+	case G_WRITE_STDOUT: {
+		*p++ = '\n';
+		const unsigned int statuslen = p - status;
+		ssize_t ret = write(STDOUT_FILENO, status, statuslen);
+		if (unlikely(ret != statuslen))
+			DIE(return G_RET_ERR);
+		break;
 	}
-#endif
-	*p++ = '\n';
-	unsigned int statuslen = p - status;
-	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
-	g_statuschanged = 0;
-	if (unlikely(ret != statuslen))
-		DIE(return G_RET_ERR);
+	}
 	return G_RET_SUCC;
+}
+
+int
+starts_with(const char *s1, const char *s2)
+{
+	for (; *s1 == *s2 && *s2; ++s1, ++s2) {}
+	return *s2 == '\0';
 }
 
 /* Update hwmon/hwmon[0-9]* and thermal/thermal_zone[0-9]* to point to
@@ -249,7 +218,7 @@ static g_ret_ty
 g_paths_sysfs_resolve()
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (g_blocks[i].command) {
+		if (g_blocks[i].command && starts_with(g_blocks[i].command, "/sys/")) {
 			char *p = path_sysfs_resolve(g_blocks[i].command);
 			if (unlikely(p == NULL))
 				DIE();
@@ -291,54 +260,23 @@ g_status_cleanup()
 g_ret_ty
 g_status_mainloop()
 {
-	unsigned int i = 0;
-	g_getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
-	for (;;) {
-		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
-		if (g_statuschanged)
+	for (unsigned int i = (unsigned int)-1;; ++i) {
+		if (g_getcmds(i, g_blocks, LEN(g_blocks), g_statusbarlen))
 			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
-		if (!g_statuscontinue)
-			break;
 #ifdef TEST
-		return G_RET_SUCC;
+		break;
 #endif
-		sleep(1);
+		if (unlikely(sleep(1)))
+			DIE(return G_RET_ERR);
 	}
 	return G_RET_SUCC;
-}
-
-#ifndef __OpenBSD__
-/* Handle errors gracefully. */
-void
-g_handler_sig_dummy(int signum)
-{
-	char buf[S_LEN("dwmblocks-fast: sending unknown signal: ") + sizeof(size_t) * 8 + S_LEN("\n") + 1];
-	char *p = buf;
-	p = u_stpcpy_len(p, S_LITERAL("dwmblocks-fast: sending unknown signal: "));
-	if (signum < 0)
-		*p++ = '-';
-	p = u_utoa_p((unsigned int)signum, buf);
-	*p++ = '\n';
-	*p = '\0';
-	/* fprintf is not reentrant. */
-	if (unlikely(write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf)))
-		DIE();
-}
-#endif
-
-/* FIXME: */
-void
-g_handler_sig(int signum)
-{
-	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
-	g_status_write(g_statusstr);
 }
 
 void
 g_handler_term(int signum)
 {
-	g_statuscontinue = 0;
+	_Exit(EXIT_FAILURE);
 	(void)signum;
 }
 
@@ -352,11 +290,9 @@ main(int argc, char **argv)
 			g_write_dst = G_WRITE_STDOUT;
 	if (unlikely(g_status_init() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
+	if (unlikely(atexit(g_status_cleanup) != 0))
+		DIE(return EXIT_FAILURE);
 	if (unlikely(g_status_mainloop() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
-#if DO_CLEANUP
-	/* No need to free, since we're exiting. */
-	g_status_cleanup();
-#endif
 	return EXIT_SUCCESS;
 }

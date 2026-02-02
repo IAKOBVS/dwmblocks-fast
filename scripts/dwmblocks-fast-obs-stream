@@ -1,3 +1,4 @@
 #!/bin/sh
 obs --startstreaming &
-pkill -RTMIN+"$SIG_OBS" dwmblocks-fast
+killall dwmblocks-fast
+nohup dwmblocks-fast >/dev/null &
