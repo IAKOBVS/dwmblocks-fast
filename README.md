@@ -54,7 +54,6 @@ $ sudo make install
 - gst-plugins-base-libs: sound notifications
 - dunst: popup notifications
 - pamixer: audio control
-- procps: send signals with pkill
 
 # Usage
 ## .xinitrc (for window managers that use WM_NAME)
@@ -102,16 +101,16 @@ dwmblocks -p # | some_window_manager
 ```
 #define SIG_SH 11
 static struct Block g_blocks[] = {
-    /* Update_interval   Signal    Label    Function        Command*/
-    { 0,                 SIG_SH,   "",      b_write_shell,  "my_shell_script" },
+    /* Update_interval   Icon    Function        Command*/
+    { 0,                 "",     b_write_shell,  "my_shell_script" },
 }
 ```
 ## Adding a C function
 ### src/blocks.h
 ```
 static struct Block g_blocks[] = {
-    /* Update_interval   Signal    Label    Function    Command*/
-    { 2,                 0,        "",      write_my,   NULL },
+    /* Update_interval   Icon    Function    Command*/
+    { 2,                 "",     write_my,   NULL },
 }
 ```
 ### src/blocks.h
