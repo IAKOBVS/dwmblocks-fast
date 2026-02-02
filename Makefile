@@ -83,7 +83,9 @@ OBJS =\
 REQ =\
 	$(SRC)/blocks/temp.o\
 	$(SRC)/blocks/procfs.o\
-	$(SRC)/blocks/shell.o\
+	$(SRC)/blocks/shell.o
+
+REQ_H =\
 	$(INCLUDE)/macros.h\
 	$(INCLUDE)/utils.h\
 	$(INCLUDE)/config.h\
@@ -171,11 +173,11 @@ disable-alsa: $(config)
 $(SRC)/test.o: $(PROG)
 	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) $(SRC)/main.c
 
-$(PROG): $(CFGS) $(SRC)/main.o $(OBJS) $(REQ)
+$(PROG): $(CFGS) $(SRC)/main.o $(OBJS) $(REQ) $(REQ_H)
 	mkdir -p $(BIN)
 	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/main.o $(OBJS) $(REQ) $(LDFLAGS)
 
-$(OBJS) $(SRC)/main.o $(SRC)/test.o: $(REQ)
+$(OBJS) $(SRC)/main.o $(SRC)/test.o: $(REQ) $(REQ_H)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
