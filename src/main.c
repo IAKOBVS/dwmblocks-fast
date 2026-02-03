@@ -66,7 +66,7 @@ typedef enum {
 	G_WRITE_STDOUT
 } g_write_ty;
 
-#ifndef __OpenBSD__
+#if HAVE_RT_SIGNALS
 void
 g_handler_sig_dummy(int num);
 #endif
@@ -75,7 +75,7 @@ g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsign
 void
 g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len);
 g_ret_ty
-g_setup_signals();
+g_init_signals();
 void
 g_handler_sig(int signum);
 char *
@@ -88,7 +88,7 @@ void
 g_handler_term(int signum);
 #ifdef USE_X11
 static g_ret_ty
-g_setup_x11();
+g_init_x11();
 static Display *g_dpy;
 static int g_screen;
 static Window g_win_root;
@@ -132,12 +132,11 @@ g_getcmd(g_block_ty *block, char *output)
 void
 g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
-	g_block_ty *curr = blocks;
-	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
-		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || unlikely(time == (unsigned int)-1)) {
+	for (unsigned int i = 0; i < blocks_len; ++i)
+		if ((blocks[i].interval != 0 && (unsigned int)time % blocks[i].interval == 0) || unlikely(time == (unsigned int)-1)) {
 			char tmp[sizeof(g_statusbar[0])];
 			/* Get the result of g_getcmd. */
-			unsigned int tmp_len = g_getcmd(curr, tmp) - tmp;
+			unsigned int tmp_len = g_getcmd(&blocks[i], tmp) - tmp;
 			/* Check if needs update. */
 			if (tmp_len != statusbar_len[i] || memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
@@ -153,25 +152,39 @@ g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsign
 void
 g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
 {
-	g_block_ty *curr = blocks;
-	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
-		if (curr->signal == signal)
-			g_statusbarlen[i] = g_getcmd(curr, g_statusbar[i]) - g_statusbar[i];
+	for (unsigned int i = 0; i < blocks_len; ++i)
+		if (blocks[i].signal == signal)
+			g_statusbarlen[i] = g_getcmd(&blocks[i], g_statusbar[i]) - g_statusbar[i];
+}
+
+int
+g_sigaction(int signum, void (handler)(int))
+{
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = handler;
+	if (unlikely(sigfillset(&sa.sa_mask)) == -1)
+		return -1;
+	if (unlikely(sigfillset(&sa.sa_mask) == -1))
+		return -1;
+	return sigaction(signum, &sa, NULL);
 }
 
 g_ret_ty
-g_setup_signals()
+g_init_signals()
 {
-	sigemptyset(&sigset_rt);
-#ifdef HAVE_RT_SIGNALS
-	/* Initialize all real time signals with dummy handler. */
+	if (unlikely(sigemptyset(&sigset_rt)) == -1)
+		DIE(return G_RET_ERR);
+	/* Initialize RT signals. */
+#if HAVE_RT_SIGNALS
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
-		if (unlikely(signal(i, g_handler_sig_dummy) == SIG_ERR))
+		if (unlikely(g_sigaction(i, g_handler_sig_dummy) == -1))
 			DIE(return G_RET_ERR);
 		if (unlikely(sigaddset(&sigset_rt, i) == -1))
 			DIE(return G_RET_ERR);
 	}
 #endif
+	/* Handle RT signals. */
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0) {
 #ifdef HAVE_RT_SIGNALS
@@ -180,12 +193,13 @@ g_setup_signals()
 				DIE();
 			}
 #endif
-			if (unlikely(signal(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == SIG_ERR))
+			if (unlikely(g_sigaction(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == -1))
 				DIE(return G_RET_ERR);
 		}
-	if (unlikely(signal(SIGTERM, g_handler_term) == SIG_ERR))
+	/* Handle termination signals. */
+	if (unlikely(g_sigaction(SIGTERM, g_handler_term) == -1))
 		DIE(return G_RET_ERR);
-	if (unlikely(signal(SIGINT, g_handler_term) == SIG_ERR))
+	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
 		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
@@ -218,7 +232,7 @@ g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 }
 
 g_ret_ty
-g_setup_x11()
+g_init_x11()
 {
 	g_dpy = XOpenDisplay(NULL);
 	if (unlikely(g_dpy == NULL)) {
@@ -293,10 +307,10 @@ g_paths_sysfs_resolve()
 static g_ret_ty
 g_status_init()
 {
-	if (unlikely(g_setup_signals() != G_RET_SUCC))
+	if (unlikely(g_init_signals() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
 #ifdef USE_X11
-	if (unlikely(g_setup_x11() != G_RET_SUCC))
+	if (unlikely(g_init_x11() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
 #endif
 	if (unlikely(g_paths_sysfs_resolve() != G_RET_SUCC))
@@ -312,13 +326,24 @@ g_status_cleanup()
 #endif
 }
 
+static int
+g_sig_block()
+{
+	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
+}
+
+static int
+g_sig_unblock()
+{
+	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
+}
+
 /* Main loop. */
 g_ret_ty
 g_status_mainloop()
 {
 	for (unsigned int i = (unsigned int)-1;; ++i) {
-		/* Block RT signals. */
-		if (unlikely(sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old)) != 0)
+		if (unlikely(g_sig_block() != 0))
 			DIE(return G_RET_ERR);
 		g_getcmds(i, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
@@ -329,15 +354,14 @@ g_status_mainloop()
 #ifdef TEST
 		return G_RET_SUCC;
 #endif
-		/* Unblock RT signals. */
-		if (unlikely(sigprocmask(SIG_SETMASK, &sigset_old, NULL)) != 0)
+		if (unlikely(g_sig_unblock() != 0))
 			DIE(return G_RET_ERR);
 		sleep(1);
 	}
 	return G_RET_SUCC;
 }
 
-#ifndef HAVE_RT_SIGNALS
+#ifdef HAVE_RT_SIGNALS
 /* Handle errors gracefully. */
 void
 g_handler_sig_dummy(int signum)
