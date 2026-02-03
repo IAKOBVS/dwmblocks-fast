@@ -326,13 +326,13 @@ g_status_cleanup()
 #endif
 }
 
-static int
+static ATTR_INLINE int
 g_sig_block()
 {
 	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
 }
 
-static int
+static ATTR_INLINE int
 g_sig_unblock()
 {
 	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
