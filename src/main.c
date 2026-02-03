@@ -324,7 +324,7 @@ g_status_mainloop()
 		if (g_statuschanged)
 			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
-		if (!g_statuscontinue)
+		if (unlikely(!g_statuscontinue))
 			break;
 #ifdef TEST
 		return G_RET_SUCC;
