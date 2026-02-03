@@ -163,7 +163,7 @@ g_ret_ty
 g_setup_signals()
 {
 	sigemptyset(&sigset_rt);
-#ifndef HAVE_RT_SIGNALS
+#ifdef HAVE_RT_SIGNALS
 	/* Initialize all real time signals with dummy handler. */
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
 		if (unlikely(signal(i, g_handler_sig_dummy) == SIG_ERR))
@@ -175,7 +175,7 @@ g_setup_signals()
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0) {
 #ifdef HAVE_RT_SIGNALS
-			if (unlikely(g_blocks[i].signal > (unsigned int)SIGRTMAX)) {
+			if (unlikely(SIGMINUS + g_blocks[i].signal > (unsigned int)SIGRTMAX)) {
 				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
 				DIE();
 			}
@@ -337,7 +337,7 @@ g_status_mainloop()
 	return G_RET_SUCC;
 }
 
-#ifndef __OpenBSD__
+#ifndef HAVE_RT_SIGNALS
 /* Handle errors gracefully. */
 void
 g_handler_sig_dummy(int signum)
