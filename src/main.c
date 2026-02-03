@@ -41,7 +41,7 @@
 
 #define DO_CLEANUP 0
 
-#if defined SIGRTMIN && defined SIGRTMAX
+#if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
 #	define HAVE_RT_SIGNALS 1
 #endif
 
