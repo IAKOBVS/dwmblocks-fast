@@ -84,7 +84,8 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	/* Temp file */
 #	ifdef HAVE_PROCFS
-	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
+	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. Pass the file
+	 * use the realpath command, to get the real path. */
 	/* { 2,    0,          "my_temp: ", b_write_temp,"/path/to/temp" }, */
 #	endif
 
