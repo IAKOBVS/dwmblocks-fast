@@ -366,7 +366,8 @@ g_status_cleanup()
 static g_ret_ty
 g_status_mainloop()
 {
-	for (unsigned int i = 0;; ++i) {
+	unsigned int i = 0;
+	for (;;) {
 		g_sleep(1);
 		g_getcmds(i++);
 		if (g_statuschanged)
