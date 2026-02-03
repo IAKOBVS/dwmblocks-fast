@@ -23,6 +23,12 @@
 #	include <assert.h>
 #	include <errno.h>
 
+#	ifdef __ASSERT_FUNCTION
+#		define ASSERT_FUNC __ASSERT_FUNCTION
+#	else
+#		define ASSERT_FUNC __func__
+#	endif
+
 #	ifdef DEBUG
 #		define DBG(x) x
 #	else

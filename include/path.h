@@ -53,6 +53,7 @@ path_sysfs_resolve(const char *filename)
 #		endif
 	};
 #	endif
+#	if 0
 	if (access(filename, F_OK) == 0)
 		return (char *)filename;
 	char platform[NAME_MAX];
@@ -98,6 +99,45 @@ path_sysfs_resolve(const char *filename)
 	else
 		return NULL;
 	return NULL;
+#	else
+	if (access(filename, F_OK) == 0)
+		return (char *)filename;
+	char cmd[PATH_MAX + PATH_MAX];
+	/* Convert the filename into a glob. */
+	if (unlikely(snprintf(cmd, sizeof(cmd), "echo '%s' | sed '%s'", filename, "s/\\(\\/sys\\/devices\\/.*\\)\\/\\([^/0-9]*\\)[0-9]\\{,1\\}\\/\\([^/]*\\)$/\\1\\/\\2[0-9]*\\/\\3/")) == -1)
+		return NULL;
+	DBG(fprintf(stderr, "%s:%d:%s: cmd: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, cmd));
+	FILE *fp = popen(cmd, "r");
+	if (unlikely(fp == NULL))
+		return NULL;
+	char output[PATH_MAX + NAME_MAX];
+	const int fd = fileno(fp);
+	if (unlikely(fd == -1)) {
+		pclose(fp);
+		return NULL;
+	}
+	if (unlikely(read(fd, output, sizeof(output) - 1) == -1)) {
+		pclose(fp);
+		return NULL;
+	}
+	if (unlikely(pclose(fp) == -1))
+		return NULL;
+	glob_t g;
+	/* Expand the glob into the real file. */
+	int ret = glob(output, 0, NULL, &g);
+	if (ret == 0) {
+		char *heap = strdup(g.gl_pathv[0]);
+		if (heap == NULL)
+			return NULL;
+		globfree(&g);
+		DBG(fprintf(stderr, "%s:%d:%s: heap (malloc'd): %s.\n", __FILE__, __LINE__, ASSERT_FUNC, heap));
+		return heap;
+	} else {
+		if (unlikely(ret == GLOB_NOMATCH))
+			globfree(&g);
+	}
+	return NULL;
+#	endif
 }
 
 #endif /* PATH_H */
