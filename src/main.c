@@ -102,8 +102,8 @@ static char g_statusstr[G_STATUSLEN];
 static unsigned char g_statusbarlen[LEN(g_blocks)];
 static int g_statuscontinue = 1;
 static int g_statuschanged = 0;
-static sigset_t rt_set;
-static sigset_t old_set;
+static sigset_t sigset_rt;
+static sigset_t sigset_od;
 
 /* Run command or execute C function. */
 char *
@@ -162,13 +162,13 @@ g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
 g_ret_ty
 g_setup_signals()
 {
-	sigemptyset(&rt_set);
+	sigemptyset(&sigset_rt);
 #ifndef HAVE_RT_SIGNALS
 	/* Initialize all real time signals with dummy handler. */
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
 		if (unlikely(signal(i, g_handler_sig_dummy) == SIG_ERR))
 			DIE(return G_RET_ERR);
-		if (unlikely(sigaddset(&rt_set, i) == -1))
+		if (unlikely(sigaddset(&sigset_rt, i) == -1))
 			DIE(return G_RET_ERR);
 	}
 #endif
@@ -318,7 +318,7 @@ g_status_mainloop()
 {
 	for (unsigned int i = (unsigned int)-1;; ++i) {
 		/* Block RT signals. */
-		if (unlikely(sigprocmask(SIG_BLOCK, &rt_set, &old_set)) != 0)
+		if (unlikely(sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_od)) != 0)
 			DIE(return G_RET_ERR);
 		g_getcmds(i, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
@@ -330,7 +330,7 @@ g_status_mainloop()
 		return G_RET_SUCC;
 #endif
 		/* Unblock RT signals. */
-		if (unlikely(sigprocmask(SIG_SETMASK, &old_set, NULL)) != 0)
+		if (unlikely(sigprocmask(SIG_SETMASK, &sigset_od, NULL)) != 0)
 			DIE(return G_RET_ERR);
 		sleep(1);
 	}
