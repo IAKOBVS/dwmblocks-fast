@@ -225,16 +225,16 @@ g_status_get(char *dst)
 	char *dst_s = dst;
 	/* Cosmetic: start with a space. */
 	dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_LEFT));
-	char *p = dst;
+	char *end = dst;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		p = u_stpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
+		end = u_stpcpy_len(end, g_statusbar[i], g_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
-	if (likely(p != dst))
-		p -= DELIMLEN;
+	if (likely(end != dst))
+		end -= DELIMLEN;
 	else
-		p = dst_s;
-	*p = '\0';
-	return p;
+		end = dst_s;
+	*end = '\0';
+	return end;
 }
 
 #ifdef USE_X11
@@ -282,15 +282,15 @@ g_status_write_stdout(char *status, int status_len)
 static g_ret_ty
 g_status_write(char *status)
 {
-	char *p = g_status_get(status);
+	char *end = g_status_get(status);
 	switch (g_write_dst) {
 #ifdef USE_X11
 	case G_WRITE_STATUSBAR:
-		g_status_write_x11(status, p - status);
+		g_status_write_x11(status, end - status);
 		break;
 #endif
 	case G_WRITE_STDOUT:
-		g_status_write_stdout(status, p - status);
+		g_status_write_stdout(status, end - status);
 		break;
 	}
 	return G_RET_SUCC;
@@ -383,15 +383,15 @@ static void
 g_handler_sig_dummy(int signum)
 {
 	char buf[S_LEN("dwmblocks-fast: sending unknown signal: ") + sizeof(size_t) * 8 + S_LEN("\n") + 1];
-	char *p = buf;
-	p = u_stpcpy_len(p, S_LITERAL("dwmblocks-fast: sending unknown signal: "));
+	char *end = buf;
+	end = u_stpcpy_len(end, S_LITERAL("dwmblocks-fast: sending unknown signal: "));
 	if (signum < 0)
-		*p++ = '-';
-	p = u_utoa_p((unsigned int)signum, buf);
-	*p++ = '\n';
-	*p = '\0';
+		*end++ = '-';
+	end = u_utoa_p((unsigned int)signum, buf);
+	*end++ = '\n';
+	*end = '\0';
 	/* fprintf is not reentrant. */
-	if (unlikely(write(STDERR_FILENO, buf, (size_t)(p - buf)) != (p - buf)))
+	if (unlikely(write(STDERR_FILENO, buf, (size_t)(end - buf)) != (end - buf)))
 		DIE();
 }
 #endif
