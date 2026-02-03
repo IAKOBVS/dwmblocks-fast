@@ -41,12 +41,16 @@
 
 #define DO_CLEANUP 0
 
-#ifdef __OpenBSD__
-#	define SIGPLUS  SIGUSR1 + 1
-#	define SIGMINUS SIGUSR1 - 1
-#else
+#if defined SIGRTMIN && defined SIGRTMAX
+#	define HAVE_RT_SIGNALS 1
+#endif
+
+#ifdef HAVE_RT_SIGNALS
 #	define SIGPLUS  SIGRTMIN
 #	define SIGMINUS SIGRTMIN
+#else
+#	define SIGPLUS  SIGUSR1 + 1
+#	define SIGMINUS SIGUSR1 - 1
 #endif
 
 #define LEN(X)      (sizeof(X) / sizeof(X[0]))
@@ -92,13 +96,14 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-
 static char g_statusbar[LEN(g_blocks)][G_CMDLENGTH];
 static char g_statusstr[G_STATUSLEN];
 /* G_CMDLENGTH fits in an unsigned char. */
 static unsigned char g_statusbarlen[LEN(g_blocks)];
 static int g_statuscontinue = 1;
 static int g_statuschanged = 0;
+static sigset_t rt_set;
+static sigset_t old_set;
 
 /* Run command or execute C function. */
 char *
@@ -129,7 +134,7 @@ g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsign
 {
 	g_block_ty *curr = blocks;
 	for (unsigned int i = 0; i < blocks_len; ++i, ++curr)
-		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || time == (unsigned int)-1) {
+		if ((curr->interval != 0 && (unsigned int)time % curr->interval == 0) || unlikely(time == (unsigned int)-1)) {
 			char tmp[sizeof(g_statusbar[0])];
 			/* Get the result of g_getcmd. */
 			unsigned int tmp_len = g_getcmd(curr, tmp) - tmp;
@@ -157,15 +162,19 @@ g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
 g_ret_ty
 g_setup_signals()
 {
-#ifndef __OpenBSD__
+	sigemptyset(&rt_set);
+#ifndef HAVE_RT_SIGNALS
 	/* Initialize all real time signals with dummy handler. */
-	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i)
+	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
 		if (unlikely(signal(i, g_handler_sig_dummy) == SIG_ERR))
 			DIE(return G_RET_ERR);
+		if (unlikely(sigaddset(&rt_set, i) == -1))
+			DIE(return G_RET_ERR);
+	}
 #endif
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal > 0) {
-#ifndef __OpenBSD__
+#ifdef HAVE_RT_SIGNALS
 			if (unlikely(g_blocks[i].signal > (unsigned int)SIGRTMAX)) {
 				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
 				DIE();
@@ -222,24 +231,40 @@ g_setup_x11()
 }
 #endif
 
+#ifdef USE_X11
+void
+g_status_write_x11(const char *status, int status_len)
+{
+	g_XStoreNameLen(g_dpy, g_win_root, status, status_len);
+	XFlush(g_dpy);
+	g_statuschanged = 0;
+}
+#endif
+
+void
+g_status_write_stdout(char *status, int status_len)
+{
+	status[status_len] = '\n';
+	ssize_t ret = write(STDOUT_FILENO, status, (unsigned int)status_len);
+	if (unlikely(ret != status_len))
+		DIE();
+	g_statuschanged = 0;
+}
+
 g_ret_ty
 g_status_write(char *status)
 {
 	char *p = g_status_get(status);
+	switch (g_write_dst) {
 #ifdef USE_X11
-	if (g_write_dst == G_WRITE_STATUSBAR) {
-		g_XStoreNameLen(g_dpy, g_win_root, status, p - status);
-		XFlush(g_dpy);
-		g_statuschanged = 0;
-		return G_RET_SUCC;
-	}
+	case G_WRITE_STATUSBAR:
+		g_status_write_x11(status, p - status);
+		break;
 #endif
-	*p++ = '\n';
-	unsigned int statuslen = p - status;
-	ssize_t ret = write(STDOUT_FILENO, status, statuslen);
-	g_statuschanged = 0;
-	if (unlikely(ret != statuslen))
-		DIE(return G_RET_ERR);
+	case G_WRITE_STDOUT:
+		g_status_write_stdout(status, p - status);
+		break;
+	}
 	return G_RET_SUCC;
 }
 
@@ -279,7 +304,7 @@ g_status_init()
 	return G_RET_SUCC;
 }
 
-static ATTR_MAYBE_UNUSED void
+static void
 g_status_cleanup()
 {
 #ifdef USE_X11
@@ -291,10 +316,11 @@ g_status_cleanup()
 g_ret_ty
 g_status_mainloop()
 {
-	unsigned int i = 0;
-	g_getcmds((unsigned int)-1, g_blocks, LEN(g_blocks), g_statusbarlen);
-	for (;;) {
-		g_getcmds(i++, g_blocks, LEN(g_blocks), g_statusbarlen);
+	for (unsigned int i = (unsigned int)-1;; ++i) {
+		/* Block RT signals. */
+		if (unlikely(sigprocmask(SIG_BLOCK, &rt_set, &old_set)) != 0)
+			DIE(return G_RET_ERR);
+		g_getcmds(i, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
 			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
@@ -303,6 +329,9 @@ g_status_mainloop()
 #ifdef TEST
 		return G_RET_SUCC;
 #endif
+		/* Unblock RT signals. */
+		if (unlikely(sigprocmask(SIG_SETMASK, &old_set, NULL)) != 0)
+			DIE(return G_RET_ERR);
 		sleep(1);
 	}
 	return G_RET_SUCC;
@@ -327,12 +356,11 @@ g_handler_sig_dummy(int signum)
 }
 #endif
 
-/* FIXME: */
 void
 g_handler_sig(int signum)
 {
 	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
-	g_status_write(g_statusstr);
+	g_statuschanged = 1;
 }
 
 void
@@ -354,9 +382,6 @@ main(int argc, char **argv)
 		DIE(return EXIT_FAILURE);
 	if (unlikely(g_status_mainloop() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
-#if DO_CLEANUP
-	/* No need to free, since we're exiting. */
 	g_status_cleanup();
-#endif
 	return EXIT_SUCCESS;
 }
