@@ -22,11 +22,10 @@
 #include <assert.h>
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
 
 #include "../../include/macros.h"
 #include "../../include/utils.h"
-
-#define PAGESZ 4096
 
 int
 b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
@@ -50,9 +49,14 @@ b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 			DIE(return 0);
 		return 0;
 	}
-	char buf[PAGESZ];
+#if !defined PATH_MAX
+	enum {
+		PATH_MAX = 4096,
+	};
+#endif
+	char buf[PATH_MAX];
 	/* Read /proc/[pid]/status */
-	ssize_t read_sz = read(fd, buf, PAGESZ);
+	ssize_t read_sz = read(fd, buf, PATH_MAX);
 	if (unlikely(close(fd) == -1))
 		DIE(return 0);
 	if (unlikely(read_sz == -1))
