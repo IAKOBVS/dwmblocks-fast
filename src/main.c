@@ -39,8 +39,6 @@
 #include "../include/utils.h"
 #include "../include/path.h"
 
-#define DO_CLEANUP 0
-
 #if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
 #	define HAVE_RT_SIGNALS 1
 #endif
@@ -55,7 +53,9 @@
 
 #define LEN(X)      (sizeof(X) / sizeof(X[0]))
 #define G_CMDLENGTH 64
-#define G_STATUSLEN (S_LEN(" ") + LEN(g_blocks) * G_CMDLENGTH + 1)
+#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + LEN(g_blocks) * G_CMDLENGTH + 1)
+
+#define G_STATUS_PAD_LEFT " "
 
 typedef enum {
 	G_RET_SUCC = 0,
@@ -196,12 +196,12 @@ g_status_get(char *dst)
 {
 	char *dst_s = dst;
 	/* Cosmetic: start with a space. */
-	*dst++ = ' ';
+	dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_LEFT));
 	char *p = dst;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		p = u_stpcpy_len(p, g_statusbar[i], g_statusbarlen[i]);
 	/* Chop last delim, if bar is not empty. */
-	if (p != dst)
+	if (likely(p != dst))
 		p -= DELIMLEN;
 	else
 		p = dst_s;
