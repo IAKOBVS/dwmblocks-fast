@@ -56,6 +56,8 @@
 #define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + LEN(g_blocks) * G_CMDLENGTH + 1)
 
 #define G_STATUS_PAD_LEFT " "
+/* Do not change. */
+#define UPDATE_INTERVAL   1
 
 typedef enum {
 	G_RET_SUCC = 0,
@@ -71,9 +73,9 @@ static void
 g_handler_sig_dummy(int num);
 #endif
 static void
-g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
+g_getcmds(unsigned int time);
 static void
-g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len);
+g_getcmds_sig(unsigned int signal);
 static g_ret_ty
 g_init_signals();
 static void
@@ -130,35 +132,47 @@ g_getcmd(g_block_ty *block, char *output)
 
 /* Run commands or functions according to their interval. */
 static void
-g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
+g_getcmds_init()
 {
-	for (unsigned int i = 0; i < blocks_len; ++i)
-		if ((blocks[i].interval != 0 && (unsigned int)time % blocks[i].interval == 0) || unlikely(time == (unsigned int)-1)) {
-			char tmp[sizeof(g_statusbar[0])];
-			/* Get the result of g_getcmd. */
-			unsigned int tmp_len = g_getcmd(&blocks[i], tmp) - tmp;
-			/* Check if needs update. */
-			if (tmp_len != statusbar_len[i] || memcmp(tmp, g_statusbar[i], tmp_len)) {
-				/* Get the latest change. */
-				u_stpcpy_len(g_statusbar[i], tmp, tmp_len);
-				statusbar_len[i] = tmp_len;
-				/* Mark change. */
-				g_statuschanged = 1;
-			}
-		}
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i]) - g_statusbar[i];
+	if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
+		DIE();
+}
+
+/* Run commands or functions according to their interval. */
+static void
+g_getcmds(unsigned int time)
+{
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
+		/* Check if needs update. */
+		if (g_blocks[i].interval == 0 || time % g_blocks[i].interval)
+			continue;
+		char tmp[sizeof(g_statusbar[0])];
+		/* Get the result of g_getcmd. */
+		const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp) - tmp;
+		/* Check if there has been change. */
+		if (tmp_len == g_statusbarlen[i] || !memcmp(tmp, g_statusbar[i], tmp_len))
+			continue;
+		/* Get the latest change. */
+		u_stpcpy_len(g_statusbar[i], tmp, tmp_len);
+		g_statusbarlen[i] = tmp_len;
+		/* Mark change. */
+		g_statuschanged = 1;
+	}
 }
 
 /* Same as g_getcmds but executed when receiving a signal. */
 static void
-g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
+g_getcmds_sig(unsigned int signal)
 {
-	for (unsigned int i = 0; i < blocks_len; ++i)
-		if (blocks[i].signal == signal)
-			g_statusbarlen[i] = g_getcmd(&blocks[i], g_statusbar[i]) - g_statusbar[i];
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		if (g_blocks[i].signal == signal)
+			g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i]) - g_statusbar[i];
 }
 
 static int
-g_sigaction(int signum, void (handler)(int))
+g_sigaction(int signum, void(handler)(int))
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
@@ -258,7 +272,7 @@ g_status_write_x11(const char *status, int status_len)
 static void
 g_status_write_stdout(char *status, int status_len)
 {
-	status[status_len] = '\n';
+	status[status_len++] = '\n';
 	ssize_t ret = write(STDOUT_FILENO, status, (unsigned int)status_len);
 	if (unlikely(ret != status_len))
 		DIE();
@@ -307,14 +321,16 @@ g_paths_sysfs_resolve()
 static g_ret_ty
 g_status_init()
 {
-	if (unlikely(g_init_signals() != G_RET_SUCC))
+	if (unlikely(g_paths_sysfs_resolve() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
 #ifdef USE_X11
 	if (unlikely(g_init_x11() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
 #endif
-	if (unlikely(g_paths_sysfs_resolve() != G_RET_SUCC))
+	g_getcmds_init();
+	if (unlikely(g_init_signals() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
+	sleep(1);
 	return G_RET_SUCC;
 }
 
@@ -342,10 +358,10 @@ g_sig_unblock()
 static g_ret_ty
 g_status_mainloop()
 {
-	for (unsigned int i = (unsigned int)-1;; ++i) {
+	for (unsigned int i = 0;; ++i) {
 		if (unlikely(g_sig_block() != 0))
 			DIE(return G_RET_ERR);
-		g_getcmds(i, g_blocks, LEN(g_blocks), g_statusbarlen);
+		g_getcmds(i);
 		if (g_statuschanged)
 			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
@@ -383,7 +399,7 @@ g_handler_sig_dummy(int signum)
 static void
 g_handler_sig(int signum)
 {
-	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
+	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS);
 	g_statuschanged = 1;
 }
 
@@ -402,8 +418,7 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	if (unlikely(g_status_init() != G_RET_SUCC))
-		DIE(return EXIT_FAILURE);
+	g_status_init();
 	if (unlikely(g_status_mainloop() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
 	g_status_cleanup();
