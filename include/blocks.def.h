@@ -119,7 +119,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	endif
 
 	/* Time */
-	{ 60,   0,          "⏰", b_write_time,              NULL },
+	{ 59,   0,          "⏰", b_write_time,              NULL },
 };
 
 /* clang-format on */
