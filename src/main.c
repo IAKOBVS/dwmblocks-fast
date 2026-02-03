@@ -57,7 +57,7 @@
 
 #define G_STATUS_PAD_LEFT " "
 /* Do not change. */
-#define UPDATE_INTERVAL   1
+#define UPDATE_INTERVAL 1
 
 typedef enum {
 	G_RET_SUCC = 0,
@@ -102,7 +102,6 @@ static char g_statusbar[LEN(g_blocks)][G_CMDLENGTH];
 static char g_statusstr[G_STATUSLEN];
 /* G_CMDLENGTH fits in an unsigned char. */
 static unsigned char g_statusbarlen[LEN(g_blocks)];
-static int g_statuscontinue = 1;
 static int g_statuschanged = 0;
 static sigset_t sigset_rt;
 static sigset_t sigset_old;
@@ -237,6 +236,28 @@ g_status_get(char *dst)
 	return end;
 }
 
+static ATTR_INLINE int
+g_sig_block()
+{
+	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
+}
+
+static ATTR_INLINE int
+g_sig_unblock()
+{
+	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
+}
+
+static ATTR_INLINE void
+g_sleep(unsigned int secs)
+{
+	if (unlikely(g_sig_unblock() != 0))
+		DIE();
+	sleep(secs);
+	if (unlikely(g_sig_block() != 0))
+		DIE();
+}
+
 #ifdef USE_X11
 static ATTR_INLINE int
 g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
@@ -330,7 +351,6 @@ g_status_init()
 	g_getcmds_init();
 	if (unlikely(g_init_signals() != G_RET_SUCC))
 		DIE(return G_RET_ERR);
-	sleep(1);
 	return G_RET_SUCC;
 }
 
@@ -342,37 +362,16 @@ g_status_cleanup()
 #endif
 }
 
-static ATTR_INLINE int
-g_sig_block()
-{
-	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
-}
-
-static ATTR_INLINE int
-g_sig_unblock()
-{
-	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
-}
-
 /* Main loop. */
 static g_ret_ty
 g_status_mainloop()
 {
 	for (unsigned int i = 0;; ++i) {
-		if (unlikely(g_sig_block() != 0))
-			DIE(return G_RET_ERR);
-		g_getcmds(i);
+		g_sleep(1);
+		g_getcmds(i++);
 		if (g_statuschanged)
 			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
-		if (unlikely(!g_statuscontinue))
-			break;
-#ifdef TEST
-		return G_RET_SUCC;
-#endif
-		if (unlikely(g_sig_unblock() != 0))
-			DIE(return G_RET_ERR);
-		sleep(1);
 	}
 	return G_RET_SUCC;
 }
@@ -406,7 +405,7 @@ g_handler_sig(int signum)
 static void
 g_handler_term(int signum)
 {
-	g_statuscontinue = 0;
+	_Exit(EXIT_FAILURE);
 	(void)signum;
 }
 
@@ -419,8 +418,10 @@ main(int argc, char **argv)
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
 	g_status_init();
+#ifndef TEST
 	if (unlikely(g_status_mainloop() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
+#endif
 	g_status_cleanup();
 	return EXIT_SUCCESS;
 }
