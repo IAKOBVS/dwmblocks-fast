@@ -67,24 +67,24 @@ typedef enum {
 } g_write_ty;
 
 #if HAVE_RT_SIGNALS
-void
+static void
 g_handler_sig_dummy(int num);
 #endif
-void
+static void
 g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len);
-void
+static void
 g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len);
-g_ret_ty
+static g_ret_ty
 g_init_signals();
-void
+static void
 g_handler_sig(int signum);
-char *
+static char *
 g_status_get(char *str);
-g_ret_ty
+static g_ret_ty
 g_status_write(char *status);
-g_ret_ty
+static g_ret_ty
 g_status_mainloop();
-void
+static void
 g_handler_term(int signum);
 #ifdef USE_X11
 static g_ret_ty
@@ -106,7 +106,7 @@ static sigset_t sigset_rt;
 static sigset_t sigset_old;
 
 /* Run command or execute C function. */
-char *
+static char *
 g_getcmd(g_block_ty *block, char *output)
 {
 	char *dst = output;
@@ -129,7 +129,7 @@ g_getcmd(g_block_ty *block, char *output)
 }
 
 /* Run commands or functions according to their interval. */
-void
+static void
 g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsigned char *statusbar_len)
 {
 	for (unsigned int i = 0; i < blocks_len; ++i)
@@ -149,7 +149,7 @@ g_getcmds(unsigned int time, g_block_ty *blocks, unsigned int blocks_len, unsign
 }
 
 /* Same as g_getcmds but executed when receiving a signal. */
-void
+static void
 g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
 {
 	for (unsigned int i = 0; i < blocks_len; ++i)
@@ -157,7 +157,7 @@ g_getcmds_sig(unsigned int signal, g_block_ty *blocks, unsigned int blocks_len)
 			g_statusbarlen[i] = g_getcmd(&blocks[i], g_statusbar[i]) - g_statusbar[i];
 }
 
-int
+static int
 g_sigaction(int signum, void (handler)(int))
 {
 	struct sigaction sa;
@@ -170,7 +170,7 @@ g_sigaction(int signum, void (handler)(int))
 	return sigaction(signum, &sa, NULL);
 }
 
-g_ret_ty
+static g_ret_ty
 g_init_signals()
 {
 	if (unlikely(sigemptyset(&sigset_rt)) == -1)
@@ -205,7 +205,7 @@ g_init_signals()
 }
 
 /* Construct the status string. */
-char *
+static char *
 g_status_get(char *dst)
 {
 	char *dst_s = dst;
@@ -231,7 +231,7 @@ g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 	return XChangeProperty(dpy, w, XA_WM_NAME, XA_STRING, 8, PropModeReplace, (_Xconst unsigned char *)name, len);
 }
 
-g_ret_ty
+static g_ret_ty
 g_init_x11()
 {
 	g_dpy = XOpenDisplay(NULL);
@@ -246,7 +246,7 @@ g_init_x11()
 #endif
 
 #ifdef USE_X11
-void
+static void
 g_status_write_x11(const char *status, int status_len)
 {
 	g_XStoreNameLen(g_dpy, g_win_root, status, status_len);
@@ -255,7 +255,7 @@ g_status_write_x11(const char *status, int status_len)
 }
 #endif
 
-void
+static void
 g_status_write_stdout(char *status, int status_len)
 {
 	status[status_len] = '\n';
@@ -265,7 +265,7 @@ g_status_write_stdout(char *status, int status_len)
 	g_statuschanged = 0;
 }
 
-g_ret_ty
+static g_ret_ty
 g_status_write(char *status)
 {
 	char *p = g_status_get(status);
@@ -339,7 +339,7 @@ g_sig_unblock()
 }
 
 /* Main loop. */
-g_ret_ty
+static g_ret_ty
 g_status_mainloop()
 {
 	for (unsigned int i = (unsigned int)-1;; ++i) {
@@ -363,7 +363,7 @@ g_status_mainloop()
 
 #ifdef HAVE_RT_SIGNALS
 /* Handle errors gracefully. */
-void
+static void
 g_handler_sig_dummy(int signum)
 {
 	char buf[S_LEN("dwmblocks-fast: sending unknown signal: ") + sizeof(size_t) * 8 + S_LEN("\n") + 1];
@@ -380,14 +380,14 @@ g_handler_sig_dummy(int signum)
 }
 #endif
 
-void
+static void
 g_handler_sig(int signum)
 {
 	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS, g_blocks, LEN(g_blocks));
 	g_statuschanged = 1;
 }
 
-void
+static void
 g_handler_term(int signum)
 {
 	g_statuscontinue = 0;
