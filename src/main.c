@@ -103,7 +103,7 @@ static unsigned char g_statusbarlen[LEN(g_blocks)];
 static int g_statuscontinue = 1;
 static int g_statuschanged = 0;
 static sigset_t sigset_rt;
-static sigset_t sigset_od;
+static sigset_t sigset_old;
 
 /* Run command or execute C function. */
 char *
@@ -318,7 +318,7 @@ g_status_mainloop()
 {
 	for (unsigned int i = (unsigned int)-1;; ++i) {
 		/* Block RT signals. */
-		if (unlikely(sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_od)) != 0)
+		if (unlikely(sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old)) != 0)
 			DIE(return G_RET_ERR);
 		g_getcmds(i, g_blocks, LEN(g_blocks), g_statusbarlen);
 		if (g_statuschanged)
@@ -330,7 +330,7 @@ g_status_mainloop()
 		return G_RET_SUCC;
 #endif
 		/* Unblock RT signals. */
-		if (unlikely(sigprocmask(SIG_SETMASK, &sigset_od, NULL)) != 0)
+		if (unlikely(sigprocmask(SIG_SETMASK, &sigset_old, NULL)) != 0)
 			DIE(return G_RET_ERR);
 		sleep(1);
 	}
