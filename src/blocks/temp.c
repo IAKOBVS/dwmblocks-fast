@@ -26,7 +26,7 @@
 char *
 b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file)
 {
-	int fd = open(temp_file, O_RDONLY);
+	const int fd = open(temp_file, O_RDONLY);
 	if (unlikely(fd == -1))
 		DIE(return dst);
 	/* Milidegrees = degrees * 1000 */

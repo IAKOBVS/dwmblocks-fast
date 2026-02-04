@@ -30,10 +30,10 @@ int
 b_read_cpu_usage()
 {
 	char buf[4096];
-	int fd = open("/proc/stat", O_RDONLY);
+	const int fd = open("/proc/stat", O_RDONLY);
 	if (unlikely(fd == -1))
 		DIE(return -1);
-	ssize_t read_sz = read(fd, buf, sizeof(buf));
+	const ssize_t read_sz = read(fd, buf, sizeof(buf));
 	if (unlikely(close(fd) == -1))
 		DIE(return -1);
 	if (unlikely(read_sz == -1))

@@ -25,7 +25,7 @@
 char *
 b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval)
 {
-	int fd = open(filename, O_RDONLY);
+	const int fd = open(filename, O_RDONLY);
 	if (unlikely(fd == -1))
 		DIE(return dst);
 	/* Milidegrees = degrees * 1000 */
@@ -34,7 +34,7 @@ b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int 
 		DIE(return dst);
 	if (unlikely(read_sz == -1))
 		DIE(return dst);
-	char *nl = memchr(dst, '\n', dst_len);
+	const char *nl = memchr(dst, '\n', dst_len);
 	if (nl)
 		read_sz = nl - dst;
 	*(dst + read_sz) = '\0';

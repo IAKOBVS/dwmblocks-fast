@@ -43,7 +43,7 @@ b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *pr
 int
 b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
-	int fd = open(pid_status_path, O_RDONLY);
+	const int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
 		if (unlikely(errno == ENOMEM))
 			DIE(return 0);
@@ -56,7 +56,7 @@ b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 #endif
 	char buf[PATH_MAX];
 	/* Read /proc/[pid]/status */
-	ssize_t read_sz = read(fd, buf, PATH_MAX);
+	const ssize_t read_sz = read(fd, buf, PATH_MAX);
 	if (unlikely(close(fd) == -1))
 		DIE(return 0);
 	if (unlikely(read_sz == -1))

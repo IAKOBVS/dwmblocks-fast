@@ -116,7 +116,7 @@ g_getcmd(g_block_ty *block, char *dst)
 		p = u_stpcpy(p, block->icon);
 		*p++ = ' ';
 	}
-	char *old = p;
+	const char *old = p;
 	/* Add result of command or C function. */
 	p = block->func(p, G_CMDLENGTH - (size_t)(p - dst) - DELIMLEN, block->command, &block->interval);
 	/* No result. Set length to zero. */
@@ -304,7 +304,7 @@ g_status_write_stdout(char *status, int status_len)
 static g_ret_ty
 g_status_write(char *status)
 {
-	char *end = g_status_get(status);
+	const char *end = g_status_get(status);
 	switch (g_write_dst) {
 #ifdef USE_X11
 	case G_WRITE_STATUSBAR:
@@ -325,7 +325,7 @@ g_paths_sysfs_resolve()
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (g_blocks[i].command) {
-			char *p = path_sysfs_resolve(g_blocks[i].command);
+			const char *p = path_sysfs_resolve(g_blocks[i].command);
 			if (unlikely(p == NULL))
 				DIE();
 			if (p != g_blocks[i].command) {

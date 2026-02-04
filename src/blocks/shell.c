@@ -31,14 +31,12 @@ b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 	FILE *fp = popen(cmd, "r");
 	if (unlikely(fp == NULL))
 		DIE(return dst);
-	int fd;
-	ssize_t read_sz;
-	fd = io_fileno(fp);
+	const int fd = io_fileno(fp);
 	if (unlikely(fd == -1)) {
 		pclose(fp);
 		DIE(return dst);
 	}
-	read_sz = read(fd, dst, dst_len);
+	const ssize_t read_sz = read(fd, dst, dst_len);
 	if (unlikely(pclose(fp) == -1))
 		DIE(return dst);
 	if (unlikely(read_sz == -1))
