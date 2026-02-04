@@ -151,7 +151,7 @@ g_getcmds(unsigned int time)
 			/* Get the result of g_getcmd. */
 			const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp) - tmp;
 			/* Check if there has been change. */
-			if (tmp_len != g_statusbarlen[i] && memcmp(tmp, g_statusbar[i], tmp_len)) {
+			if (tmp_len != g_statusbarlen[i] || memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
 				u_stpcpy_len(g_statusbar[i], tmp, tmp_len);
 				g_statusbarlen[i] = tmp_len;
