@@ -1,6 +1,6 @@
 # User files
-src/blocks.h
-src/config.h
+include/blocks.h
+include/config.h
 src/components.h
 bin/*
 tests/*-bin

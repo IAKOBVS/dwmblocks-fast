@@ -3,13 +3,13 @@ pkg_temp='coretemp'
 files=$(find /sys/devices/platform -type f -name 'name')
 for file in $files; do
 	if grep -qF "$pkg_temp" "$file"; then
-		echo "#define CPU_TEMP_FILE \"$file\"" | sed 's/name/temp1_input/'
+		echo "#define TEMP_FILE_CPU \"$file\"" | sed 's/name/temp1_input/'
 		exit
 	fi
 done
 echo "getcpufile: $pkg_temp not found. in $files!"
-echo 'Need to manually add CPU_TEMP_FILE macro to cpu.generated.h.'
+echo 'Need to manually add TEMP_FILE_CPU macro to cpu.generated.h.'
 echo 'If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class.'
 echo 'Example cpu.generated.h:'
-echo '#define CPU_TEMP_FILE "/path/to/cpu_temp'
+echo '#define TEMP_FILE_CPU "/path/to/cpu_temp'
 exit 1

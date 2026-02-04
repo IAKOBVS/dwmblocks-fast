@@ -93,8 +93,8 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	ifdef HAVE_PROCFS
 	/* format: [temp] [usage] */
 #ifdef HAVE_SYSFS
-	{ 2,    0,          "💻", b_write_cpu_all,           CPU_TEMP_FILE },
-	/* { 2,    0,          "💻", b_write_cpu_temp,          CPU_TEMP_FILE }, */
+	{ 2,    0,          "💻", b_write_cpu_all,           TEMP_FILE_CPU },
+	/* { 2,    0,          "💻", b_write_cpu_temp,          TEMP_FILE_CPU }, */
 #endif
 	/* { 2,    0,          "💻", b_write_cpu_usage,         NULL }, */
 #	endif
