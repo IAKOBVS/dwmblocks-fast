@@ -63,24 +63,24 @@ path_sysfs_resolve(const char *filename)
 	FILE *fp = popen(cmd, "r");
 	if (unlikely(fp == NULL))
 		return NULL;
-	char output[PATH_MAX + NAME_MAX];
+	char glob_pattern[PATH_MAX + NAME_MAX];
 	const int fd = fileno(fp);
 	if (unlikely(fd == -1)) {
 		pclose(fp);
 		return NULL;
 	}
-	ssize_t read_len = read(fd, output, sizeof(output) - 1);
+	ssize_t read_len = read(fd, glob_pattern, sizeof(glob_pattern) - 1);
 	if (unlikely(pclose(fp) == -1))
 		return NULL;
 	if (unlikely(read_len == -1))
 		return NULL;
-	if (*(output + read_len - 1) == '\n')
+	if (*(glob_pattern + read_len - 1) == '\n')
 		--read_len;
-	output[read_len] = '\0';
-	DBG(fprintf(stderr, "%s:%d:%s: output: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, output));
+	glob_pattern[read_len] = '\0';
+	DBG(fprintf(stderr, "%s:%d:%s: glob_pattern: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, glob_pattern));
 	glob_t g;
 	/* Expand the glob into the real file. */
-	int ret = glob(output, 0, NULL, &g);
+	int ret = glob(glob_pattern, 0, NULL, &g);
 	if (ret == 0) {
 		const size_t len = strlen(g.gl_pathv[0]);
 		char *heap = (char *)malloc(len + 1);
