@@ -69,12 +69,15 @@ path_sysfs_resolve(const char *filename)
 		pclose(fp);
 		return NULL;
 	}
-	if (unlikely(read(fd, output, sizeof(output) - 1) == -1)) {
-		pclose(fp);
-		return NULL;
-	}
+	ssize_t read_len = read(fd, output, sizeof(output) - 1);
 	if (unlikely(pclose(fp) == -1))
 		return NULL;
+	if (unlikely(read_len == -1))
+		return NULL;
+	if (*(output + read_len - 1) == '\n')
+		--read_len;
+	output[read_len] = '\0';
+	DBG(fprintf(stderr, "%s:%d:%s: output: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, output));
 	glob_t g;
 	/* Expand the glob into the real file. */
 	int ret = glob(output, 0, NULL, &g);
