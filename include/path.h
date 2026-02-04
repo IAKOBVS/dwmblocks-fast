@@ -57,7 +57,8 @@ path_sysfs_resolve(const char *filename)
 		return (char *)filename;
 	char cmd[PATH_MAX + PATH_MAX];
 	/* Convert the filename into a glob. */
-	if (unlikely(snprintf(cmd, sizeof(cmd), "echo '%s' | sed '%s'", filename, "s/\\(\\/sys\\/devices\\/.*\\)\\/\\([^/0-9]*\\)[0-9]\\{,1\\}\\/\\([^/]*\\)$/\\1\\/\\2[0-9]*\\/\\3/")) == -1)
+	const char *sed_cmd = "s/\\(\\/sys\\/devices.*\\)\\/\\([^/0-9]*\\)[0-9]*\\/\\([^/]*\\)$/\\1\\/\\2[0-9]*\\/\\3/";
+	if (unlikely(snprintf(cmd, sizeof(cmd), "echo '%s' | sed '%s'", filename, sed_cmd)) == -1)
 		return NULL;
 	DBG(fprintf(stderr, "%s:%d:%s: cmd: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, cmd));
 	FILE *fp = popen(cmd, "r");
