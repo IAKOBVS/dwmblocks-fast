@@ -179,8 +179,6 @@ g_sigaction(int signum, void(handler)(int))
 	sa.sa_handler = handler;
 	if (unlikely(sigfillset(&sa.sa_mask)) == -1)
 		return -1;
-	if (unlikely(sigfillset(&sa.sa_mask) == -1))
-		return -1;
 	return sigaction(signum, &sa, NULL);
 }
 
