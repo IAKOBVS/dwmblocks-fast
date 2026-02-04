@@ -61,24 +61,28 @@ path_sysfs_resolve(const char *filename)
 	/* Convert the filename into a glob. */
 	const char *pattern = "\\(\\/sys\\/devices.*\\)\\/\\([^/0-9]*\\)[0-9]*\\/\\([^/]*\\)$";
 	DBG(fprintf(stderr, "%s:%d:%s: pattern: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, pattern));
-	if (unlikely(regcomp(&r, pattern, 0)))
+	int ret = regcomp(&r, pattern, 0);
+	if (unlikely(ret))
 		return NULL;
-	int match = regexec(&r, filename, 4, rm, 0);
+	ret = regexec(&r, filename, 4, rm, 0);
 	regfree(&r);
-	if (unlikely(match != REG_NOERROR))
+	if (unlikely(ret != REG_NOERROR))
 		return NULL;
 	char glob_pattern[PATH_MAX + NAME_MAX];
 	char *glob_end = glob_pattern;
 	/* Construct the glob pattern. */
+	/* /sys/devices/.* */
 	glob_end = (char *)u_stpcpy_len(glob_end, filename + rm[1].rm_so, (size_t)(rm[1].rm_eo - rm[1].rm_so));
 	glob_end = (char *)u_stpcpy_len(glob_end, S_LITERAL("/"));
+	/* hwmon[0-9]* */
 	glob_end = (char *)u_stpcpy_len(glob_end, filename + rm[2].rm_so, (size_t)(rm[2].rm_eo - rm[2].rm_so));
 	glob_end = (char *)u_stpcpy_len(glob_end, S_LITERAL("[0-9]*/"));
+	/* tail */
 	glob_end = (char *)u_stpcpy_len(glob_end, filename + rm[3].rm_so, (size_t)(rm[3].rm_eo - rm[3].rm_so));
 	DBG(fprintf(stderr, "%s:%d:%s: glob_pattern: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, glob_pattern));
 	glob_t g;
 	/* Expand the glob into the real file. */
-	int ret = glob(glob_pattern, 0, NULL, &g);
+	ret = glob(glob_pattern, 0, NULL, &g);
 	if (ret == 0) {
 		const size_t len = strlen(g.gl_pathv[0]);
 		char *heap = (char *)malloc(len + 1);
