@@ -108,33 +108,34 @@ static sigset_t sigset_old;
 
 /* Run command or execute C function. */
 static char *
-g_getcmd(g_block_ty *block, char *output)
+g_getcmd(g_block_ty *block, char *dst)
 {
-	char *dst = output;
+	char *p = dst;
 	if (block->icon) {
 		/* Add icon. */
-		dst = u_stpcpy(dst, block->icon);
-		*dst++ = ' ';
+		p = u_stpcpy(p, block->icon);
+		*p++ = ' ';
 	}
-	char *old = dst;
+	char *old = p;
 	/* Add result of command or C function. */
-	dst = block->func(dst, G_CMDLENGTH - (dst - output), block->command, &block->interval);
+	p = block->func(p, G_CMDLENGTH - (size_t)(p - dst) - DELIMLEN, block->command, &block->interval);
 	/* No result. Set length to zero. */
-	if (dst == old) {
-		*output = '\0';
-		return output;
+	if (p == old) {
+		*dst = '\0';
+		return dst;
 	}
 	/* Add delimiter. */
-	dst = u_stpcpy_len(dst, DELIM, DELIMLEN);
-	return dst;
+	p = u_stpcpy_len(p, DELIM, DELIMLEN);
+	return p;
 }
 
 /* Run commands or functions according to their interval. */
 static void
 g_getcmds_init()
 {
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i]) - g_statusbar[i];
+	}
 	if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 		DIE();
 }
@@ -150,7 +151,7 @@ g_getcmds(unsigned int time)
 			/* Get the result of g_getcmd. */
 			const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp) - tmp;
 			/* Check if there has been change. */
-			if (tmp_len == g_statusbarlen[i] && memcmp(tmp, g_statusbar[i], tmp_len)) {
+			if (tmp_len != g_statusbarlen[i] && memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
 				u_stpcpy_len(g_statusbar[i], tmp, tmp_len);
 				g_statusbarlen[i] = tmp_len;
