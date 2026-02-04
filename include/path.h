@@ -53,53 +53,6 @@ path_sysfs_resolve(const char *filename)
 #		endif
 	};
 #	endif
-#	if 0
-	if (access(filename, F_OK) == 0)
-		return (char *)filename;
-	char platform[NAME_MAX];
-	char monitor_dir[NAME_MAX];
-	char monitor_subdir[NAME_MAX];
-	char tail[PATH_MAX];
-	/* %[^/]: match non slash. */
-	if (unlikely(sscanf(filename, "/sys/devices/platform/%[^/]/%[^/]/%[^/0-9]%*[0-9]/%s", platform, monitor_dir, monitor_subdir, tail) < 0))
-		return NULL;
-	char glob_pattern[PATH_MAX];
-	const char pat[] = "[0-9]*";
-	/* Construct the glob pattern. */
-	int len = snprintf(glob_pattern, sizeof(glob_pattern), "/sys/devices/platform/%s/%s/%s%s/%s", platform, monitor_dir, monitor_subdir, pat, tail);
-	if (unlikely(len < 0))
-		return NULL;
-	DBG(fprintf(stderr, "%s:%d:%s: platform: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, platform));
-	DBG(fprintf(stderr, "%s:%d:%s: monitor_dir: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, monitor_dir));
-	DBG(fprintf(stderr, "%s:%d:%s: monitor_subdir: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, monitor_subdir));
-	DBG(fprintf(stderr, "%s:%d:%s: tail: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, tail));
-	DBG(fprintf(stderr, "%s:%d:%s: glob_pattern: %s.\n", __FILE__, __LINE__, ASSERT_FUNC, glob_pattern));
-	glob_t g;
-	int ret = glob(glob_pattern, 0, NULL, &g);
-	/* Match */
-	if (ret == 0) {
-		if (access(g.gl_pathv[0], F_OK) == -1) {
-			globfree(&g);
-			return NULL;
-		}
-		len += strlen(g.gl_pathv[0] + len - S_LEN(pat));
-		char *tmp = (char *)malloc((size_t)len + 1);
-		if (unlikely(tmp == NULL)) {
-			globfree(&g);
-			return NULL;
-		}
-		memcpy(tmp, g.gl_pathv[0], (size_t)len);
-		*(tmp + len) = '\0';
-		DBG(fprintf(stderr, "%s:%d:%s: tmp (malloc'd): %s.\n", __FILE__, __LINE__, ASSERT_FUNC, tmp));
-		globfree(&g);
-		return tmp;
-	}
-	if (ret == GLOB_NOMATCH)
-		globfree(&g);
-	else
-		return NULL;
-	return NULL;
-#	else
 	if (access(filename, F_OK) == 0)
 		return (char *)filename;
 	char cmd[PATH_MAX + PATH_MAX];
@@ -137,7 +90,6 @@ path_sysfs_resolve(const char *filename)
 			globfree(&g);
 	}
 	return NULL;
-#	endif
 }
 
 #endif /* PATH_H */
