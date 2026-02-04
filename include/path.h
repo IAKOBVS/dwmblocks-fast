@@ -39,9 +39,7 @@
  *
  * Filename should start with /sys/devices/platform.
  *
- * Example filename: /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input
- * Example pattern: hwmon/hwmon and thermal/thermal_zone
- * Example pattern_glob: hwmon/hwmon[0-9]* and thermal/thermal_zone[0-9]* */
+ * Example filename: /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input */
 static char *
 path_sysfs_resolve(const char *filename)
 {
