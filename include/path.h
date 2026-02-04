@@ -79,9 +79,12 @@ path_sysfs_resolve(const char *filename)
 	/* Expand the glob into the real file. */
 	int ret = glob(output, 0, NULL, &g);
 	if (ret == 0) {
-		char *heap = strdup(g.gl_pathv[0]);
+		const size_t len = strlen(g.gl_pathv[0]);
+		char *heap = (char *)malloc(len + 1);
 		if (heap == NULL)
 			return NULL;
+		memcpy(heap, g.gl_pathv[0], len);
+		*(heap + len) = '\0';
 		globfree(&g);
 		DBG(fprintf(stderr, "%s:%d:%s: heap (malloc'd): %s.\n", __FILE__, __LINE__, ASSERT_FUNC, heap));
 		return heap;
