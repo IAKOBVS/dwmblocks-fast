@@ -16,37 +16,18 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <assert.h>
-#include <fcntl.h>
-#include <unistd.h>
+#ifndef B_WEBCAM_H
+#	define B_WEBCAM_H 1
 
-#include "../../include/macros.h"
-#include "../../include/utils.h"
-#include "../../include/config.h"
+#	include "../macros.h"
 
-/* ../../include/blocks/webcam.h */
+#	ifdef HAVE_PROCFS
 
-#ifdef HAVE_PROCFS
+/* ../src/blocks/webcam.c */
 
 char *
-b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	const int fd = open("/proc/modules", O_RDONLY);
-	if (unlikely(fd == -1))
-		DIE(return dst);
-	char buf[4096];
-	const ssize_t read_sz = read(fd, buf, sizeof(buf));
-	if (unlikely(close(fd) == -1))
-		DIE(return dst);
-	if (unlikely(read_sz == -1))
-		DIE(return dst);
-	buf[read_sz] = '\0';
-	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
-		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
-	return dst;
-	(void)dst_len;
-	(void)interval;
-	(void)unused;
-}
+b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif
+#	endif
+
+#endif /* B_WEBCAM_H */

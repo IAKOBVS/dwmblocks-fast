@@ -20,8 +20,8 @@
 #include <time.h>
 #include <assert.h>
 
-#include "../../include/macros.h"
-#include "../../include/utils.h"
+#include "../macros.h"
+#include "../utils.h"
 
 struct tm *
 b_read_time(void)

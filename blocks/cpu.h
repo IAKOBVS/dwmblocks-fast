@@ -16,29 +16,22 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <fcntl.h>
-#include <unistd.h>
-#include <string.h>
+#ifndef B_CPU_H
+#	define B_CPU_H 1
 
-#include "../../include/macros.h"
+#	include "../macros.h"
+
+#	ifdef HAVE_PROCFS
+
+/* ../src/blocks/cpu.c */
 
 char *
-b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval)
-{
-	const int fd = open(filename, O_RDONLY);
-	if (unlikely(fd == -1))
-		DIE(return dst);
-	/* Milidegrees = degrees * 1000 */
-	int read_sz = read(fd, dst, dst_len);
-	if (unlikely(close(fd) == -1))
-		DIE(return dst);
-	if (unlikely(read_sz == -1))
-		DIE(return dst);
-	const char *nl = memchr(dst, '\n', dst_len);
-	if (nl)
-		read_sz = nl - dst;
-	*(dst + read_sz) = '\0';
-	return dst + read_sz;
-	(void)dst_len;
-	(void)interval;
-}
+b_write_cpu_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval);
+char *
+b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_cpu_all(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval);
+
+#	endif /* HAVE_PROCFS */
+
+#endif /* B_CPU_H */

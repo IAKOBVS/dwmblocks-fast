@@ -24,8 +24,8 @@
 #include <errno.h>
 #include <limits.h>
 
-#include "../../include/macros.h"
-#include "../../include/utils.h"
+#include "../macros.h"
+#include "../utils.h"
 
 int
 b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)

@@ -16,16 +16,14 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_OBS_H
-#	define B_OBS_H 1
+#ifndef B_TIME_H
+#define B_TIME_H 1
 
-/* ../../src/blocks/obs.c */
+/* ../src/blocks/time.c */
 
 char *
-b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache);
+b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 char *
-b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif /* B_OBS_H */
+#endif /* B_TIME_H */

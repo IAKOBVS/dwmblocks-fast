@@ -16,43 +16,38 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <fcntl.h>
+#include <assert.h>
 #include <unistd.h>
+#include <string.h>
 
-#include "../../include/macros.h"
-#include "../../include/utils.h"
-#include "../../include/config.h"
+#include "../macros.h"
 
+#if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
+
+/* Execute shell script. */
 char *
-b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file)
+b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
 {
-	const int fd = open(temp_file, O_RDONLY);
-	if (unlikely(fd == -1))
+	FILE *fp = popen(cmd, "r");
+	if (unlikely(fp == NULL))
 		DIE(return dst);
-	/* Milidegrees = degrees * 1000 */
-	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"));
-	if (unlikely(close(fd) == -1))
+	const int fd = io_fileno(fp);
+	if (unlikely(fd == -1)) {
+		pclose(fp);
 		DIE(return dst);
-	if (unlikely(read_sz  == -1))
+	}
+	const ssize_t read_sz = read(fd, dst, dst_len);
+	if (unlikely(pclose(fp) == -1))
 		DIE(return dst);
-	/* Don't read the newline. */
-	if (*(dst + read_sz - 1) == '\n')
-		--read_sz;
-	/* Don't read the milidegrees. */
-	read_sz -= S_LEN("000");
-	*(dst + read_sz) = '\0';
-	return dst + read_sz;
-	(void)dst_len;
-}
-
-char *
-b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval)
-{
-	char *p = dst;
-	p = b_write_temp_internal(p, dst_len, temp_file);
-	if (unlikely(p == dst))
+	if (unlikely(read_sz == -1))
 		DIE(return dst);
-	return p;
-	(void)dst_len;
+	/* Chop newline. */
+	char *end = (char *)memchr(dst, '\n', (size_t)read_sz);
+	/* Nul-terminate newline or end of string. */
+	dst = end ? end : dst + read_sz;
+	*dst = '\0';
 	(void)interval;
+	return dst;
 }
+
+#endif

@@ -16,14 +16,24 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_TIME_H
-#define B_TIME_H 1
+#ifndef B_AUDIO_ALSA_H
+#	define B_AUDIO_ALSA_H 1
 
-/* ../../src/blocks/time.c */
+#	include "../config.h"
 
-char *
-b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+#	ifdef USE_ALSA
 
-#endif /* B_TIME_H */
+/* ../src/blocks/audio-alsa.c */
+
+int
+b_read_mic_vol(void);
+int
+b_read_speaker_vol(void);
+int
+b_read_mic_muted(void);
+int
+b_read_speaker_muted(void);
+
+#	endif /* USE_ALSA */
+
+#endif /* B_AUDIO_ALSA_H */

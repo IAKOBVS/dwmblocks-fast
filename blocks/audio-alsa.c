@@ -16,13 +16,13 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../../include/config.h"
+#include "../config.h"
 
 #ifdef USE_ALSA
 #	include <alsa/asoundlib.h>
 #	include <alsa/asoundef.h>
 
-#	include "../../include/macros.h"
+#	include "../macros.h"
 
 #	define B_AUDIO_ALSA_PLAYBACK 1
 #	define B_AUDIO_ALSA_CAPTURE  2

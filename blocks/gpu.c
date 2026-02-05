@@ -16,7 +16,7 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../../include/config.h"
+#include "../config.h"
 
 #ifdef USE_CUDA
 #	ifndef NVML_HEADER
@@ -27,8 +27,8 @@
 #	include <stdlib.h>
 #	include <assert.h>
 
-#	include "../../include/macros.h"
-#	include "../../include/utils.h"
+#	include "../macros.h"
+#	include "../utils.h"
 
 typedef struct {
 	unsigned int deviceCount;

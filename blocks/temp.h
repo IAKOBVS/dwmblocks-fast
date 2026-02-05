@@ -16,14 +16,22 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_PROCFS_H
-#	define B_PROCFS_H 1
+#ifndef B_TEMP_H
+#	define B_TEMP_H 1
 
-/* ../../src/blocks/procfs.c */
+#	include "../macros.h"
+
+#	ifdef HAVE_PROCFS
+
+/* ../src/blocks/temp.c */
 
 int
-b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);
-unsigned int
-b_read_proc_exist(const char *proc_name, unsigned int proc_name_len);
+b_read_temp(const char *temp_file);
+char *
+b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file);
+char *
+b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval);
 
-#endif /* B_PROCFS_H */
+#	endif /* HAVE_PROCFS */
+
+#endif /* B_TEMP_H */

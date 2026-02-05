@@ -19,7 +19,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 /* Must be at the top. */
-#include "../include/config.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -34,10 +34,10 @@
 #	include <X11/Xatom.h>
 #endif
 
-#include "../include/blocks.h"
-#include "../include/macros.h"
-#include "../include/utils.h"
-#include "../include/path.h"
+#include "blocks.h"
+#include "macros.h"
+#include "utils.h"
+#include "path.h"
 
 #if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
 #	define HAVE_RT_SIGNALS 1

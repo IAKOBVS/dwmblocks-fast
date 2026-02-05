@@ -16,50 +16,43 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../../include/config.h"
+#include <fcntl.h>
+#include <unistd.h>
 
-#ifdef USE_ALSA
-#	include "../../include/blocks/audio-alsa.h"
-#	include "../../include/utils.h"
-#	include "../../include/config.h"
-
-char *
-b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
-{
-	char *p = dst;
-	if (!b_read_speaker_muted()) {
-		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_SPEAKER_ON));
-	} else {
-		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_SPEAKER_OFF));
-	}
-	*p++ = ' ';
-	p = u_utoa_lt3_p((unsigned int)b_read_speaker_vol(), p);
-	return p;
-	(void)dst_len;
-	(void)unused;
-	(void)interval;
-}
+#include "../macros.h"
+#include "../utils.h"
+#include "../config.h"
 
 char *
-b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file)
 {
-	char *p = dst;
-	if (!b_read_mic_muted()) {
-		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_MIC_ON));
-	} else {
-		if (S_LEN(ICON_AUDIO_MIC_OFF) == 0)
-			return dst;
-		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_MIC_OFF));
-	}
-	int vol = b_read_mic_vol();
-	if (unlikely(vol == -1))
+	const int fd = open(temp_file, O_RDONLY);
+	if (unlikely(fd == -1))
 		DIE(return dst);
-	*p++ = ' ';
-	p = u_utoa_lt3_p((unsigned int)vol, p);
-	return p;
+	/* Milidegrees = degrees * 1000 */
+	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"));
+	if (unlikely(close(fd) == -1))
+		DIE(return dst);
+	if (unlikely(read_sz  == -1))
+		DIE(return dst);
+	/* Don't read the newline. */
+	if (*(dst + read_sz - 1) == '\n')
+		--read_sz;
+	/* Don't read the milidegrees. */
+	read_sz -= S_LEN("000");
+	*(dst + read_sz) = '\0';
+	return dst + read_sz;
 	(void)dst_len;
-	(void)unused;
-	(void)interval;
 }
 
-#endif
+char *
+b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval)
+{
+	char *p = dst;
+	p = b_write_temp_internal(p, dst_len, temp_file);
+	if (unlikely(p == dst))
+		DIE(return dst);
+	return p;
+	(void)dst_len;
+	(void)interval;
+}

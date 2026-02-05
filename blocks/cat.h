@@ -16,20 +16,12 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_AUDIO_H
-#	define B_AUDIO_H 1
+#ifndef B_CAT_H
+#	define B_CAT_H 1
 
-#	include "../config.h"
-
-#	if defined USE_ALSA
-
-/* ../../src/blocks/audio.c */
+/* ../src/blocks/cat.c */
 
 char *
-b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
-char *
-b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval);
 
-#	endif /* USE_ALSA */
-
-#endif /* B_AUDIO_H */
+#endif /* B_CAT_H */

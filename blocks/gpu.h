@@ -16,18 +16,24 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_WEBCAM_H
-#	define B_WEBCAM_H 1
+#ifndef B_GPU_H
+#	define B_GPU_H 1
 
-#	include "../macros.h"
+#	include "../config.h"
 
-#	ifdef HAVE_PROCFS
+#	ifdef USE_CUDA
 
-/* ../../src/blocks/webcam.c */
+/* ../src/blocks/gpu.c */
 
 char *
-b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_gpu_all(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#	endif
+#	endif /* USE_CUDA */
 
-#endif /* B_WEBCAM_H */
+#endif /* B_GPU_H */

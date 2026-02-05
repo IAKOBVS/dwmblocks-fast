@@ -16,18 +16,14 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_SHELL_H
-#	define B_SHELL_H 1
+#ifndef B_PROCFS_H
+#	define B_PROCFS_H 1
 
-#include "../macros.h"
+/* ../src/blocks/procfs.c */
 
-/* ../../src/blocks/shell.c */
+int
+b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);
+unsigned int
+b_read_proc_exist(const char *proc_name, unsigned int proc_name_len);
 
-#if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
-
-char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval);
-
-#endif
-
-#endif /* B_SHELL_H */
+#endif /* B_PROCFS_H */

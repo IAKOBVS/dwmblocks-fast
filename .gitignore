@@ -1,8 +1,7 @@
 # User files
 config.mk
-include/blocks.h
-include/config.h
-src/components.h
+blocks.h
+config.h
 bin/*
 tests/*-bin
 *.generated.h

@@ -16,24 +16,18 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_AUDIO_ALSA_H
-#	define B_AUDIO_ALSA_H 1
+#ifndef B_RAM_H
+#	define B_RAM_H 1
 
-#	include "../config.h"
+#	include "../macros.h"
 
-#	ifdef USE_ALSA
+/* ../src/blocks/ram.c */
 
-/* ../../src/blocks/audio-alsa.c */
+#	ifdef HAVE_SYSINFO
 
-int
-b_read_mic_vol(void);
-int
-b_read_speaker_vol(void);
-int
-b_read_mic_muted(void);
-int
-b_read_speaker_muted(void);
+char *
+b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#	endif /* USE_ALSA */
+#	endif
 
-#endif /* B_AUDIO_ALSA_H */
+#endif /* B_RAM_H */

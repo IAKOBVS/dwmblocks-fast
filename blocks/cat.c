@@ -16,38 +16,29 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <assert.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 
-#include "../../include/macros.h"
+#include "../macros.h"
 
-#if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
-
-/* Execute shell script. */
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
+b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval)
 {
-	FILE *fp = popen(cmd, "r");
-	if (unlikely(fp == NULL))
+	const int fd = open(filename, O_RDONLY);
+	if (unlikely(fd == -1))
 		DIE(return dst);
-	const int fd = io_fileno(fp);
-	if (unlikely(fd == -1)) {
-		pclose(fp);
-		DIE(return dst);
-	}
-	const ssize_t read_sz = read(fd, dst, dst_len);
-	if (unlikely(pclose(fp) == -1))
+	/* Milidegrees = degrees * 1000 */
+	int read_sz = read(fd, dst, dst_len);
+	if (unlikely(close(fd) == -1))
 		DIE(return dst);
 	if (unlikely(read_sz == -1))
 		DIE(return dst);
-	/* Chop newline. */
-	char *end = (char *)memchr(dst, '\n', (size_t)read_sz);
-	/* Nul-terminate newline or end of string. */
-	dst = end ? end : dst + read_sz;
-	*dst = '\0';
+	const char *nl = memchr(dst, '\n', dst_len);
+	if (nl)
+		read_sz = nl - dst;
+	*(dst + read_sz) = '\0';
+	return dst + read_sz;
+	(void)dst_len;
 	(void)interval;
-	return dst;
 }
-
-#endif

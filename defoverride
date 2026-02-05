@@ -1,3 +1,4 @@
 #!/bin/sh
-cp -f include/blocks.h include/blocks.def.h
-cp -f include/config.h include/config.def.h
+INCLUDE=.
+cp -f "$INCLUDE"/blocks.h "$INCLUDE"/blocks.def.h
+cp -f "$INCLUDE"/config.h "$INCLUDE"/config.def.h

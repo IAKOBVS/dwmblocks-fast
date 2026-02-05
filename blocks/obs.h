@@ -16,22 +16,16 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_TEMP_H
-#	define B_TEMP_H 1
+#ifndef B_OBS_H
+#	define B_OBS_H 1
 
-#	include "../macros.h"
+/* ../src/blocks/obs.c */
 
-#	ifdef HAVE_PROCFS
-
-/* ../../src/blocks/temp.c */
-
-int
-b_read_temp(const char *temp_file);
 char *
-b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file);
+b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache);
 char *
-b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval);
+b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+char *
+b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#	endif /* HAVE_PROCFS */
-
-#endif /* B_TEMP_H */
+#endif /* B_OBS_H */

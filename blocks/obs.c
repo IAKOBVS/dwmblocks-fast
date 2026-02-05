@@ -16,10 +16,10 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include "../../include/config.h"
-#include "../../include/blocks/procfs.h"
-#include "../../include/macros.h"
-#include "../../include/utils.h"
+#include "../config.h"
+#include "../blocks/procfs.h"
+#include "../macros.h"
+#include "../utils.h"
 
 unsigned int b_obs_recording_pid;
 unsigned int b_obs_open_pid;
