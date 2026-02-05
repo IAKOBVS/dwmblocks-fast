@@ -28,9 +28,9 @@ b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 {
 	char *p = dst;
 	if (!b_read_speaker_muted()) {
-		p = u_stpcpy_len(p, S_LITERAL(ICON_SPEAKER_UNMUTED));
+		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_SPEAKER_ON));
 	} else {
-		p = u_stpcpy_len(p, S_LITERAL(ICON_SPEAKER_MUTED));
+		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_SPEAKER_OFF));
 	}
 	*p++ = ' ';
 	p = u_utoa_lt3_p((unsigned int)b_read_speaker_vol(), p);
@@ -44,13 +44,16 @@ char *
 b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
+	if (!b_read_mic_muted()) {
+		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_MIC_ON));
+	} else {
+		if (S_LEN(ICON_AUDIO_MIC_OFF) == 0)
+			return dst;
+		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_MIC_OFF));
+	}
 	int vol = b_read_mic_vol();
 	if (unlikely(vol == -1))
 		DIE(return dst);
-	if (!b_read_mic_muted())
-		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_UNMUTED));
-	else
-		p = u_stpcpy_len(p, S_LITERAL(ICON_MIC_MUTED));
 	*p++ = ' ';
 	p = u_utoa_lt3_p((unsigned int)vol, p);
 	return p;

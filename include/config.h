@@ -35,16 +35,19 @@
 #	define USE_NVML_DEVICEGETTEMPERATUREV 1
 #	define NVML_HEADER                    "/opt/cuda/include/nvml.h"
 
-#	define ICON_WEBCAM_ON       "📸"
-#	define ICON_OBS_RECORDING   "🔴 Recording"
-#	define ICON_OBS_OPEN        "🎥 OBS"
-#	define ICON_SPEAKER_UNMUTED "🔉"
-#	define ICON_SPEAKER_MUTED   "🔇"
-#	define ICON_MIC_UNMUTED     "🎤"
-#	define ICON_MIC_MUTED       "🚫"
+#	define ICON_WEBCAM_ON         "📸"
+#	define ICON_WEBCAM_OFF        ""
+#	define ICON_OBS_RECORDING_ON  "🔴 Recording"
+#	define ICON_OBS_RECORDING_OFF ""
+#	define ICON_OBS_ON            "🎥 OBS"
+#	define ICON_OBS_OFF           ""
+#	define ICON_AUDIO_SPEAKER_ON  "🔉"
+#	define ICON_AUDIO_SPEAKER_OFF "🔇"
+#	define ICON_AUDIO_MIC_ON      "🎤"
+#	define ICON_AUDIO_MIC_OFF     "🚫"
 
 #	define INTERVAL_OBS_RECORDING 2
-#	define INTERVAL_OBS_OPEN      2
+#	define INTERVAL_OBS_ON        2
 
 /* These will be copied to each shell script in ./scripts as shell variables. */
 #	define SIG_AUDIO  1

@@ -21,14 +21,14 @@
 #include "../../include/macros.h"
 #include "../../include/utils.h"
 
-#define OBS_OPEN_INTERVAL   2
+#define OBS_ON_INTERVAL   2
 #define OBS_RECORD_INTERVAL 2
 
 unsigned int b_obs_recording_pid;
 unsigned int b_obs_open_pid;
 
 char *
-b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache)
+b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int *pid_cache, unsigned int proc_interval, const char *proc_icon_on, const char *proc_icon_off)
 {
 	/* Need to search /proc/[pid] for proc. */
 	if (*pid_cache == 0) {
@@ -41,8 +41,8 @@ b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 			/* OBS is closed. Stop checking. */
 			else
 				*interval = 0;
-			return dst;
 		}
+		dst = u_stpcpy(dst, proc_icon_off);
 	} else {
 		/* Construct path: /proc/[pid]/status. */
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
@@ -59,8 +59,8 @@ b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 			*interval = 0;
 			return dst;
 		}
+		dst = u_stpcpy(dst, proc_icon_on);
 	}
-	dst = u_stpcpy(dst, proc_icon);
 	*interval = proc_interval;
 	return dst;
 	(void)unused;
@@ -70,7 +70,7 @@ b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 char *
 b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), INTERVAL_OBS_OPEN, ICON_OBS_OPEN, &b_obs_open_pid);
+	return b_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs"), &b_obs_open_pid, INTERVAL_OBS_ON, ICON_OBS_ON, ICON_OBS_OFF);
 	(void)unused;
 	(void)dst_len;
 }
@@ -78,7 +78,7 @@ b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int
 char *
 b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), INTERVAL_OBS_RECORDING, ICON_OBS_RECORDING, &b_obs_recording_pid);
+	return b_write_obs(dst, dst_len, unused, interval, S_LITERAL("obs-ffmpeg-mux"), &b_obs_recording_pid, INTERVAL_OBS_RECORDING, ICON_OBS_RECORDING_ON, ICON_OBS_RECORDING_OFF);
 	(void)unused;
 	(void)dst_len;
 }
