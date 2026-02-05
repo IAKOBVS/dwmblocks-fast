@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_AUDIO_H
-#	define C_AUDIO_H 1
+#ifndef B_AUDIO_H
+#	define B_AUDIO_H 1
 
 #	include "../config.h"
 
@@ -32,4 +32,4 @@ b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 
 #	endif /* USE_ALSA */
 
-#endif /* C_AUDIO_H */
+#endif /* B_AUDIO_H */

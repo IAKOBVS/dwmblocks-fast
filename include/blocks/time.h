@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_TIME_H
-#define C_TIME_H 1
+#ifndef B_TIME_H
+#define B_TIME_H 1
 
 /* ../../src/blocks/time.c */
 
@@ -26,4 +26,4 @@ b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 char *
 b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif /* C_TIME_H */
+#endif /* B_TIME_H */

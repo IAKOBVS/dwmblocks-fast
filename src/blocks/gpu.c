@@ -42,9 +42,9 @@ typedef struct {
 b_gpu_ty b_gpu;
 
 typedef enum {
-	C_GPU_MON_TEMP = 0,
-	C_GPU_MON_USAGE,
-	C_GPU_MON_VRAM
+	B_GPU_MON_TEMP = 0,
+	B_GPU_MON_USAGE,
+	B_GPU_MON_VRAM
 } b_gpus_ty;
 
 void
@@ -144,15 +144,15 @@ b_write_gpus(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 		b_gpu_init();
 	unsigned int avg = 0;
 	switch (mon_type) {
-	case C_GPU_MON_TEMP:
+	case B_GPU_MON_TEMP:
 		for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
 			avg += b_gpu_read_temp(b_gpu.device[i], &b_gpu.temp[i]);
 		break;
-	case C_GPU_MON_USAGE:
+	case B_GPU_MON_USAGE:
 		for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
 			avg += b_gpu_read_usage(b_gpu.device[i], &b_gpu.utilization[i]);
 		break;
-	case C_GPU_MON_VRAM:
+	case B_GPU_MON_VRAM:
 		for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
 			avg += b_gpu_read_usage_vram(b_gpu.device[i], &b_gpu.memory[i]);
 		break;
@@ -170,19 +170,19 @@ b_write_gpus(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 char *
 b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_len, unused, interval, C_GPU_MON_TEMP);
+	return b_write_gpus(dst, dst_len, unused, interval, B_GPU_MON_TEMP);
 }
 
 char *
 b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_len, unused, interval, C_GPU_MON_USAGE);
+	return b_write_gpus(dst, dst_len, unused, interval, B_GPU_MON_USAGE);
 }
 
 char *
 b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_len, unused, interval, C_GPU_MON_VRAM);
+	return b_write_gpus(dst, dst_len, unused, interval, B_GPU_MON_VRAM);
 }
 
 #endif

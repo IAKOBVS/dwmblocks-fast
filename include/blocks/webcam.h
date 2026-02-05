@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_WEBCAM_H
-#	define C_WEBCAM_H 1
+#ifndef B_WEBCAM_H
+#	define B_WEBCAM_H 1
 
 #	include "../macros.h"
 
@@ -30,4 +30,4 @@ b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned 
 
 #	endif
 
-#endif /* C_WEBCAM_H */
+#endif /* B_WEBCAM_H */

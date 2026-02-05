@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_RAM_H
-#	define C_RAM_H 1
+#ifndef B_RAM_H
+#	define B_RAM_H 1
 
 #	include "../macros.h"
 
@@ -30,4 +30,4 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 
 #	endif
 
-#endif /* C_RAM_H */
+#endif /* B_RAM_H */

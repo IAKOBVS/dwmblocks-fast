@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_TEMP_H
-#	define C_TEMP_H 1
+#ifndef B_TEMP_H
+#	define B_TEMP_H 1
 
 #	include "../macros.h"
 
@@ -34,4 +34,4 @@ b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned in
 
 #	endif /* HAVE_PROCFS */
 
-#endif /* C_TEMP_H */
+#endif /* B_TEMP_H */

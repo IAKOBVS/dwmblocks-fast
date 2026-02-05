@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_PROCFS_H
-#	define C_PROCFS_H 1
+#ifndef B_PROCFS_H
+#	define B_PROCFS_H 1
 
 /* ../../src/blocks/procfs.c */
 
@@ -26,4 +26,4 @@ b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 unsigned int
 b_read_proc_exist(const char *proc_name, unsigned int proc_name_len);
 
-#endif /* C_PROCFS_H */
+#endif /* B_PROCFS_H */

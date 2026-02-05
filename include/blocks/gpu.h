@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_GPU_H
-#	define C_GPU_H 1
+#ifndef B_GPU_H
+#	define B_GPU_H 1
 
 #	include "../config.h"
 
@@ -36,4 +36,4 @@ b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned i
 
 #	endif /* USE_CUDA */
 
-#endif /* C_GPU_H */
+#endif /* B_GPU_H */

@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_CPU_H
-#	define C_CPU_H 1
+#ifndef B_CPU_H
+#	define B_CPU_H 1
 
 #	include "../macros.h"
 
@@ -34,4 +34,4 @@ b_write_cpu_all(char *dst, unsigned int dst_len, const char *temp_file, unsigned
 
 #	endif /* HAVE_PROCFS */
 
-#endif /* C_CPU_H */
+#endif /* B_CPU_H */

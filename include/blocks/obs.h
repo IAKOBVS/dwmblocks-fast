@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_OBS_H
-#	define C_OBS_H 1
+#ifndef B_OBS_H
+#	define B_OBS_H 1
 
 /* ../../src/blocks/obs.c */
 
@@ -28,4 +28,4 @@ b_write_obs_on(char *dst, unsigned int dst_len, const char *unused, unsigned int
 char *
 b_write_obs_recording(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
 
-#endif /* C_OBS_H */
+#endif /* B_OBS_H */

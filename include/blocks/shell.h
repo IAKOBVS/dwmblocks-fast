@@ -16,8 +16,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_SHELL_H
-#	define C_SHELL_H 1
+#ifndef B_SHELL_H
+#	define B_SHELL_H 1
 
 #include "../macros.h"
 
@@ -30,4 +30,4 @@ b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 
 #endif
 
-#endif /* C_SHELL_H */
+#endif /* B_SHELL_H */

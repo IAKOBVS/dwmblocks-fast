@@ -16,12 +16,12 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef C_CAT_H
-#	define C_CAT_H 1
+#ifndef B_CAT_H
+#	define B_CAT_H 1
 
 /* ../../src/blocks/cat.c */
 
 char *
 b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval);
 
-#endif /* C_CAT_H */
+#endif /* B_CAT_H */
