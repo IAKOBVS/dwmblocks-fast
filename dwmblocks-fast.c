@@ -272,14 +272,15 @@ g_status_write_x11(const char *status, int status_len)
 }
 #endif
 
-static void
+static g_ret_ty
 g_status_write_stdout(char *status, int status_len)
 {
 	status[status_len++] = '\n';
 	ssize_t ret = write(STDOUT_FILENO, status, (unsigned int)status_len);
 	if (unlikely(ret != status_len))
-		DIE();
+		DIE(return G_RET_ERR);
 	g_statuschanged = 0;
+	return G_RET_SUCC;
 }
 
 static g_ret_ty
@@ -293,7 +294,8 @@ g_status_write(char *status)
 		break;
 #endif
 	case G_WRITE_STDOUT:
-		g_status_write_stdout(status, end - status);
+		if (unlikely(g_status_write_stdout(status, end - status) == G_RET_ERR))
+			return G_RET_ERR;
 		break;
 	}
 	return G_RET_SUCC;
