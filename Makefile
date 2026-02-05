@@ -31,7 +31,8 @@ SRC = .
 BIN = bin
 HFILES = src/*.h
 SCRIPTSBASE = dwmblocks-fast-*
-PROG = $(BIN)/dwmblocks-fast
+PROG = dwmblocks-fast
+PROG_BIN = $(BIN)/dwmblocks-fast
 SCRIPTS = $(BIN)/$(SCRIPTSBASE)
 INCLUDE = .
 CONFIG = $(INCLUDE)/config.h
@@ -66,25 +67,25 @@ REQ_H =\
 	$(INCLUDE)/path.h
 
 # Targets
-all: options $(PROG) $(SCRIPTS)
+all: options $(PROG_BIN) $(SCRIPTS)
 
-check: $(PROG) $(SRC)/test.o
+check: $(PROG_BIN) $(SRC)/test.o
 	mkdir -p $(BIN)
 	$(CC) -o tests/test-run-bin $(CFLAGS) -g -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm $(SRC)/test.o
 
 clean:
-	rm -f $(PROG) $(SCRIPTS) $(OBJS) $(SRC)/*.o
+	rm -f $(PROG_BIN) $(SCRIPTS) $(OBJS) $(SRC)/*.o
 
-install: $(PROG) $(SCRIPTS)
-	strip $(PROG)
+install: $(PROG_BIN) $(SCRIPTS)
+	strip $(PROG_BIN)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
 
 uninstall: 
-	rm -f $(DESTDIR)$(PREFIX)/$(PROG) $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
+	rm -f $(DESTDIR)$(PREFIX)/$(PROG_BIN) $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
 
 options:
 	@echo dwmblocks-fast build options:
@@ -135,14 +136,14 @@ disable-alsa: $(config) config.mk
 .c.o:
 	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
 
-$(SRC)/test.o: $(PROG)
-	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) $(SRC)/main.c
+$(SRC)/test.o: $(PROG_BIN)
+	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).c
 
-$(PROG): $(CFGS) $(SRC)/main.o $(OBJS) $(REQ) $(REQ_H)
+$(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 	mkdir -p $(BIN)
-	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/main.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(LDFLAGS)
 
-$(OBJS) $(SRC)/main.o $(SRC)/test.o: $(REQ) $(REQ_H)
+$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
