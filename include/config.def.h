@@ -37,17 +37,21 @@
 
 #	define ICON_WEBCAM_ON         "📸"
 #	define ICON_WEBCAM_OFF        ""
+
 #	define ICON_OBS_RECORDING_ON  "🔴 Recording"
 #	define ICON_OBS_RECORDING_OFF ""
+
 #	define ICON_OBS_ON            "🎥 OBS"
 #	define ICON_OBS_OFF           ""
-#	define ICON_AUDIO_SPEAKER_ON  "🔉"
-#	define ICON_AUDIO_SPEAKER_OFF "🔇"
-#	define ICON_AUDIO_MIC_ON      "🎤"
-#	define ICON_AUDIO_MIC_OFF     "🚫"
 
 #	define INTERVAL_OBS_RECORDING 2
 #	define INTERVAL_OBS_ON        2
+
+#	define ICON_AUDIO_SPEAKER_ON  "🔉"
+#	define ICON_AUDIO_SPEAKER_OFF "🔇"
+
+#	define ICON_AUDIO_MIC_ON      "🎤"
+#	define ICON_AUDIO_MIC_OFF     "🚫"
 
 /* These will be copied to each shell script in ./scripts as shell variables. */
 #	define SIG_AUDIO  1
