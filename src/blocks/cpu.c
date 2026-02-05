@@ -68,7 +68,6 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	if (unlikely(usage == -1))
 		DIE(return dst);
 	p = u_utoa_lt3_p((unsigned int)usage, p);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
@@ -79,23 +78,4 @@ char *
 b_write_cpu_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval)
 {
 	return b_write_temp(dst, dst_len, temp_file, interval);
-}
-
-char *
-b_write_cpu_all(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval)
-{
-	char *p = dst;
-	const int usage = b_read_cpu_usage();
-	if (unlikely(usage == -1))
-		DIE(return dst);
-	p = b_write_temp_internal(p, dst_len, temp_file);
-	if (unlikely(p == dst))
-		DIE(return dst);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
-	*p++ = ' ';
-	p = u_utoa_lt3_p((unsigned int)usage, p);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
-	return p;
-	(void)dst_len;
-	(void)interval;
 }

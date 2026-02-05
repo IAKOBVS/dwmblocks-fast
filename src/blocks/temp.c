@@ -52,7 +52,6 @@ b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned in
 	p = b_write_temp_internal(p, dst_len, temp_file);
 	if (unlikely(p == dst))
 		DIE(return dst);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_TEMP));
 	return p;
 	(void)dst_len;
 	(void)interval;

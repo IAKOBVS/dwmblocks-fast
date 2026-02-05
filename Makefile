@@ -100,7 +100,7 @@ all: options $(PROG) $(SCRIPTS)
 
 check: $(PROG) $(SRC)/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/test-run-bin $(CFLAGS) -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/test-run-bin $(CFLAGS) -g -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm $(SRC)/test.o
 

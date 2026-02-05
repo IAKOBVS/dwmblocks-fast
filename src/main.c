@@ -53,9 +53,10 @@
 
 #define LEN(X)      (sizeof(X) / sizeof(X[0]))
 #define G_CMDLENGTH 64
-#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + LEN(g_blocks) * G_CMDLENGTH + 1)
+#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + LEN(g_blocks) * G_CMDLENGTH + + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
 #define G_STATUS_PAD_LEFT " "
+#define G_STATUS_PAD_RIGHT " "
 /* Do not change. */
 #define UPDATE_INTERVAL 1
 
@@ -108,34 +109,18 @@ static sigset_t sigset_old;
 
 /* Run command or execute C function. */
 static char *
-g_getcmd(g_block_ty *block, char *dst)
+g_getcmd(g_block_ty *block, char *dst, unsigned int dst_len)
 {
-	char *p = dst;
-	if (block->icon) {
-		/* Add icon. */
-		p = u_stpcpy(p, block->icon);
-		*p++ = ' ';
-	}
-	const char *old = p;
 	/* Add result of command or C function. */
-	p = block->func(p, G_CMDLENGTH - (size_t)(p - dst) - DELIMLEN, block->command, &block->interval);
-	/* No result. Set length to zero. */
-	if (p == old) {
-		*dst = '\0';
-		return dst;
-	}
-	/* Add delimiter. */
-	p = u_stpcpy_len(p, DELIM, DELIMLEN);
-	return p;
+	return block->func(dst, dst_len, block->command, &block->interval);
 }
 
 /* Run commands or functions according to their interval. */
 static void
 g_getcmds_init()
 {
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i]) - g_statusbar[i];
-	}
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i], sizeof(g_statusbar[0])) - g_statusbar[i];
 	if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
 		DIE();
 }
@@ -149,7 +134,7 @@ g_getcmds(unsigned int time)
 		if (g_blocks[i].interval != 0 && time % g_blocks[i].interval == 0) {
 			char tmp[sizeof(g_statusbar[0])];
 			/* Get the result of g_getcmd. */
-			const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp) - tmp;
+			const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp, sizeof(g_statusbar[0])) - tmp;
 			/* Check if there has been change. */
 			if (tmp_len != g_statusbarlen[i] || memcmp(tmp, g_statusbar[i], tmp_len)) {
 				/* Get the latest change. */
@@ -168,7 +153,7 @@ g_getcmds_sig(unsigned int signal)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (g_blocks[i].signal == signal)
-			g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i]) - g_statusbar[i];
+			g_statusbarlen[i] = g_getcmd(&g_blocks[i], g_statusbar[i], sizeof(g_statusbar[0])) - g_statusbar[i];
 }
 
 static int
@@ -220,18 +205,16 @@ g_init_signals()
 static char *
 g_status_get(char *dst)
 {
-	char *dst_s = dst;
-	/* Cosmetic: start with a space. */
-	dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_LEFT));
 	char *end = dst;
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		end = u_stpcpy_len(end, g_statusbar[i], g_statusbarlen[i]);
-	/* Chop last delim, if bar is not empty. */
-	if (likely(end != dst))
-		end -= DELIMLEN;
-	else
-		end = dst_s;
-	*end = '\0';
+	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_LEFT));
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
+		if (g_statusbarlen[i]) {
+			end = u_stpcpy(end, g_blocks[i].pad_left);
+			end = u_stpcpy_len(end, g_statusbar[i], g_statusbarlen[i]);
+			end = u_stpcpy(end, g_blocks[i].pad_right);
+		}
+	}
+	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_RIGHT));
 	return end;
 }
 

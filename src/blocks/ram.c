@@ -41,8 +41,6 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	if (unlikely(usage == -1))
 		DIE(return dst);
 	char *p = dst;
-	p = u_utoa_lt3_p((unsigned int)usage, p);
-	p = u_stpcpy_len(p, S_LITERAL(UNIT_USAGE));
 	return p;
 	(void)dst_len;
 	(void)unused;
