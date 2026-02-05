@@ -51,7 +51,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* To use a shell script, set func to b_write_shell and command to the shell script.
 	 * To use a C function, set command to NULL.
 	 *
-	 * Update_interval    Signal    Icon    Function    Command/File */
+	 * format: pad_left + %s + pad_right */
 
 	/* Webcam */
 #	ifdef HAVE_PROCFS
