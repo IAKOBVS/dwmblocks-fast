@@ -17,7 +17,7 @@ $ cd dwmblocks-fast-git
 $ makepkg --nobuild --nodeps
 ```
 Folow the additional instructions from makepkg.
-Optionally, manually [configure](#manual) config.h, blocks.h, and the Makefile.
+Optionally, manually [configure](#manual) config.h, blocks.h, and config.mk.
 ```
 $ cd src/dwmblocks-fast/src
 ```
@@ -41,7 +41,7 @@ Follow the additional instructions from make.
 ```
 $ cd src
 ```
-Optionally, manually [configure](#manual) config.h, blocks.h, and the Makefile.
+Optionally, manually [configure](#manual) config.h, blocks.h, and config.mk.
 ```
 $ cd ..
 $ sudo make install
@@ -132,7 +132,7 @@ pkill -RTMIN+"$SIG_SH" dwmblocks-fast
 
 # Configuration
 To enable or disable certain features or libraries, comment them out in the config.h
-and the Makefile. For example, to disable NVML:
+and config.mk. For example, to disable NVML:
 ## Automatic
 Some features can be configured automatically with make (which is useful for automation).
 ```
@@ -148,7 +148,7 @@ $ make disable-cuda
 # NVMLLIB = /opt/cuda/lib64
 # LDFLAGS += -L$(NVMLLIB) -lnvidia-ml
 ```
-### Makefile
+### config.mk
 ```
 # NVML (comment to disable)
 # NVMLLIB = /opt/cuda/lib64
