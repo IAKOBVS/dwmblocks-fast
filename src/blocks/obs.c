@@ -34,6 +34,8 @@ b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 	if (*pid_cache == 0) {
 		/* Cache the pid to avoid searching for next calls. */
 		*pid_cache = b_read_proc_exist(proc_name, proc_name_len);
+		if (unlikely(*pid_cache == (unsigned int)-1))
+			DIE();
 		if (*pid_cache == 0) {
 			/* OBS is not recording, but still on. Keep checking. */
 			if (pid_cache == &b_obs_recording_pid && b_obs_open_pid)
@@ -54,10 +56,13 @@ b_write_obs(char *dst, unsigned int dst_len, const char *unused, unsigned int *i
 		/* /proc/[pid]/status */
 		fnamep = u_stpcpy_len(fnamep, S_LITERAL("/status"));
 		(void)fnamep;
-		if (!b_read_proc_exist_at(proc_name, proc_name_len, fname)) {
+		int ret = b_read_proc_exist_at(proc_name, proc_name_len, fname);
+		if (ret == 0) {
 			*pid_cache = 0;
 			*interval = 0;
 			return dst;
+		} else if (unlikely(ret == -1)) {
+			DIE(return dst);
 		}
 		dst = u_stpcpy(dst, proc_icon_on);
 	}

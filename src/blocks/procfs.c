@@ -46,7 +46,7 @@ b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 	const int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
 		if (unlikely(errno == ENOMEM))
-			DIE(return 0);
+			DIE(return -1);
 		return 0;
 	}
 #if !defined PATH_MAX
@@ -58,9 +58,9 @@ b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const ch
 	/* Read /proc/[pid]/status */
 	const ssize_t read_sz = read(fd, buf, PATH_MAX);
 	if (unlikely(close(fd) == -1))
-		DIE(return 0);
+		DIE(return -1);
 	if (unlikely(read_sz == -1))
-		DIE(return 0);
+		DIE(return -1);
 	buf[read_sz] = '\0';
 	return b_proc_name_match(buf, read_sz, proc_name, proc_name_len);
 }
@@ -73,8 +73,9 @@ b_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 	/* Open /proc/ */
 	DIR *dp = opendir("/proc/");
 	if (unlikely(dp == NULL))
-		DIE(return 0);
+		DIE(return (unsigned int)-1);
 	struct dirent *ep;
+	errno = 0;
 	while ((ep = readdir(dp))) {
 		/* Enter /proc/[pid] */
 		if (*(ep->d_name) == '.' || !u_isdigit(*(ep->d_name)))
@@ -85,7 +86,9 @@ b_read_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		if (b_read_proc_exist_at(proc_name, proc_name_len, fname))
 			return (unsigned int)atoi(ep->d_name);
 	}
+	if (unlikely(errno == EBADF))
+		DIE(return (unsigned int)-1);
 	if (unlikely(closedir(dp) == -1))
-		DIE(return 0);
+		DIE(return (unsigned int)-1);
 	return 0;
 }
