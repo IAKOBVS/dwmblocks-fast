@@ -64,7 +64,7 @@ dwmblocks-fast &
 ```
 ## .xinitrc (pipewire-alsa)
 For Pipewire, since the program depends on alsa-lib for audio,
-Pipewire needs to be already running before dwmblocks-fast.
+it needs to be already running before the program.
 Otherwise, the program will fail when it tries to call
 alsa-lib functions.
 ```
