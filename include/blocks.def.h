@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: ISC */
-/* Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
- * This file is part of dwmblocks-fast.
+/* Copyright 2020 torrinfail
+ * Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail dot com>
+ * This file is part of dwmblocks-fast, derived from dwmblocks with modifications.
  *
  * Permission to use, copy, modify, and/or distribute this software
  * for any purpose with or without fee is hereby granted, provided that
