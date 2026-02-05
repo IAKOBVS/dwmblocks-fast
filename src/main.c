@@ -53,7 +53,7 @@
 
 #define LEN(X)      (sizeof(X) / sizeof(X[0]))
 #define G_CMDLENGTH 64
-#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + LEN(g_blocks) * G_CMDLENGTH + + S_LEN(G_STATUS_PAD_RIGHT) + 1)
+#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_CMDLENGTH) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
 #define G_STATUS_PAD_LEFT " "
 #define G_STATUS_PAD_RIGHT " "
