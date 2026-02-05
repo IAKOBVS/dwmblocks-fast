@@ -42,8 +42,6 @@ typedef struct {
 	const char *pad_right;
 } g_block_ty;
 
-#	define TEMP_FILE_SSD "/sys/devices/pci0000:00/0000:00:1b.0/0000:02:00.0/nvme/nvme0/hwmon0/temp1_input"
-
 /* clang-format off */
 
 	/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
@@ -87,7 +85,6 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* Temp file */
 #	ifdef HAVE_SYSFS
 	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
-	{ .func = b_write_temp,              .command = TEMP_FILE_SSD, .pad_left = "💾 ", .pad_right = "° | ", .interval = 4,    .signal = 0          },
 	/* { .func = b_write_temp, .command = "/path/to/temp ", .pad_left = "my_temp: ", .pad_right = "° | ", .interval = 2, .signal = 0 }, */
 #	endif
 

@@ -19,36 +19,9 @@
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .POSIX:
 
-################################################################################
-# User configuration
-################################################################################
+include config.mk
 
-# Compile only for this architecture (comment to disable)
-CFLAGS_OPTIMIZE += -march=native
-
-# Link-time optimizations (comment to disable)
-LDFLAGS_OPTIMIZE += -flto
-
-# X11 (comment to disable)
-LDFLAGS_X11 += -lX11
-
-# Alsa (comment to disable)
-LDFLAGS_ALSA += -lasound
-
-# NVML (comment to disable)
-LIB_NVML = /opt/cuda/lib64
-LDFLAGS_CUDA += -L$(LIB_NVML) -lnvidia-ml
-
-# # FreeBSD (uncomment)
-# LDFLAGS_FREEBSD += -L/usr/local/lib -I/usr/local/include
-
-# # OpenBSD (uncomment)
-# LDFLAGS_OPENBSD += -L/usr/X11R6/lib -I/usr/X11R6/include
-
-################################################################################
 # Variables
-################################################################################
-
 CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
 LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
@@ -92,10 +65,7 @@ REQ_H =\
 	$(INCLUDE)/blocks.h\
 	$(INCLUDE)/path.h
 
-################################################################################
 # Targets
-################################################################################
-
 all: options $(PROG) $(SCRIPTS)
 
 check: $(PROG) $(SRC)/test.o
@@ -134,38 +104,33 @@ config: $(CFGS)
 	@echo 'For example, to disable CUDA, run:'
 	@echo 'make disable-cuda'
 
-################################################################################
 # Configuration scripts
-################################################################################
-
-# Comment out parts of the config.h and the Makefile
-disable-cuda: $(config) $(disable-nvml)
+disable-cuda: $(config) config.mk
+	@# Comment out parts of the config.h and the config.mk
 	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	# # Comment out USE_CUDA line
-	@sed 's/\(^#.*define.*USE_CUDA.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@# Comment out USE_CUDA line
+	@sed 's/\(^#.*define.*USE_CUDA.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
 	@rm $(INCLUDE)/config.h.bak
-	@cp Makefile Makefile.bak
-	# # Comment out LDFLAGS_CUDA line
-	@sed 's/^\(LDFLAGS_CUDA\)/# \1/' Makefile.bak > Makefile
-	@rm Makefile.bak
+	@cp config.mk config.mk.bak
+	@# Comment out LDFLAGS_CUDA line
+	@sed 's/^\(LDFLAGS_CUDA\)/# \1/' config.mk.bak > config.mk
+	@rm config.mk.bak
 
-disable-x11: $(config)
+disable-x11: $(config) config.mk
 	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	@sed 's/\(^#.*define.*USE_X11.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@sed 's/\(^#.*define.*USE_X11.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
 	@rm $(INCLUDE)/config.h.bak
-	@cp Makefile Makefile.bak
-	@sed 's/^\(LDFLAGS_X11.*\)/# \1/' Makefile.bak > Makefile
-	@rm Makefile.bak
+	@cp config.mk config.mk.bak
+	@sed 's/^\(LDFLAGS_X11.*\)/# \1/' config.mk.bak > config.mk
+	@rm config.mk.bak
 
-disable-alsa: $(config)
+disable-alsa: $(config) config.mk
 	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/*\1*\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
 	@rm $(INCLUDE)/config.h.bak
-	@cp Makefile Makefile.bak
-	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' Makefile.bak > Makefile
-	@rm Makefile.bak
-
-################################################################################
+	@cp config.mk config.mk.bak
+	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' config.mk.bak > config.mk
+	@rm config.mk.bak
 
 .c.o:
 	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
@@ -187,6 +152,9 @@ $(CONFIG):
 
 $(BLOCKS):
 	cp $(BLOCKS_DEF) $@
+
+config.mk:
+	cp config.def.mk $@
 
 $(CPU_TEMP_GENERATED):
 	./getcpufile > $@

@@ -1,4 +1,5 @@
 # User files
+config.mk
 include/blocks.h
 include/config.h
 src/components.h
