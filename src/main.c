@@ -55,10 +55,10 @@
 #define G_CMDLENGTH 64
 #define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_CMDLENGTH) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
-#define G_STATUS_PAD_LEFT " "
+#define G_STATUS_PAD_LEFT  " "
 #define G_STATUS_PAD_RIGHT " "
 /* Do not change. */
-#define UPDATE_INTERVAL 1
+#define INTERVAL_UPDATE 1
 
 typedef enum {
 	G_RET_SUCC = 0,
@@ -350,7 +350,7 @@ g_status_mainloop()
 {
 	unsigned int i = 0;
 	for (;;) {
-		g_sleep(1);
+		g_sleep(INTERVAL_UPDATE);
 		g_getcmds(i++);
 		if (g_statuschanged)
 			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
