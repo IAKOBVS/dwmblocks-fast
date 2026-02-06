@@ -402,7 +402,8 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	g_status_init();
+	if (unlikely(g_status_init()))
+		DIE(return EXIT_FAILURE);
 #ifndef TEST
 	if (unlikely(g_status_mainloop() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
