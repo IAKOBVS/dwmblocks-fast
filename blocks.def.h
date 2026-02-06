@@ -32,6 +32,7 @@
 #	include "blocks/webcam.h"
 #	include "blocks/temp.h"
 #	include "blocks/cat.h"
+#	include "blocks/disk.h"
 
 typedef struct {
 	unsigned int interval;
@@ -50,6 +51,20 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	 * To use a C function, set command to NULL.
 	 *
 	 * format: pad_left + %s + pad_right */
+
+	/* Shell script or command */
+#	if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
+	/* { .func = b_write_shell, .command = "some_command | other_command ", .pad_left = "my command:", .pad_right = " | ", .interval = 0, .signal = SIG_AUDIO }, */
+#	endif
+
+	/* Read a file */
+	/* { .func = b_write_cat, .command = "/home/james/.xinitrc ", .pad_left = "my_file:", .pad_right = " | ", .interval = 2, .signal = 0 }, */
+
+	/* Temp file */
+#	ifdef HAVE_SYSFS
+	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
+	/* { .func = b_write_temp, .command = "/path/to/temp ", .pad_left = "my_temp: ", .pad_right = "° | ", .interval = 2, .signal = 0 }, */
+#	endif
 
 	/* Webcam */
 #	ifdef HAVE_PROCFS
@@ -73,19 +88,16 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	/* Date */
 	{ .func = b_write_date,              .command = NULL,          .pad_left = "📅 ", .pad_right = " | ",  .interval = 3600, .signal = 0          },
+	
+	/* Disk */
+	{ .func = b_write_disk_usage_percent, .command = "/home/james", .pad_left = "📁 $HOME ",     .pad_right = "% ",   .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_free,    .command = "/home/james", .pad_left = "",              .pad_right = " | ",  .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_percent, .command = "/",           .pad_left = "📁 / ",         .pad_right = "% ",   .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_free,    .command = "/",           .pad_left = "",              .pad_right = " | ",     .interval = 60,   .signal = 0       },
 
 	/* Ram */
-#	ifdef HAVE_SYSINFO
-	{ .func = b_write_ram_usage_percent, .command = NULL,          .pad_left = "🧠 ", .pad_right = "% | ", .interval = 30,   .signal = 0          },
-#	endif
-
-	/* Read a file */
-	/* { .func = b_write_cat, .command = "/home/james/.xinitrc ", .pad_left = "my_file:", .pad_right = " | ", .interval = 2, .signal = 0 }, */
-
-	/* Temp file */
-#	ifdef HAVE_SYSFS
-	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
-	/* { .func = b_write_temp, .command = "/path/to/temp ", .pad_left = "my_temp: ", .pad_right = "° | ", .interval = 2, .signal = 0 }, */
+#	ifdef HAVE_PROCFS
+	{ .func = b_write_ram_usage_percent, .command = NULL,           .pad_left = "🧠 ",              .pad_right = "% | ",     .interval = 60,   .signal = 0  },
 #	endif
 
 	/* CPU temp, usage */
@@ -108,11 +120,6 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* Audio volume (speaker) */
 #	if defined USE_ALSA
 	{ .func = b_write_speaker_vol,       .command = NULL,          .pad_left = "",    .pad_right = "% | ", .interval = 0,    .signal = SIG_AUDIO  },
-#	endif
-
-	/* Shell script or command */
-#	if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
-	/* { .func = b_write_shell, .command = "some_command | other_command ", .pad_left = "my command:", .pad_right = " | ", .interval = 0, .signal = SIG_AUDIO }, */
 #	endif
 
 	/* Time */

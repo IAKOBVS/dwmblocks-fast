@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: ISC
 # Copyright 2020 torrinfail
-# Copyright 2026 James Tirta Halim <tirtajames45 at gmail com>
+# Copyright 2025-2026 James Tirta Halim <tirtajames45 at gmail com>
 # This file is part of dwmblocks-fast, derived from dwmblocks with
 # modifications.
 # 
@@ -46,6 +46,7 @@ OBJS =\
 	$(SRC)/blocks/cat.o\
 	$(SRC)/blocks/time.o\
 	$(SRC)/blocks/ram.o\
+	$(SRC)/blocks/disk.o\
 	$(SRC)/blocks/obs.o\
 	$(SRC)/blocks/webcam.o\
 	$(SRC)/blocks/audio-alsa.o\

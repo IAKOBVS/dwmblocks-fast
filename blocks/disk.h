@@ -16,18 +16,12 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#ifndef B_RAM_H
-#	define B_RAM_H 1
-
-#	include "../macros.h"
-
-/* ../src/blocks/ram.c */
-
-#	ifdef HAVE_PROCFS
+#ifndef B_DISK_H
+#define B_DISK_H 1
 
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval);
+char *
+b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval);
 
-#	endif
-
-#endif /* B_RAM_H */
+#endif /* B_DISK_H */

@@ -22,8 +22,9 @@
 #	include <string.h>
 #	include "macros.h"
 
+
 static ATTR_MAYBE_UNUSED char *
-u_utoa_p(unsigned int num, char *buf)
+u_ulltoa_p(unsigned long long num, char *buf)
 {
 	char *start = buf;
 	do
@@ -38,6 +39,12 @@ u_utoa_p(unsigned int num, char *buf)
 		*buf-- = c;
 	}
 	return (char *)end;
+}
+
+static ATTR_MAYBE_UNUSED char *
+u_utoa_p(unsigned int num, char *buf)
+{
+	return u_ulltoa_p(num, buf);
 }
 
 static ATTR_MAYBE_UNUSED char *

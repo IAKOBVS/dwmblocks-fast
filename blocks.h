@@ -32,6 +32,7 @@
 #	include "blocks/webcam.h"
 #	include "blocks/temp.h"
 #	include "blocks/cat.h"
+#	include "blocks/disk.h"
 
 typedef struct {
 	unsigned int interval;
@@ -46,16 +47,24 @@ typedef struct {
 
 /* clang-format off */
 
-	/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
+/* Modify this file to change what commands output to your statusbar, and recompile using the make command. */
 static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* To use a shell script, set func to b_write_shell and command to the shell script.
 	 * To use a C function, set command to NULL.
 	 *
 	 * format: pad_left + %s + pad_right */
 
+	/* Read a file */
+	/* { .func = b_write_cat, .command = "/home/james/.xinitrc ", .pad_left = "my_file:", .pad_right = " | ", .interval = 2, .signal = 0 }, */
+
+	/* Shell script or command */
+#	if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
+	/* { .func = b_write_shell, .command = "some_command | other_command ", .pad_left = "my command:", .pad_right = " | ", .interval = 0, .signal = SIG_AUDIO }, */
+#	endif
+
 	/* Webcam */
 #	ifdef HAVE_PROCFS
-	{ .func = b_write_webcam_on,         .command = NULL,          .pad_left = "",    .pad_right = " | ",  .interval = 0,    .signal = SIG_WEBCAM },
+	{ .func = b_write_webcam_on,          .command = NULL,          .pad_left = "",              .pad_right = " | ",  .interval = 0,    .signal = SIG_WEBCAM },
 #	endif
 
 	/* Obs */
@@ -63,31 +72,31 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/****************************************************************************************/
 	/* Do not change the order: b_write_obs_on must be placed before b_write_obs_recording! */
 	/****************************************************************************************/
-	{ .func = b_write_obs_on,            .command = NULL,          .pad_left = "",    .pad_right = " | ",  .interval = 0,    .signal = SIG_OBS    },
-	{ .func = b_write_obs_recording,     .command = NULL,          .pad_left = "",    .pad_right = " | ",  .interval = 0,    .signal = SIG_OBS    },
+	{ .func = b_write_obs_on,             .command = NULL,          .pad_left = "",              .pad_right = " | ",  .interval = 0,    .signal = SIG_OBS    },
+	{ .func = b_write_obs_recording,      .command = NULL,          .pad_left = "",              .pad_right = " | ",  .interval = 0,    .signal = SIG_OBS    },
 	/****************************************************************************************/
 #	endif
 
 	/* Audio volume (mic) */
 #	if defined USE_ALSA
-	{ .func = b_write_mic_vol,           .command = NULL,          .pad_left = "",    .pad_right = "% | ", .interval = 0,    .signal = SIG_MIC    },
+	{ .func = b_write_mic_vol,            .command = NULL,          .pad_left = "",              .pad_right = "% | ", .interval = 0,    .signal = SIG_MIC    },
 #	endif
 
-	/* Date */
-	{ .func = b_write_date,              .command = NULL,          .pad_left = "📅 ", .pad_right = " | ",  .interval = 3600, .signal = 0          },
+	/* Disk */
+	{ .func = b_write_disk_usage_percent, .command = "/home/james", .pad_left = "📁 $HOME ",     .pad_right = "% ",   .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_free,    .command = "/home/james", .pad_left = "",              .pad_right = " | ",  .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_percent, .command = "/",           .pad_left = "📁 / ",         .pad_right = "% ",   .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_free,    .command = "/",           .pad_left = "",              .pad_right = " | ",     .interval = 60,   .signal = 0       },
 
 	/* Ram */
-#	ifdef HAVE_SYSINFO
-	{ .func = b_write_ram_usage_percent, .command = NULL,          .pad_left = "🧠 ", .pad_right = "% | ", .interval = 30,   .signal = 0          },
+#	ifdef HAVE_PROCFS
+	{ .func = b_write_ram_usage_percent,  .command = NULL,           .pad_left = "🧠 ",              .pad_right = "% | ",     .interval = 60,   .signal = 0  },
 #	endif
-
-	/* Read a file */
-	/* { .func = b_write_cat, .command = "/home/james/.xinitrc ", .pad_left = "my_file:", .pad_right = " | ", .interval = 2, .signal = 0 }, */
 
 	/* Temp file */
 #	ifdef HAVE_SYSFS
 	/* If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class. */
-	{ .func = b_write_temp,              .command = TEMP_FILE_SSD, .pad_left = "💾 ", .pad_right = "° | ", .interval = 4,    .signal = 0          },
+	{ .func = b_write_temp,               .command = TEMP_FILE_SSD, .pad_left = "💾 ",           .pad_right = "° | ", .interval = 4,    .signal = 0          },
 	/* { .func = b_write_temp, .command = "/path/to/temp ", .pad_left = "my_temp: ", .pad_right = "° | ", .interval = 2, .signal = 0 }, */
 #	endif
 
@@ -95,31 +104,29 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #	ifdef HAVE_PROCFS
 	/* format: [temp] [usage] */
 #		ifdef HAVE_SYSFS
-	{ .func = b_write_cpu_temp,          .command = TEMP_FILE_CPU, .pad_left = "💻 ", .pad_right = "° ",   .interval = 2,    .signal = 0          },
+	{ .func = b_write_cpu_temp,           .command = TEMP_FILE_CPU, .pad_left = "💻 ",           .pad_right = "° ",   .interval = 2,    .signal = 0         },
 #		endif
-	{ .func = b_write_cpu_usage,         .command = NULL,          .pad_left = "",    .pad_right = "% | ", .interval = 2,    .signal = 0          },
+	{ .func = b_write_cpu_usage,          .command = NULL,          .pad_left = "",              .pad_right = "% | ", .interval = 2,    .signal = 0         },
 #	endif
 
 	/* GPU temp, usage */
 #	if defined USE_CUDA
 	/* format: [temp] [usage] [vram] */
-	{ .func = b_write_gpu_temp,          .command = NULL,          .pad_left = "🚀 ", .pad_right = "° ",   .interval = 2,    .signal = 0          },
-	{ .func = b_write_gpu_usage,         .command = NULL,          .pad_left = "",    .pad_right = "% ",   .interval = 2,    .signal = 0          },
-	{ .func = b_write_gpu_vram,          .command = NULL,          .pad_left = "",    .pad_right = "% | ", .interval = 2,    .signal = 0          },
+	{ .func = b_write_gpu_temp,           .command = NULL,          .pad_left = "🚀 ",           .pad_right = "° ",   .interval = 2,    .signal = 0         },
+	{ .func = b_write_gpu_usage,          .command = NULL,          .pad_left = "",              .pad_right = "% ",   .interval = 2,    .signal = 0         },
+	{ .func = b_write_gpu_vram,           .command = NULL,          .pad_left = "",              .pad_right = "% | ", .interval = 2,    .signal = 0         },
 #	endif
+
+	/* Date */
+	{ .func = b_write_time,               .command = NULL,          .pad_left = "⏰ ",           .pad_right = " | ",  .interval = 59,   .signal = 0         },
 
 	/* Audio volume (speaker) */
 #	if defined USE_ALSA
-	{ .func = b_write_speaker_vol,       .command = NULL,          .pad_left = "",    .pad_right = "% | ", .interval = 0,    .signal = SIG_AUDIO  },
-#	endif
-
-	/* Shell script or command */
-#	if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
-	/* { .func = b_write_shell, .command = "some_command | other_command ", .pad_left = "my command:", .pad_right = " | ", .interval = 0, .signal = SIG_AUDIO }, */
+	{ .func = b_write_speaker_vol,        .command = NULL,          .pad_left = "",              .pad_right = "% | ", .interval = 0,    .signal = SIG_AUDIO },
 #	endif
 
 	/* Time */
-	{ .func = b_write_time,              .command = NULL,          .pad_left = "⏰ ", .pad_right = "",  .interval = 59,   .signal = 0          },
+	{ .func = b_write_date,               .command = NULL,          .pad_left = "📅 ",           .pad_right = "",  .interval = 3600, .signal = 0            },
 };
 
 /* clang-format on */
