@@ -23,22 +23,22 @@
 #include "../macros.h"
 
 char *
-b_write_cat(char *dst, unsigned int dst_len, const char *filename, unsigned int *interval)
+b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned int *interval)
 {
 	const int fd = open(filename, O_RDONLY);
 	if (unlikely(fd == -1))
 		DIE(return dst);
 	/* Milidegrees = degrees * 1000 */
-	int read_sz = read(fd, dst, dst_len);
+	int read_sz = read(fd, dst, dst_size);
 	if (unlikely(close(fd) == -1))
 		DIE(return dst);
 	if (unlikely(read_sz == -1))
 		DIE(return dst);
-	const char *nl = memchr(dst, '\n', dst_len);
+	const char *nl = memchr(dst, '\n', dst_size);
 	if (nl)
 		read_sz = nl - dst;
 	*(dst + read_sz) = '\0';
 	return dst + read_sz;
-	(void)dst_len;
+	(void)dst_size;
 	(void)interval;
 }

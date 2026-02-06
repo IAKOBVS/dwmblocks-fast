@@ -24,7 +24,7 @@
 #	include "../config.h"
 
 char *
-b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	if (!b_read_speaker_muted()) {
@@ -35,13 +35,13 @@ b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigne
 	*p++ = ' ';
 	p = u_utoa_lt3_p((unsigned int)b_read_speaker_vol(), p);
 	return p;
-	(void)dst_len;
+	(void)dst_size;
 	(void)unused;
 	(void)interval;
 }
 
 char *
-b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	if (!b_read_mic_muted()) {
@@ -57,7 +57,7 @@ b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned in
 	*p++ = ' ';
 	p = u_utoa_lt3_p((unsigned int)vol, p);
 	return p;
-	(void)dst_len;
+	(void)dst_size;
 	(void)unused;
 	(void)interval;
 }

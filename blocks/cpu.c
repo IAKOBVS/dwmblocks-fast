@@ -41,7 +41,7 @@ b_read_cpu_usage()
 	buf[read_sz] = '\0';
 	static int l_user, l_nice, l_system, l_idle, l_iowait, l_irq, l_softirq;
 	int user = l_user, nice = l_nice, system = l_system, idle = l_idle, iowait = l_iowait, irq = l_irq, softirq = l_softirq;
-	char *p = buf;
+	const char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
 	l_user = (int)u_strtou10(p, &p); p += S_LEN(" ");
@@ -61,7 +61,7 @@ b_read_cpu_usage()
 }
 
 char *
-b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
@@ -69,13 +69,13 @@ b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned 
 		DIE(return dst);
 	p = u_utoa_lt3_p((unsigned int)usage, p);
 	return p;
-	(void)dst_len;
+	(void)dst_size;
 	(void)unused;
 	(void)interval;
 }
 
 char *
-b_write_cpu_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval)
+b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
 {
-	return b_write_temp(dst, dst_len, temp_file, interval);
+	return b_write_temp(dst, dst_size, temp_file, interval);
 }

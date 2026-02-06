@@ -29,7 +29,7 @@
 #ifdef HAVE_PROCFS
 
 char *
-b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_webcam_on(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	const int fd = open("/proc/modules", O_RDONLY);
 	if (unlikely(fd == -1))
@@ -44,7 +44,7 @@ b_write_webcam_on(char *dst, unsigned int dst_len, const char *unused, unsigned 
 	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
 		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
 	return dst;
-	(void)dst_len;
+	(void)dst_size;
 	(void)interval;
 	(void)unused;
 }

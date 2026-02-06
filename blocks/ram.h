@@ -26,7 +26,7 @@
 #	ifdef HAVE_SYSINFO
 
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 
 #	endif
 

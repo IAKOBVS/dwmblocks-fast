@@ -24,7 +24,7 @@
 #include "../config.h"
 
 char *
-b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file)
+b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file)
 {
 	const int fd = open(temp_file, O_RDONLY);
 	if (unlikely(fd == -1))
@@ -42,17 +42,17 @@ b_write_temp_internal(char *dst, unsigned int dst_len, const char *temp_file)
 	read_sz -= S_LEN("000");
 	*(dst + read_sz) = '\0';
 	return dst + read_sz;
-	(void)dst_len;
+	(void)dst_size;
 }
 
 char *
-b_write_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval)
+b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
 {
 	char *p = dst;
-	p = b_write_temp_internal(p, dst_len, temp_file);
+	p = b_write_temp_internal(p, dst_size, temp_file);
 	if (unlikely(p == dst))
 		DIE(return dst);
 	return p;
-	(void)dst_len;
+	(void)dst_size;
 	(void)interval;
 }

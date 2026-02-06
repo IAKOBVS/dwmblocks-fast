@@ -21,9 +21,17 @@
 
 /* ../src/blocks/procfs.c */
 
+#define B_PAGE_SIZE 4096
+
 int
-b_read_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);
+b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path);
 unsigned int
-b_read_proc_exist(const char *proc_name, unsigned int proc_name_len);
+b_proc_exist(const char *proc_name, unsigned int proc_name_len);
+unsigned int
+b_proc_read_procfs(char *dst, unsigned int dst_size, const char *filename);
+char *
+b_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len);
+unsigned int
+b_value_getu(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter);
 
 #endif /* B_PROCFS_H */

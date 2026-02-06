@@ -26,7 +26,7 @@
 
 /* Execute shell script. */
 char *
-b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *interval)
+b_write_shell(char *dst, unsigned int dst_size, const char *cmd, unsigned int *interval)
 {
 	FILE *fp = popen(cmd, "r");
 	if (unlikely(fp == NULL))
@@ -36,7 +36,7 @@ b_write_shell(char *dst, unsigned int dst_len, const char *cmd, unsigned int *in
 		pclose(fp);
 		DIE(return dst);
 	}
-	const ssize_t read_sz = read(fd, dst, dst_len);
+	const ssize_t read_sz = read(fd, dst, dst_size);
 	if (unlikely(pclose(fp) == -1))
 		DIE(return dst);
 	if (unlikely(read_sz == -1))

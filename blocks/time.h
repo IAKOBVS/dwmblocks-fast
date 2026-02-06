@@ -22,8 +22,8 @@
 /* ../src/blocks/time.c */
 
 char *
-b_write_time(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 char *
-b_write_date(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 
 #endif /* B_TIME_H */

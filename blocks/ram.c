@@ -17,26 +17,43 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "../config.h"
-#include "../macros.h"
-#include "../utils.h"
-#include <stdio.h>
 
-#ifdef HAVE_SYSINFO
+#ifdef HAVE_PROCFS
+/* #ifdef HAVE_SYSINFO */
 
-#include <sys/sysinfo.h>
+#	include <sys/sysinfo.h>
+#	include <stdio.h>
+
+#	include "../macros.h"
+#	include "../utils.h"
+#	include "procfs.h"
 
 int
 b_read_ram_usage_percent(void)
 {
+#	if 0
 	struct sysinfo info;
 	if (unlikely(sysinfo(&info) != 0))
 		DIE(return -1);
 	const int percent = 100 - (int)(((long double)(info.freeram + info.bufferram) / (long double)info.totalram) * (long double)100);
+#	else
+	char buf[B_PAGE_SIZE + 1];
+	unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), "/proc/meminfo");
+	if (unlikely(read_sz == (unsigned int)-1))
+		DIE(return -1);
+	const unsigned int avail = b_value_getu(buf, read_sz, S_LITERAL("MemAvailable:"), ' ');
+	if (unlikely(avail == (unsigned int)-1))
+		DIE(return -1);
+	const unsigned int total = b_value_getu(buf, read_sz, S_LITERAL("MemTotal:"), ' ');
+	if (unlikely(total == (unsigned int)-1))
+		DIE(return -1);
+	const int percent = 100 - (int)((long double)avail / (long double)total * (long double)100);
+#	endif
 	return percent;
 }
 
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	int usage = b_read_ram_usage_percent();
 	if (unlikely(usage == -1))
@@ -44,7 +61,7 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_len, const char *unused, u
 	char *p = dst;
 	p = u_utoa_lt3_p((unsigned int)usage, p);
 	return p;
-	(void)dst_len;
+	(void)dst_size;
 	(void)unused;
 	(void)interval;
 }

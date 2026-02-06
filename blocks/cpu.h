@@ -26,11 +26,11 @@
 /* ../src/blocks/cpu.c */
 
 char *
-b_write_cpu_temp(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval);
+b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval);
 char *
-b_write_cpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 char *
-b_write_cpu_all(char *dst, unsigned int dst_len, const char *temp_file, unsigned int *interval);
+b_write_cpu_all(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval);
 
 #	endif /* HAVE_PROCFS */
 

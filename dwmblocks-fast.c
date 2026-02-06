@@ -109,10 +109,10 @@ static sigset_t sigset_old;
 
 /* Run command or execute C function. */
 static char *
-g_getcmd(g_block_ty *block, char *dst, unsigned int dst_len)
+g_getcmd(g_block_ty *block, char *dst, unsigned int dst_size)
 {
 	/* Add result of command or C function. */
-	return block->func(dst, dst_len, block->command, &block->interval);
+	return block->func(dst, dst_size, block->command, &block->interval);
 }
 
 /* Run commands or functions according to their interval. */

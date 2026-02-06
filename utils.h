@@ -87,7 +87,7 @@ u_isdigit(int c)
 }
 
 static ATTR_MAYBE_UNUSED unsigned int
-u_strtou10(char *p, char **endp)
+u_strtou10(const char *p, const char **endp)
 {
 	unsigned int n = 0;
 	unsigned char *pp = (unsigned char *)p;
@@ -95,6 +95,13 @@ u_strtou10(char *p, char **endp)
 		n = n * 10 + *(pp++) - '0';
 	*endp = (char *)pp;
 	return n;
+}
+
+static ATTR_INLINE unsigned int
+u_atou10(const char *p)
+{
+	const char *unused;
+	return u_strtou10(p, &unused);
 }
 
 static ATTR_INLINE char *

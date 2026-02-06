@@ -138,7 +138,7 @@ b_gpu_read_usage_vram(nvmlDevice_t device, nvmlMemory_t *memory)
 }
 
 static ATTR_INLINE char *
-b_write_gpus(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval, b_gpus_ty mon_type)
+b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval, b_gpus_ty mon_type)
 {
 	if (b_gpu.init == 0)
 		b_gpu_init();
@@ -162,27 +162,27 @@ b_write_gpus(char *dst, unsigned int dst_len, const char *unused, unsigned int *
 	char *p = dst;
 	p = u_utoa_lt3_p(avg, p);
 	return p;
-	(void)dst_len;
+	(void)dst_size;
 	(void)unused;
 	(void)interval;
 }
 
 char *
-b_write_gpu_temp(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_gpu_temp(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_len, unused, interval, B_GPU_MON_TEMP);
+	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_TEMP);
 }
 
 char *
-b_write_gpu_usage(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_gpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_len, unused, interval, B_GPU_MON_USAGE);
+	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_USAGE);
 }
 
 char *
-b_write_gpu_vram(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+b_write_gpu_vram(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_len, unused, interval, B_GPU_MON_VRAM);
+	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_VRAM);
 }
 
 #endif

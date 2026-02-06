@@ -26,9 +26,9 @@
 /* ../src/blocks/audio.c */
 
 char *
-b_write_speaker_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 char *
-b_write_mic_vol(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval);
+b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 
 #	endif /* USE_ALSA */
 
