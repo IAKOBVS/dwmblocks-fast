@@ -51,7 +51,7 @@ OBJS =\
 	$(SRC)/blocks/webcam.o\
 	$(SRC)/blocks/audio-alsa.o\
 	$(SRC)/blocks/audio.o\
-	$(SRC)/blocks/gpu.o\
+	$(SRC)/blocks/gpu-nvidia.o\
 	$(SRC)/blocks/cpu.o
 
 # Always recompile $(OBJS) if $(REQ) changed
