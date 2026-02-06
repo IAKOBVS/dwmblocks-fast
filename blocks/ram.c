@@ -31,7 +31,7 @@ b_read_ram_usage_percent(void)
 	struct sysinfo info;
 	if (unlikely(sysinfo(&info) != 0))
 		DIE(return -1);
-	const int percent = 100 - (int)(((long double)info.freeram / (long double)info.totalram) * (long double)100);
+	const int percent = 100 - (int)(((long double)(info.freeram + info.bufferram) / (long double)info.totalram) * (long double)100);
 	return percent;
 }
 
