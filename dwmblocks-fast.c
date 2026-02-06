@@ -112,7 +112,7 @@ static char *
 g_getcmd(g_block_ty *block, char *dst, unsigned int dst_size)
 {
 	/* Add result of command or C function. */
-	return block->func(dst, dst_size, block->command, &block->interval);
+	return block->func(dst, dst_size, block->arg, &block->interval);
 }
 
 /* Run commands or functions according to their interval. */
@@ -307,14 +307,14 @@ static g_ret_ty
 g_paths_sysfs_resolve()
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (g_blocks[i].command) {
-			const char *p = path_sysfs_resolve(g_blocks[i].command);
+		if (g_blocks[i].arg) {
+			const char *p = path_sysfs_resolve(g_blocks[i].arg);
 			if (unlikely(p == NULL))
 				DIE();
-			if (p != g_blocks[i].command) {
-				DBG(fprintf(stderr, "%s:%d:%s: %s doesn't exist, resolved to %s (which is malloc'd).\n", __FILE__, __LINE__, ASSERT_FUNC, g_blocks[i].command, p));
+			if (p != g_blocks[i].arg) {
+				DBG(fprintf(stderr, "%s:%d:%s: %s doesn't exist, resolved to %s (which is malloc'd).\n", __FILE__, __LINE__, ASSERT_FUNC, g_blocks[i].arg, p));
 				/* Set new path. */
-				g_blocks[i].command = p;
+				g_blocks[i].arg = p;
 			} else {
 				DBG(fprintf(stderr, "%s:%d:%s %s exists.\n", __FILE__, __LINE__, ASSERT_FUNC, p));
 			}
