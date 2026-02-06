@@ -173,7 +173,7 @@ u_strstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
 #define U_RIB (U_YIB * U_KIB)
 #define U_QIB (U_RIB * U_KIB)
 
-static unsigned long long
+static ATTR_MAYBE_UNUSED unsigned long long
 u_humanize(unsigned long long *size)
 {
 	if (*size < U_KIB)
