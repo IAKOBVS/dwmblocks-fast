@@ -94,9 +94,9 @@ u_isdigit(int c)
 }
 
 static ATTR_MAYBE_UNUSED unsigned int
-u_strtou10(const char *p, const char **endp)
+u_strtoull10(const char *p, const char **endp)
 {
-	unsigned int n = 0;
+	unsigned long long n = 0;
 	unsigned char *pp = (unsigned char *)p;
 	while (u_isdigit(*pp))
 		n = n * 10 + *(pp++) - '0';
@@ -105,10 +105,22 @@ u_strtou10(const char *p, const char **endp)
 }
 
 static ATTR_INLINE unsigned int
-u_atou10(const char *p)
+u_strtou10(const char *p, const char **endp)
+{
+	return u_strtoull10(p, endp);
+}
+
+static ATTR_INLINE unsigned long long
+u_atoull10(const char *p)
 {
 	const char *unused;
-	return u_strtou10(p, &unused);
+	return u_strtoull10(p, &unused);
+}
+
+static ATTR_INLINE unsigned int
+u_atou10(const char *p)
+{
+	return u_atoull10(p);
 }
 
 static ATTR_INLINE char *
@@ -148,6 +160,62 @@ u_strstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
 	(void)hs_len;
 	(void)ne_len;
 #	endif
+}
+
+#define U_KIB (1024ULL)
+#define U_MIB (U_KIB * U_KIB)
+#define U_GIB (U_MIB * U_KIB)
+#define U_TIB (U_GIB * U_KIB)
+#define U_PIB (U_TIB * U_KIB)
+#define U_EIB (U_PIB * U_KIB)
+#define U_ZIB (U_EIB * U_KIB)
+#define U_YIB (U_ZIB * U_KIB)
+#define U_RIB (U_YIB * U_KIB)
+#define U_QIB (U_RIB * U_KIB)
+
+static unsigned long long
+u_humanize(unsigned long long *size)
+{
+	if (*size < U_KIB)
+		return '\0';
+	if (*size < U_MIB) {
+		*size /= U_KIB;
+		return 'K';
+	}
+	if (*size < U_GIB) {
+		*size /= U_MIB;
+		return 'M';
+	}
+	if (*size < U_TIB) {
+		*size /= U_GIB;
+		return 'G';
+	}
+	if (*size < U_PIB) {
+		*size /= U_TIB;
+		return 'T';
+	}
+	if (*size < U_EIB) {
+		*size /= U_PIB;
+		return 'P';
+	}
+	/* if (*size < U_ZIB) { */
+	*size /= U_EIB;
+	return 'E';
+	/* } */
+	/* if (*size < U_YIB) { */
+	/* 	*size /= U_ZIB; */
+	/* 	return 'Z'; */
+	/* } */
+	/* if (*size < U_RIB) { */
+	/* 	*size /= U_YIB; */
+	/* 	return 'Y'; */
+	/* } */
+	/* if (*size < U_QIB) { */
+	/* 	*size /= U_RIB; */
+	/* 	return 'R'; */
+	/* } */
+	/* *size /= U_QIB; */
+	/* return 'Q'; */
 }
 
 #endif /* UTILS_H */

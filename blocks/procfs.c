@@ -30,7 +30,7 @@
 #define B_PAGE_SIZE 4096
 
 char *
-b_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len)
+b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len)
 {
 	const char *value = u_strstr_len(procfs_buf, procfs_buf_len, key, key_len);
 	if (unlikely(value == NULL))
@@ -42,16 +42,16 @@ b_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key
 	return (char *)value;
 }
 
-unsigned int
-b_value_getu(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
+unsigned long long 
+b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
 {
-	const char *val = b_value_get(procfs_buf, procfs_buf_len, key, key_len);
+	const char *val = b_proc_value_get(procfs_buf, procfs_buf_len, key, key_len);
 	if (unlikely(val == NULL))
-		DIE(return (unsigned int)-1);
+		DIE(return (unsigned long long)-1);
 	procfs_buf_len -= val - procfs_buf;
 	--procfs_buf_len;
 	for ( ; procfs_buf_len && *val == delimiter; --procfs_buf_len, ++val) {}
-	return u_atou10(val);
+	return u_atoull10(val);
 }
 
 unsigned int
@@ -90,8 +90,8 @@ int
 b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
 	char buf[B_PAGE_SIZE + 1];
-	const int read_sz = b_proc_read_procfs(buf, sizeof(buf), pid_status_path);
-	if (unlikely(read_sz == -1))
+	const unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), pid_status_path);
+	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
 	return b_proc_name_match(buf, (unsigned int)read_sz, proc_name, proc_name_len);
 }

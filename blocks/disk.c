@@ -23,62 +23,6 @@
 #include "../macros.h"
 #include "../utils.h"
 
-#define KIB (1024ULL)
-#define MIB (KIB * KIB)
-#define GIB (MIB * KIB)
-#define TIB (GIB * KIB)
-#define PIB (TIB * KIB)
-#define EIB (PIB * KIB)
-#define ZIB (EIB * KIB)
-#define YIB (ZIB * KIB)
-#define RIB (YIB * KIB)
-#define QIB (RIB * KIB)
-
-static unsigned long long
-humanize(unsigned long long *size)
-{
-	if (*size < KIB)
-		return '\0';
-	if (*size < MIB) {
-		*size /= KIB;
-		return 'K';
-	}
-	if (*size < GIB) {
-		*size /= MIB;
-		return 'M';
-	}
-	if (*size < TIB) {
-		*size /= GIB;
-		return 'G';
-	}
-	if (*size < PIB) {
-		*size /= TIB;
-		return 'T';
-	}
-	if (*size < EIB) {
-		*size /= PIB;
-		return 'P';
-	}
-	/* if (*size < ZIB) { */
-	*size /= EIB;
-	return 'E';
-	/* } */
-	/* if (*size < YIB) { */
-	/* 	*size /= ZIB; */
-	/* 	return 'Z'; */
-	/* } */
-	/* if (*size < RIB) { */
-	/* 	*size /= YIB; */
-	/* 	return 'Y'; */
-	/* } */
-	/* if (*size < QIB) { */
-	/* 	*size /= RIB; */
-	/* 	return 'R'; */
-	/* } */
-	/* *size /= QIB; */
-	/* return 'Q'; */
-}
-
 unsigned int
 b_read_disk_usage_percent(const char *mountpoint)
 {
@@ -96,10 +40,11 @@ b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint
 	if (unlikely(statvfs(mountpoint, &sfs) != 0))
 		DIE(return NULL);
 	unsigned long long avail = sfs.f_bsize * sfs.f_bavail;
-	int unit = humanize(&avail);
+	int unit = u_humanize(&avail);
 	char *p = dst;
 	p = u_ulltoa_p(avail, dst);
-	*p++ = unit;
+	if (likely(unit != '\0'))
+		*p++ = unit;
 	*p = '\0';
 	return p;
 	(void)dst_size;

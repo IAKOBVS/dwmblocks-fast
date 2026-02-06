@@ -27,6 +27,8 @@
 
 char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+char *
+b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 
 #	endif
 

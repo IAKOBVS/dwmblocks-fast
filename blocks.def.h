@@ -98,6 +98,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	/* Ram */
 #	ifdef HAVE_PROCFS
 	{ .func = b_write_ram_usage_percent,  .arg = NULL,          .pad_left = "🧠 ",      .pad_right = "% | ", .interval = 60,   .signal = 0          },
+	{ .func = b_write_ram_usage_available, .arg = NULL,          .pad_left = "",          .pad_right = " | ",  .interval = 60,   .signal = 0       },
 #	endif
 
 	/* CPU temp, usage */

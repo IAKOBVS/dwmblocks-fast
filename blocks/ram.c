@@ -41,15 +41,29 @@ b_read_ram_usage_percent(void)
 	unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), "/proc/meminfo");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
-	const unsigned int avail = b_value_getu(buf, read_sz, S_LITERAL("MemAvailable:"), ' ');
-	if (unlikely(avail == (unsigned int)-1))
+	const unsigned long long avail = b_proc_value_getull(buf, read_sz, S_LITERAL("MemAvailable:"), ' ');
+	if (unlikely(avail == (unsigned long long )-1))
 		DIE(return -1);
-	const unsigned int total = b_value_getu(buf, read_sz, S_LITERAL("MemTotal:"), ' ');
-	if (unlikely(total == (unsigned int)-1))
+	const unsigned long long total = b_proc_value_getull(buf, read_sz, S_LITERAL("MemTotal:"), ' ');
+	if (unlikely(total == (unsigned long long)-1))
 		DIE(return -1);
 	const int percent = 100 - (int)((long double)avail / (long double)total * (long double)100);
 #	endif
 	return percent;
+}
+
+unsigned long long
+b_read_ram_usage_available(void)
+{
+	char buf[B_PAGE_SIZE + 1];
+	unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), "/proc/meminfo");
+	if (unlikely(read_sz == (unsigned int)-1))
+		DIE(return (unsigned long long)-1);
+	const unsigned long long avail = b_proc_value_getull(buf, sizeof(buf), S_LITERAL("MemAvailable:"), ' ');
+	if (unlikely(avail == (unsigned long long)-1))
+		DIE(return (unsigned long long )-1);
+	/* Values are in KiB. */
+	return avail * U_KIB;
 }
 
 char *
@@ -60,6 +74,26 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, 
 		DIE(return dst);
 	char *p = dst;
 	p = u_utoa_lt3_p((unsigned int)usage, p);
+	return p;
+	(void)dst_size;
+	(void)unused;
+	(void)interval;
+}
+
+char *
+b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+{
+	unsigned long long usage = b_read_ram_usage_available();
+	if (unlikely(usage == (unsigned long long)-1))
+		DIE(return dst);
+	fprintf(stderr, "usage:%llu.\n", usage);
+	const int unit = u_humanize(&usage);
+	fprintf(stderr, "usage human:%llu.\n", usage);
+	char *p = dst;
+	p = u_ulltoa_p((unsigned int)usage, p);
+	if (likely(unit != '\0'))
+		*p++ = unit;
+	*p = '\0';
 	return p;
 	(void)dst_size;
 	(void)unused;
