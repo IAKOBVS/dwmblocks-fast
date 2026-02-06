@@ -20,8 +20,8 @@
 
 #ifdef HAVE_PROCFS
 /* #ifdef HAVE_SYSINFO */
+/* #include <sys/sysinfo.h> */
 
-#	include <sys/sysinfo.h>
 #	include <stdio.h>
 
 #	include "../macros.h"
