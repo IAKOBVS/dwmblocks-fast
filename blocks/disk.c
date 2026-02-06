@@ -84,7 +84,7 @@ b_read_disk_usage_percent(const char *mountpoint)
 {
 	struct statvfs sfs;
 	if (unlikely(statvfs(mountpoint, &sfs) != 0))
-		DIE(return (unsigned long long)-1);
+		DIE(return (unsigned int)-1);
 	const unsigned int percent = 100 - (unsigned int)(((long double)sfs.f_bfree / (long double)sfs.f_blocks) * (long double)100);
 	return percent;
 }
@@ -109,8 +109,8 @@ b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint
 char *
 b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval)
 {
-	const unsigned long long usage = b_read_disk_usage_percent(mountpoint);
-	if (unlikely(usage == (unsigned long long)-1))
+	const unsigned int usage = b_read_disk_usage_percent(mountpoint);
+	if (unlikely(usage == (unsigned int)-1))
 		DIE(return dst);
 	char *p = dst;
 	p = u_ulltoa_p((unsigned int)usage, p);
