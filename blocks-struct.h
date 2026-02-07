@@ -22,7 +22,7 @@
 typedef struct {
 	unsigned int interval;
 	const unsigned char signal;
-	unsigned char internal_statusbar_idx;
+	unsigned char internal_status_blocks_idx;
 	char *(*func)(char *, unsigned int, const char *, unsigned int *);
 	const char *arg;
 	const char *pad_left;

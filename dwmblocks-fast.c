@@ -52,8 +52,8 @@
 #endif
 
 #define LEN(X)      (sizeof(X) / sizeof(X[0]))
-#define G_STATUSBARLEN 64
-#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_STATUSBARLEN) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
+#define G_STATUSBLOCKLEN 64
+#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_STATUSBLOCKLEN) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
 #define G_STATUS_PAD_LEFT  " "
 #define G_STATUS_PAD_RIGHT " "
@@ -68,8 +68,8 @@
 #if INTERVAL_SORT
 #	define IDX_BLOCK_INTERVAL_NONZERO g_idx_block_interval_firstnonzero
 #	define IDX_BLOCK_INTERVAL_LASTZERO g_idx_block_interval_firstnonzero
-#	define IDX_TOSTATUS(i)            g_blocks[i].internal_statusbar_idx
-#	define IDX_TOBLOCK(i)             g_statusbar_block_idx[i]
+#	define IDX_TOSTATUS(i)            g_blocks[i].internal_status_blocks_idx
+#	define IDX_TOBLOCK(i)             g_status_blocks_block_idx[i]
 #else
 #	define IDX_BLOCK_INTERVAL_NONZERO 0
 #	define IDX_BLOCK_INTERVAL_LASTZERO LEN(g_blocks)
@@ -116,11 +116,11 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static char g_statusbar[LEN(g_blocks)][G_STATUSBARLEN];
-static char g_statusstr[G_STATUSLEN];
-/* G_STATUSBARLEN fits in an unsigned char. */
-static unsigned char g_statusbar_len[LEN(g_blocks)];
-static unsigned char g_statusbar_block_idx[LEN(g_blocks)];
+static char g_status_blocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
+static char g_status_str[G_STATUSLEN];
+/* G_STATUSBLOCKLEN fits in an unsigned char. */
+static unsigned char g_status_blocks_len[LEN(g_blocks)];
+static unsigned char g_status_blocks_block_idx[LEN(g_blocks)];
 static unsigned char g_statuschanged;
 static unsigned char g_idx_block_interval_firstnonzero;
 static sigset_t sigset_rt;
@@ -148,7 +148,7 @@ g_getcmds_init()
 	if (INTERVAL_SORT) {
 		/* Initialize the original order of the staturbar. */
 		for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-			g_blocks[i].internal_statusbar_idx = i;
+			g_blocks[i].internal_status_blocks_idx = i;
 		/* Sort blocks from their intervals. */
 		qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval);
 		/* Find first index where interval is not zero. */
@@ -156,12 +156,13 @@ g_getcmds_init()
 		for (i = 0; i < LEN(g_blocks) && g_blocks[i].interval == 0; ++i) {}
 		g_idx_block_interval_firstnonzero = i;
 	}
+	/* Initialize all status_blockss. */
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		g_statusbar_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_statusbar[IDX_TOSTATUS(i)], sizeof(g_statusbar[0])) - g_statusbar[IDX_TOSTATUS(i)];
+		g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
 		if (INTERVAL_SORT)
-			g_statusbar_block_idx[IDX_TOSTATUS(i)] = i;
+			g_status_blocks_block_idx[IDX_TOSTATUS(i)] = i;
 	}
-	if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
+	if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 		DIE();
 }
 
@@ -177,15 +178,15 @@ g_getcmds(unsigned int time)
 		if (time % g_blocks[i].interval)
 			continue;
 		/* May need update. */
-		char tmp[sizeof(g_statusbar[0])];
+		char tmp[sizeof(g_status_blocks[0])];
 		/* Get the result of g_getcmd. */
-		const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp, sizeof(g_statusbar[0])) - tmp;
+		const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp, sizeof(g_status_blocks[0])) - tmp;
 		/* Check if there has been change. */
-		if (tmp_len != g_statusbar_len[IDX_TOSTATUS(i)]
-		    || memcmp(tmp, g_statusbar[IDX_TOSTATUS(i)], tmp_len)) {
+		if (tmp_len != g_status_blocks_len[IDX_TOSTATUS(i)]
+		    || memcmp(tmp, g_status_blocks[IDX_TOSTATUS(i)], tmp_len)) {
 			/* Get the latest change. */
-			u_stpcpy_len(g_statusbar[IDX_TOSTATUS(i)], tmp, tmp_len);
-			g_statusbar_len[IDX_TOSTATUS(i)] = tmp_len;
+			u_stpcpy_len(g_status_blocks[IDX_TOSTATUS(i)], tmp, tmp_len);
+			g_status_blocks_len[IDX_TOSTATUS(i)] = tmp_len;
 			/* Mark change. */
 			g_statuschanged = 1;
 		}
@@ -198,7 +199,7 @@ g_getcmds_sig(unsigned int signal)
 {
 	for (unsigned int i = 0; i < IDX_BLOCK_INTERVAL_LASTZERO; ++i)
 		if (g_blocks[i].signal == signal)
-			g_statusbar_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_statusbar[IDX_TOSTATUS(i)], sizeof(g_statusbar[0])) - g_statusbar[IDX_TOSTATUS(i)];
+			g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
 }
 
 static int
@@ -253,9 +254,9 @@ g_status_get(char *dst)
 	char *end = dst;
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_LEFT));
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (g_statusbar_len[i]) {
+		if (g_status_blocks_len[i]) {
 			end = u_stpcpy(end, g_blocks[IDX_TOBLOCK(i)].pad_left);
-			end = u_stpcpy_len(end, g_statusbar[i], g_statusbar_len[i]);
+			end = u_stpcpy_len(end, g_status_blocks[i], g_status_blocks_len[i]);
 			end = u_stpcpy(end, g_blocks[IDX_TOBLOCK(i)].pad_right);
 		}
 	}
@@ -400,7 +401,7 @@ g_status_mainloop()
 		g_sleep(INTERVAL_UPDATE);
 		g_getcmds(i++);
 		if (g_statuschanged)
-			if (unlikely(g_status_write(g_statusstr) != G_RET_SUCC))
+			if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
 	}
 	return G_RET_SUCC;
