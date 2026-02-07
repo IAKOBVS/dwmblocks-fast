@@ -57,11 +57,25 @@
 
 #define G_STATUS_PAD_LEFT  " "
 #define G_STATUS_PAD_RIGHT " "
+
 /* Do not change. */
 #define INTERVAL_UPDATE 1
+
 /* Sort blocks according to their intervals.
  * Improves branch prediction, which significantly reduces cpu usage. */
 #define INTERVAL_SORT 1
+
+#if INTERVAL_SORT
+#	define IDX_BLOCK_INTERVAL_NONZERO g_idx_block_interval_firstnonzero
+#	define IDX_BLOCK_INTERVAL_LASTZERO g_idx_block_interval_firstnonzero
+#	define IDX_TOSTATUS(i)            g_blocks[i].internal_statusbar_idx
+#	define IDX_TOBLOCK(i)             g_statusbar_block_idx[i]
+#else
+#	define IDX_BLOCK_INTERVAL_NONZERO 0
+#	define IDX_BLOCK_INTERVAL_LASTZERO LEN(g_blocks)
+#	define IDX_TOSTATUS(i)            i
+#	define IDX_TOBLOCK(i)             i
+#endif
 
 typedef enum {
 	G_RET_SUCC = 0,
@@ -127,16 +141,6 @@ compare_interval(const void *a, const void *b)
 	return (ap->interval > bp->interval) - (ap->interval < bp->interval);
 }
 
-#if INTERVAL_SORT
-#	define IDX_BLOCK_INTERVAL_NONZERO g_idx_block_interval_firstnonzero
-#	define IDX_TOSTATUS(i)            g_blocks[i].internal_statusbar_idx
-#	define IDX_TOBLOCK(i)             g_statusbar_block_idx[i]
-#else
-#	define IDX_BLOCK_INTERVAL_NONZERO 0
-#	define IDX_TOSTATUS(i)            i
-#	define IDX_TOBLOCK(i)             i
-#endif
-
 /* Run commands or functions according to their interval. */
 static void
 g_getcmds_init()
@@ -147,7 +151,7 @@ g_getcmds_init()
 			g_blocks[i].internal_statusbar_idx = i;
 		/* Sort blocks from their intervals. */
 		qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval);
-		/* Find first block where interval is not zero. */
+		/* Find first index where interval is not zero. */
 		unsigned int i;
 		for (i = 0; i < LEN(g_blocks) && g_blocks[i].interval == 0; ++i) {}
 		g_idx_block_interval_firstnonzero = i;
@@ -192,7 +196,7 @@ g_getcmds(unsigned int time)
 static void
 g_getcmds_sig(unsigned int signal)
 {
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+	for (unsigned int i = 0; i < IDX_BLOCK_INTERVAL_LASTZERO; ++i)
 		if (g_blocks[i].signal == signal)
 			g_statusbar_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_statusbar[IDX_TOSTATUS(i)], sizeof(g_statusbar[0])) - g_statusbar[IDX_TOSTATUS(i)];
 }
