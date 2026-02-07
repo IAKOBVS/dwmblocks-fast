@@ -8,6 +8,8 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 - Improved input validation and error handling for signals.
 - Monitors Nvidia GPU temperature, usage, and VRAM usage.
 - Avoids using printf and scanf-like functions, which avoids the runtime overhead of format parsing.
+- Blocks are sorted according to their intervals, while maintaining the original order, to improve
+branch prediction and cache locality.
 
 # Installation
 ## Arch Linux
