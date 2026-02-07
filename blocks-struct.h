@@ -21,7 +21,8 @@
 
 typedef struct {
 	unsigned int interval;
-	const unsigned int signal;
+	const unsigned char signal;
+	unsigned char internal_statusbar_idx;
 	char *(*func)(char *, unsigned int, const char *, unsigned int *);
 	const char *arg;
 	const char *pad_left;
