@@ -154,22 +154,23 @@ compare_interval_and_signal(const void *a, const void *b)
 static void
 g_getcmds_init()
 {
-	if (INTERVAL_SORT) {
-		/* Initialize the original order of the staturbar. */
-		for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-			g_blocks[i].internal_status_blocks_idx = i;
-		/* Sort blocks from their intervals. */
-		qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
-		/* Find first index where interval is not zero. */
-		unsigned int i;
-		for (i = 0; i < LEN(g_blocks) && g_blocks[i].interval == 0; ++i) {}
-		g_idx_block_interval_firstnonzero = i;
-	}
+	unsigned int i;
+#if INTERVAL_SORT
+	/* Initialize the original order of the staturbar. */
+	for (i = 0; i < LEN(g_blocks); ++i)
+		g_blocks[i].internal_status_blocks_idx = i;
+	/* Sort blocks from their intervals. */
+	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
+	/* Find first index where interval is not zero. */
+	for (i = 0; i < LEN(g_blocks) && g_blocks[i].interval == 0; ++i) {}
+	g_idx_block_interval_firstnonzero = i;
+#endif
 	/* Initialize all status_blockss. */
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
+	for (i = 0; i < LEN(g_blocks); ++i) {
 		g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
-		if (INTERVAL_SORT)
-			g_status_blocks_block_idx[IDX_TOSTATUS(i)] = i;
+#if INTERVAL_SORT
+		g_status_blocks_block_idx[IDX_TOSTATUS(i)] = i;
+#endif
 	}
 	if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 		DIE();
@@ -180,9 +181,10 @@ static void
 g_getcmds(unsigned int time)
 {
 	for (unsigned int i = IDX_BLOCK_INTERVAL_NONZERO; i < LEN(g_blocks); ++i) {
-		if (!INTERVAL_SORT)
-			if (g_blocks[i].interval == 0)
-				continue;
+#if !INTERVAL_SORT
+		if (g_blocks[i].interval == 0)
+			continue;
+#endif
 		/* Check if needs update. */
 		if (time % g_blocks[i].interval)
 			continue;
