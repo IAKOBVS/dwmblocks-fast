@@ -52,8 +52,8 @@
 #endif
 
 #define LEN(X)      (sizeof(X) / sizeof(X[0]))
-#define G_CMDLENGTH 64
-#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_CMDLENGTH) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
+#define G_STATUSBARLEN 64
+#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_STATUSBARLEN) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
 #define G_STATUS_PAD_LEFT  " "
 #define G_STATUS_PAD_RIGHT " "
@@ -116,9 +116,9 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static char g_statusbar[LEN(g_blocks)][G_CMDLENGTH];
+static char g_statusbar[LEN(g_blocks)][G_STATUSBARLEN];
 static char g_statusstr[G_STATUSLEN];
-/* G_CMDLENGTH fits in an unsigned char. */
+/* G_STATUSBARLEN fits in an unsigned char. */
 static unsigned char g_statusbar_len[LEN(g_blocks)];
 static unsigned char g_statusbar_block_idx[LEN(g_blocks)];
 static unsigned char g_statuschanged;
