@@ -133,6 +133,7 @@ g_getcmd(g_block_ty *block, char *dst, unsigned int dst_size)
 	/* Add result of command or C function. */
 	return block->func(dst, dst_size, block->arg, &block->interval);
 }
+
 int
 compare_interval_and_signal(const void *a, const void *b)
 {
