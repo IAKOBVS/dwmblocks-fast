@@ -61,7 +61,7 @@
 /* Do not change. */
 #define INTERVAL_UPDATE 1
 
-/* Sort blocks according to their intervals.
+/* Sort blocks according to their intervals and signals.
  * Improves branch prediction, which significantly reduces cpu usage. */
 #define INTERVAL_SORT 1
 
@@ -134,11 +134,19 @@ g_getcmd(g_block_ty *block, char *dst, unsigned int dst_size)
 	return block->func(dst, dst_size, block->arg, &block->interval);
 }
 int
-compare_interval(const void *a, const void *b)
+compare_interval_and_signal(const void *a, const void *b)
 {
-	const g_block_ty *ap = (const g_block_ty *)a;
-	const g_block_ty *bp = (const g_block_ty *)b;
-	return (ap->interval > bp->interval) - (ap->interval < bp->interval);
+	const g_block_ty *p = (const g_block_ty *)a;
+	const g_block_ty *q = (const g_block_ty *)b;
+	if (p->interval > q->interval)
+		return 1;
+	if (p->interval < q->interval)
+		return -1;
+	if (p->signal > q->signal)
+		return 1;
+	if (p->signal < q->signal)
+		return -1;
+	return 0;
 }
 
 /* Run commands or functions according to their interval. */
@@ -150,7 +158,7 @@ g_getcmds_init()
 		for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 			g_blocks[i].internal_status_blocks_idx = i;
 		/* Sort blocks from their intervals. */
-		qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval);
+		qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
 		/* Find first index where interval is not zero. */
 		unsigned int i;
 		for (i = 0; i < LEN(g_blocks) && g_blocks[i].interval == 0; ++i) {}
