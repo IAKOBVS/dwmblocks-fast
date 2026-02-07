@@ -51,9 +51,9 @@
 #	define SIGMINUS SIGUSR1 - 1
 #endif
 
-#define LEN(X)      (sizeof(X) / sizeof(X[0]))
+#define LEN(X)           (sizeof(X) / sizeof(X[0]))
 #define G_STATUSBLOCKLEN 64
-#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_STATUSBLOCKLEN) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
+#define G_STATUSLEN      (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_STATUSBLOCKLEN) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
 #define G_STATUS_PAD_LEFT  " "
 #define G_STATUS_PAD_RIGHT " "
@@ -66,15 +66,15 @@
 #define INTERVAL_SORT 1
 
 #if INTERVAL_SORT
-#	define IDX_BLOCK_INTERVAL_NONZERO g_idx_block_interval_firstnonzero
+#	define IDX_BLOCK_INTERVAL_NONZERO  g_idx_block_interval_firstnonzero
 #	define IDX_BLOCK_INTERVAL_LASTZERO g_idx_block_interval_firstnonzero
-#	define IDX_TOSTATUS(i)            g_blocks[i].internal_status_blocks_idx
-#	define IDX_TOBLOCK(i)             g_status_blocks_block_idx[i]
+#	define IDX_TOSTATUS(i)             g_blocks[i].internal_status_blocks_idx
+#	define IDX_TOBLOCK(i)              g_status_blocks_block_idx[i]
 #else
-#	define IDX_BLOCK_INTERVAL_NONZERO 0
+#	define IDX_BLOCK_INTERVAL_NONZERO  0
 #	define IDX_BLOCK_INTERVAL_LASTZERO LEN(g_blocks)
-#	define IDX_TOSTATUS(i)            i
-#	define IDX_TOBLOCK(i)             i
+#	define IDX_TOSTATUS(i)             i
+#	define IDX_TOBLOCK(i)              i
 #endif
 
 typedef enum {
@@ -182,14 +182,14 @@ g_getcmds(unsigned int time)
 		/* Get the result of g_getcmd. */
 		const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp, sizeof(g_status_blocks[0])) - tmp;
 		/* Check if there has been change. */
-		if (tmp_len != g_status_blocks_len[IDX_TOSTATUS(i)]
-		    || memcmp(tmp, g_status_blocks[IDX_TOSTATUS(i)], tmp_len)) {
-			/* Get the latest change. */
-			u_stpcpy_len(g_status_blocks[IDX_TOSTATUS(i)], tmp, tmp_len);
-			g_status_blocks_len[IDX_TOSTATUS(i)] = tmp_len;
-			/* Mark change. */
-			g_statuschanged = 1;
-		}
+		if (tmp_len == g_status_blocks_len[IDX_TOSTATUS(i)]
+		    && !memcmp(tmp, g_status_blocks[IDX_TOSTATUS(i)], tmp_len))
+			continue;
+		/* Get the latest change. */
+		u_stpcpy_len(g_status_blocks[IDX_TOSTATUS(i)], tmp, tmp_len);
+		g_status_blocks_len[IDX_TOSTATUS(i)] = tmp_len;
+		/* Mark change. */
+		g_statuschanged = 1;
 	}
 }
 
