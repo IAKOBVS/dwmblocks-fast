@@ -34,14 +34,7 @@
 #	include "blocks/cat.h"
 #	include "blocks/disk.h"
 
-typedef struct {
-	unsigned int interval;
-	const unsigned int signal;
-	char *(*func)(char *, unsigned int, const char *, unsigned int *);
-	const char *arg;
-	const char *pad_left;
-	const char *pad_right;
-} g_block_ty;
+#	include "blocks-struct.h"
 
 #	define TEMP_FILE_SSD "/sys/devices/pci0000:00/0000:00:1b.0/0000:02:00.0/nvme/nvme0/hwmon0/temp1_input"
 

@@ -34,14 +34,7 @@
 #	include "blocks/cat.h"
 #	include "blocks/disk.h"
 
-typedef struct {
-	unsigned int interval;
-	const unsigned int signal;
-	char *(*func)(char *, unsigned int, const char *, unsigned int *);
-	const char *arg;
-	const char *pad_left;
-	const char *pad_right;
-} g_block_ty;
+#	include "blocks-struct.h"
 
 /* clang-format off */
 
