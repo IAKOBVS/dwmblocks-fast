@@ -86,9 +86,7 @@ b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused
 	unsigned long long usage = b_read_ram_usage_available();
 	if (unlikely(usage == (unsigned long long)-1))
 		DIE(return dst);
-	fprintf(stderr, "usage:%llu.\n", usage);
 	const int unit = u_humanize(&usage);
-	fprintf(stderr, "usage human:%llu.\n", usage);
 	char *p = dst;
 	p = u_ulltoa_p((unsigned int)usage, p);
 	if (likely(unit != '\0'))
