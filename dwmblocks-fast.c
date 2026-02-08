@@ -66,8 +66,8 @@
 #define BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL 1
 
 #if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
-#	define IDX_BLOCK_INTERVAL_NONZERO  g_idx_block_interval_firstnonzero
-#	define IDX_BLOCK_INTERVAL_LASTZERO g_idx_block_interval_firstnonzero
+#	define IDX_BLOCK_INTERVAL_NONZERO  g_internal_idx_block_interval_firstnonzero
+#	define IDX_BLOCK_INTERVAL_LASTZERO g_internal_idx_block_interval_firstnonzero
 #	define IDX_TOSTATUS(i)             g_blocks[i].internal_status_blocks_idx
 #	define IDX_TOBLOCK(i)              g_status_blocks_block_idx[i]
 #else
@@ -81,6 +81,7 @@ typedef enum {
 	G_RET_SUCC = 0,
 	G_RET_ERR
 } g_ret_ty;
+
 typedef enum {
 	G_WRITE_STATUSBAR = 0,
 	G_WRITE_STDOUT
@@ -109,6 +110,7 @@ g_handler_term(int signum);
 #ifdef USE_X11
 static g_ret_ty
 g_init_x11();
+
 static Display *g_dpy;
 static int g_screen;
 static Window g_win_root;
@@ -116,13 +118,14 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
+static unsigned int g_blocks_interval[LEN(g_blocks)];
 static char g_status_blocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
-static char g_status_str[G_STATUSLEN];
 /* G_STATUSBLOCKLEN fits in an unsigned char. */
 static unsigned char g_status_blocks_len[LEN(g_blocks)];
 static unsigned char g_status_blocks_block_idx[LEN(g_blocks)];
-static unsigned char g_statuschanged;
-static unsigned char g_idx_block_interval_firstnonzero;
+static char g_status_str[G_STATUSLEN];
+static unsigned char g_status_changed;
+static unsigned char g_internal_idx_block_interval_firstnonzero;
 static sigset_t sigset_rt;
 static sigset_t sigset_old;
 
@@ -162,15 +165,29 @@ g_getcmds_init()
 	/* Sort blocks from their intervals. */
 	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
 	/* Find first index where interval is not zero. */
-	for (i = 0; i < LEN(g_blocks) && g_blocks[i].interval == 0; ++i) {}
-	g_idx_block_interval_firstnonzero = i;
+	for (i = 0; i < LEN(g_blocks); ++i)
+		 if (g_blocks[i].interval) {
+			g_internal_idx_block_interval_firstnonzero = i;
+			 break;
+		 }
 #endif
 	/* Initialize all status_blockss. */
 	for (i = 0; i < LEN(g_blocks); ++i) {
-		g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
+		/* Initialize left and right pad lengths. */
+		const size_t l = strlen(g_blocks[i].pad_left);
+		const size_t r = strlen(g_blocks[i].pad_right);
+		if (unlikely(l + r > sizeof(g_status_blocks[0])))
+			DIE();
+		g_blocks[i].internal_pad_left_len = l;
+		g_blocks[i].internal_pad_right_len = r;
+		/* Initialize intervals to packed array. */
+		g_blocks_interval[i] = g_blocks[i].interval;
+		/* Initialize TOSTATUS array. */
 #if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
 		g_status_blocks_block_idx[IDX_TOSTATUS(i)] = i;
 #endif
+		/* Initialize the status blocks. */
+		g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
 	}
 	if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 		DIE();
@@ -182,11 +199,13 @@ g_getcmds(unsigned int time)
 {
 	for (unsigned int i = IDX_BLOCK_INTERVAL_NONZERO; i < LEN(g_blocks); ++i) {
 #if !BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
-		if (g_blocks[i].interval == 0)
+		/* Can skip if blocks are sorted and i starts
+		 * with the first index with a non-zero interval. */
+		if (g_blocks_interval[i] == 0)
 			continue;
 #endif
 		/* Check if needs update. */
-		if (time % g_blocks[i].interval)
+		if (time % g_blocks_interval[i])
 			continue;
 		/* May need update. */
 		char tmp[sizeof(g_status_blocks[0])];
@@ -197,10 +216,10 @@ g_getcmds(unsigned int time)
 		    && !memcmp(tmp, g_status_blocks[IDX_TOSTATUS(i)], tmp_len))
 			continue;
 		/* Get the latest change. */
-		u_stpcpy_len(g_status_blocks[IDX_TOSTATUS(i)], tmp, tmp_len);
+		memcpy(g_status_blocks[IDX_TOSTATUS(i)], tmp, tmp_len);
 		g_status_blocks_len[IDX_TOSTATUS(i)] = tmp_len;
 		/* Mark change. */
-		g_statuschanged = 1;
+		g_status_changed = 1;
 	}
 }
 
@@ -266,9 +285,9 @@ g_status_get(char *dst)
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_LEFT));
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (g_status_blocks_len[i]) {
-			end = u_stpcpy(end, g_blocks[IDX_TOBLOCK(i)].pad_left);
+			end = u_stpcpy_len(end, g_blocks[IDX_TOBLOCK(i)].pad_left, g_blocks[IDX_TOBLOCK(i)].internal_pad_left_len);
 			end = u_stpcpy_len(end, g_status_blocks[i], g_status_blocks_len[i]);
-			end = u_stpcpy(end, g_blocks[IDX_TOBLOCK(i)].pad_right);
+			end = u_stpcpy_len(end, g_blocks[IDX_TOBLOCK(i)].pad_right, g_blocks[IDX_TOBLOCK(i)].internal_pad_right_len);
 		}
 	}
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_RIGHT));
@@ -325,7 +344,6 @@ g_status_write_x11(const char *status, int status_len)
 {
 	g_XStoreNameLen(g_dpy, g_win_root, status, status_len);
 	XFlush(g_dpy);
-	g_statuschanged = 0;
 }
 #endif
 
@@ -336,7 +354,6 @@ g_status_write_stdout(char *status, int status_len)
 	ssize_t ret = write(STDOUT_FILENO, status, (unsigned int)status_len);
 	if (unlikely(ret != status_len))
 		DIE(return G_RET_ERR);
-	g_statuschanged = 0;
 	return G_RET_SUCC;
 }
 
@@ -355,6 +372,7 @@ g_status_write(char *status)
 			return G_RET_ERR;
 		break;
 	}
+	g_status_changed = 0;
 	return G_RET_SUCC;
 }
 
@@ -411,7 +429,7 @@ g_status_mainloop()
 	for (;;) {
 		g_sleep(INTERVAL_UPDATE);
 		g_getcmds(i++);
-		if (g_statuschanged)
+		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
 	}
@@ -441,7 +459,7 @@ static void
 g_handler_sig(int signum)
 {
 	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS);
-	g_statuschanged = 1;
+	g_status_changed = 1;
 }
 
 static void
