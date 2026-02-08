@@ -39,9 +39,10 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *
 				*interval = proc_interval;
 			/* OBS is closed. Stop checking. */
 			else
-				*interval = 0;
+				*interval = (unsigned int)-1;
+			dst = u_stpcpy(dst, proc_icon_off);
+			return dst;
 		}
-		dst = u_stpcpy(dst, proc_icon_off);
 	} else {
 		/* Construct path: /proc/[pid]/status. */
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
@@ -56,13 +57,14 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *
 		int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
 		if (ret == 0) {
 			*pid_cache = 0;
-			*interval = 0;
+			*interval = (unsigned int)-1;
+			dst = u_stpcpy(dst, proc_icon_off);
 			return dst;
 		} else if (unlikely(ret == -1)) {
 			DIE(return dst);
 		}
-		dst = u_stpcpy(dst, proc_icon_on);
 	}
+	dst = u_stpcpy(dst, proc_icon_on);
 	*interval = proc_interval;
 	return dst;
 	(void)unused;

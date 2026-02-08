@@ -61,22 +61,6 @@
 /* Do not change. */
 #define INTERVAL_UPDATE 1
 
-/* Sort blocks according to their intervals and signals.
- * Improves branch prediction, which significantly reduces cpu usage. */
-#define BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL 1
-
-#if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
-#	define IDX_BLOCK_INTERVAL_NONZERO  g_internal_idx_block_interval_firstnonzero
-#	define IDX_BLOCK_INTERVAL_LASTZERO g_internal_idx_block_interval_firstnonzero
-#	define IDX_TOSTATUS(i)             g_blocks[i].internal_status_blocks_idx
-#	define IDX_TOBLOCK(i)              g_status_blocks_block_idx[i]
-#else
-#	define IDX_BLOCK_INTERVAL_NONZERO  0
-#	define IDX_BLOCK_INTERVAL_LASTZERO LEN(g_blocks)
-#	define IDX_TOSTATUS(i)             i
-#	define IDX_TOBLOCK(i)              i
-#endif
-
 typedef enum {
 	G_RET_SUCC = 0,
 	G_RET_ERR
@@ -86,6 +70,33 @@ typedef enum {
 	G_WRITE_STATUSBAR = 0,
 	G_WRITE_STDOUT
 } g_write_ty;
+
+typedef struct {
+	unsigned int intervals[LEN(g_blocks)];
+	struct {
+		char *(*func)(char *, unsigned int, const char *, unsigned int *);
+		const char *arg;
+	} blocks[LEN(g_blocks)];
+	unsigned char tostatus_idxs[LEN(g_blocks)];
+	unsigned char statusblocks_len[LEN(g_blocks)];
+	struct {
+		const char *pad_left;
+		const char *pad_right;
+	} statuses[LEN(g_blocks)];
+	unsigned char toblock_idxs[LEN(g_blocks)];
+	unsigned char signals[LEN(g_blocks)];
+} g_internal_block_ty;
+g_internal_block_ty g_internal_blocks;
+
+#define B_INTERVAL(idx)         (g_internal_blocks.intervals[(idx)])
+#define B_SIGNAL(idx)           (g_internal_blocks.signals[(idx)])
+#define B_TOSTATUS(idx)         (g_internal_blocks.tostatus_idxs[(idx)])
+#define B_TOBLOCK(idx)          (g_internal_blocks.toblock_idxs[(idx)])
+#define B_FUNC(idx)             (g_internal_blocks.blocks[(idx)].func)
+#define B_ARG(idx)              (g_internal_blocks.blocks[(idx)].arg)
+#define B_STATUSBLOCKS_LEN(idx) (g_internal_blocks.statusblocks_len[(idx)])
+#define B_PAD_LEFT(idx)         (g_internal_blocks.statuses[(idx)].pad_left)
+#define B_PAD_RIGHT(idx)        (g_internal_blocks.statuses[(idx)].pad_right)
 
 #if HAVE_RT_SIGNALS
 static void
@@ -118,23 +129,21 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static unsigned int g_blocks_interval[LEN(g_blocks)];
-static char g_status_blocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
+static char g_statusblocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
 /* G_STATUSBLOCKLEN fits in an unsigned char. */
-static unsigned char g_status_blocks_len[LEN(g_blocks)];
-static unsigned char g_status_blocks_block_idx[LEN(g_blocks)];
 static char g_status_str[G_STATUSLEN];
-static unsigned char g_status_changed;
+static int g_status_changed;
 static unsigned char g_internal_idx_block_interval_firstnonzero;
+
 static sigset_t sigset_rt;
 static sigset_t sigset_old;
 
 /* Run command or execute C function. */
 static char *
-g_getcmd(g_block_ty *block, char *dst, unsigned int dst_size)
+g_getcmd(char *dst, char *(*func)(char *, unsigned int, const char *, unsigned int *), const char *arg, unsigned int *interval)
 {
 	/* Add result of command or C function. */
-	return block->func(dst, dst_size, block->arg, &block->interval);
+	return func(dst, sizeof(g_statusblocks[0]), arg, interval);
 }
 
 int
@@ -158,37 +167,39 @@ static void
 g_getcmds_init()
 {
 	unsigned int i;
-#if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
 	/* Initialize the original order of the staturbar. */
-	for (i = 0; i < LEN(g_blocks); ++i)
-		g_blocks[i].internal_status_blocks_idx = i;
+	for (i = 0; i < LEN(g_blocks); ++i) {
+		g_blocks[i].internal_tostatus_idx = i;
+		if (g_blocks[i].interval == 0)
+			g_blocks[i].interval = (unsigned int)-1;
+	}
 	/* Sort blocks from their intervals. */
 	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
 	/* Find first index where interval is not zero. */
 	for (i = 0; i < LEN(g_blocks); ++i)
-		 if (g_blocks[i].interval) {
+		if (g_blocks[i].interval) {
 			g_internal_idx_block_interval_firstnonzero = i;
-			 break;
-		 }
-#endif
-	/* Initialize all status_blockss. */
+			break;
+		}
+	/* Initialize all statusblockss. */
 	for (i = 0; i < LEN(g_blocks); ++i) {
-		/* Initialize left and right pad lengths. */
-		const size_t l = strlen(g_blocks[i].pad_left);
-		const size_t r = strlen(g_blocks[i].pad_right);
-		if (unlikely(l + r > sizeof(g_status_blocks[0])))
+		/* Check too long padding. */
+		const size_t pad_len = strlen(g_blocks[i].pad_left) + strlen(g_blocks[i].pad_right);
+		if (unlikely(pad_len > sizeof(g_statusblocks[0])))
 			DIE();
-		g_blocks[i].internal_pad_left_len = l;
-		g_blocks[i].internal_pad_right_len = r;
 		/* Initialize intervals to packed array. */
-		g_blocks_interval[i] = g_blocks[i].interval;
-		/* Initialize TOSTATUS array. */
-#if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
-		g_status_blocks_block_idx[IDX_TOSTATUS(i)] = i;
-#endif
-		/* Initialize the status blocks. */
-		g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
+		g_internal_blocks.intervals[i] = g_blocks[i].interval;
+		g_internal_blocks.blocks[i].func = g_blocks[i].func;
+		g_internal_blocks.blocks[i].arg = g_blocks[i].arg;
+		g_internal_blocks.tostatus_idxs[i] = g_blocks[i].internal_tostatus_idx;
+		g_internal_blocks.toblock_idxs[g_internal_blocks.tostatus_idxs[i]] = i;
+		g_internal_blocks.statuses[i].pad_left = g_blocks[i].pad_left;
+		g_internal_blocks.statuses[i].pad_right = g_blocks[i].pad_right;
+		g_internal_blocks.signals[i] = g_blocks[i].signal;
 	}
+	for (i = 0; i < LEN(g_blocks); ++i)
+		/* Initialize the status blocks. */
+		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
 	if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 		DIE();
 }
@@ -197,27 +208,23 @@ g_getcmds_init()
 static void
 g_getcmds(unsigned int time)
 {
-	for (unsigned int i = IDX_BLOCK_INTERVAL_NONZERO; i < LEN(g_blocks); ++i) {
-#if !BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
-		/* Can skip if blocks are sorted and i starts
-		 * with the first index with a non-zero interval. */
-		if (g_blocks_interval[i] == 0)
-			continue;
-#endif
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		/* Check if needs update. */
-		if (time % g_blocks_interval[i])
+		if (B_INTERVAL(i) == (unsigned int)-1)
+			continue;
+		if (time % B_INTERVAL(i))
 			continue;
 		/* May need update. */
-		char tmp[sizeof(g_status_blocks[0])];
+		char tmp[sizeof(g_statusblocks[0])];
 		/* Get the result of g_getcmd. */
-		const unsigned int tmp_len = g_getcmd(&g_blocks[i], tmp, sizeof(g_status_blocks[0])) - tmp;
+		const unsigned int tmp_len = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - tmp;
 		/* Check if there has been change. */
-		if (tmp_len == g_status_blocks_len[IDX_TOSTATUS(i)]
-		    && !memcmp(tmp, g_status_blocks[IDX_TOSTATUS(i)], tmp_len))
+		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))
+		    && !memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
 			continue;
 		/* Get the latest change. */
-		memcpy(g_status_blocks[IDX_TOSTATUS(i)], tmp, tmp_len);
-		g_status_blocks_len[IDX_TOSTATUS(i)] = tmp_len;
+		memcpy(g_statusblocks[B_TOSTATUS(i)], tmp, tmp_len);
+		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = tmp_len;
 		/* Mark change. */
 		g_status_changed = 1;
 	}
@@ -227,9 +234,9 @@ g_getcmds(unsigned int time)
 static void
 g_getcmds_sig(unsigned int signal)
 {
-	for (unsigned int i = 0; i < IDX_BLOCK_INTERVAL_LASTZERO; ++i)
-		if (g_blocks[i].signal == signal)
-			g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		if (B_SIGNAL(i) == signal)
+			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
 }
 
 static int
@@ -259,14 +266,14 @@ g_init_signals()
 #endif
 	/* Handle RT signals. */
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		if (g_blocks[i].signal > 0) {
+		if (B_SIGNAL(i) > 0) {
 #ifdef HAVE_RT_SIGNALS
-			if (unlikely(SIGMINUS + g_blocks[i].signal > SIGRTMAX)) {
-				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", g_blocks[i].signal, SIGRTMAX);
+			if (unlikely(SIGMINUS + B_SIGNAL(i) > SIGRTMAX)) {
+				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", B_SIGNAL(i), SIGRTMAX);
 				DIE();
 			}
 #endif
-			if (unlikely(g_sigaction(SIGMINUS + (int)g_blocks[i].signal, g_handler_sig) == -1))
+			if (unlikely(g_sigaction(SIGMINUS + (int)B_SIGNAL(i), g_handler_sig) == -1))
 				DIE(return G_RET_ERR);
 		}
 	/* Handle termination signals. */
@@ -283,13 +290,12 @@ g_status_get(char *dst)
 {
 	char *end = dst;
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_LEFT));
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (g_status_blocks_len[i]) {
-			end = u_stpcpy_len(end, g_blocks[IDX_TOBLOCK(i)].pad_left, g_blocks[IDX_TOBLOCK(i)].internal_pad_left_len);
-			end = u_stpcpy_len(end, g_status_blocks[i], g_status_blocks_len[i]);
-			end = u_stpcpy_len(end, g_blocks[IDX_TOBLOCK(i)].pad_right, g_blocks[IDX_TOBLOCK(i)].internal_pad_right_len);
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+		if (B_STATUSBLOCKS_LEN(i)) {
+			end = u_stpcpy(end, B_PAD_LEFT(B_TOBLOCK(i)));
+			end = u_stpcpy_len(end, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
+			end = u_stpcpy(end, B_PAD_RIGHT(B_TOBLOCK(i)));
 		}
-	}
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_RIGHT));
 	return end;
 }
@@ -368,7 +374,7 @@ g_status_write(char *status)
 		break;
 #endif
 	case G_WRITE_STDOUT:
-		if (unlikely(g_status_write_stdout(status, end - status) == G_RET_ERR))
+		if (unlikely(g_status_write_stdout(status, end - status) != G_RET_SUCC))
 			return G_RET_ERR;
 		break;
 	}
@@ -477,7 +483,7 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-	if (unlikely(g_status_init()))
+	if (unlikely(g_status_init() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
 #ifndef TEST
 	if (unlikely(g_status_mainloop() != G_RET_SUCC))

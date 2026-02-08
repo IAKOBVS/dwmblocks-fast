@@ -90,6 +90,7 @@ b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *p
 	char buf[B_PAGE_SIZE + 1];
 	if (unlikely(sizeof(buf) == 0))
 		return -1;
+	errno = 0;
 	const int fd = open(pid_status_path, O_RDONLY);
 	if (fd == -1) {
 		if (likely(errno != ENOMEM))
@@ -130,9 +131,8 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 			closedir(dp);
 			DIE(return (unsigned int)-1);
 		}
-		if (ret == 0)
-			break;
-		return (unsigned int)atoi(ep->d_name);
+		if (ret)
+			return (unsigned int)atoi(ep->d_name);
 	}
 	if (unlikely(errno == EBADF))
 		DIE(return (unsigned int)-1);
