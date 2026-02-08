@@ -160,7 +160,7 @@ b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	if (b_gpu.deviceCount > 1)
 		avg /= b_gpu.deviceCount;
 	char *p = dst;
-	p = u_utoa_lt3_p(avg, p);
+	p = u_utoa_le3_p(avg, p);
 	return p;
 	(void)dst_size;
 	(void)unused;

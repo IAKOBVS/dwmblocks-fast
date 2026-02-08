@@ -33,7 +33,7 @@ b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsign
 		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_SPEAKER_OFF));
 	}
 	*p++ = ' ';
-	p = u_utoa_lt3_p((unsigned int)b_read_speaker_vol(), p);
+	p = u_utoa_le3_p((unsigned int)b_read_speaker_vol(), p);
 	return p;
 	(void)dst_size;
 	(void)unused;
@@ -55,7 +55,7 @@ b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned i
 	if (unlikely(vol == -1))
 		DIE(return dst);
 	*p++ = ' ';
-	p = u_utoa_lt3_p((unsigned int)vol, p);
+	p = u_utoa_le3_p((unsigned int)vol, p);
 	return p;
 	(void)dst_size;
 	(void)unused;

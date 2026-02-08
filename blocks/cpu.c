@@ -25,20 +25,15 @@
 #include "../macros.h"
 #include "../utils.h"
 #include "../blocks/temp.h"
+#include "procfs.h"
 
 int
 b_read_cpu_usage()
 {
-	char buf[4096];
-	const int fd = open("/proc/stat", O_RDONLY);
-	if (unlikely(fd == -1))
+	char buf[B_PAGE_SIZE + 1];
+	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/stat");
+	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
-	const ssize_t read_sz = read(fd, buf, sizeof(buf));
-	if (unlikely(close(fd) == -1))
-		DIE(return -1);
-	if (unlikely(read_sz == -1))
-		DIE(return -1);
-	buf[read_sz] = '\0';
 	static int l_user, l_nice, l_system, l_idle, l_iowait, l_irq, l_softirq;
 	int user = l_user, nice = l_nice, system = l_system, idle = l_idle, iowait = l_iowait, irq = l_irq, softirq = l_softirq;
 	const char *p = buf;
@@ -67,7 +62,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 	const int usage = b_read_cpu_usage();
 	if (unlikely(usage == -1))
 		DIE(return dst);
-	p = u_utoa_lt3_p((unsigned int)usage, p);
+	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
 	(void)dst_size;
 	(void)unused;

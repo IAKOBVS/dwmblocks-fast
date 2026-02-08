@@ -42,7 +42,7 @@ b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char
 	return (char *)value;
 }
 
-unsigned long long 
+unsigned long long
 b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
 {
 	const char *val = b_proc_value_get(procfs_buf, procfs_buf_len, key, key_len);
@@ -50,21 +50,19 @@ b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const c
 		DIE(return (unsigned long long)-1);
 	procfs_buf_len -= val - procfs_buf;
 	--procfs_buf_len;
-	for ( ; procfs_buf_len && *val == delimiter; --procfs_buf_len, ++val) {}
+	for (; procfs_buf_len && *val == delimiter; --procfs_buf_len, ++val) {}
 	return u_atoull10(val);
 }
 
 unsigned int
-b_proc_read_procfs(char *dst, unsigned int dst_size, const char *filename)
+b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 {
+	if (unlikely(dst_size == 0))
+		return (unsigned int)-1;
 	const int fd = open(filename, O_RDONLY);
-	if (fd == -1) {
-		if (unlikely(errno == ENOMEM))
-			DIE(return (unsigned int)-1);
-		return 0;
-	}
-	/* Read /proc/[pid]/status */
-	const ssize_t read_sz = read(fd, dst, dst_size);
+	if (unlikely(fd == -1))
+		DIE(return (unsigned int)-1);
+	const ssize_t read_sz = read(fd, dst, dst_size - 1);
 	if (unlikely(close(fd) == -1))
 		DIE(return (unsigned int)-1);
 	if (unlikely(read_sz == (unsigned int)-1))
@@ -90,7 +88,20 @@ int
 b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *pid_status_path)
 {
 	char buf[B_PAGE_SIZE + 1];
-	const unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), pid_status_path);
+	if (unlikely(sizeof(buf) == 0))
+		return -1;
+	const int fd = open(pid_status_path, O_RDONLY);
+	if (fd == -1) {
+		if (likely(errno != ENOMEM))
+			return 0;
+		DIE(return -1);
+	}
+	const ssize_t read_sz = read(fd, buf, sizeof(buf) - 1);
+	if (unlikely(close(fd) == -1))
+		DIE(return -1);
+	if (unlikely(read_sz == (unsigned int)-1))
+		DIE(return -1);
+	buf[read_sz] = '\0';
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
 	return b_proc_name_match(buf, (unsigned int)read_sz, proc_name, proc_name_len);
@@ -114,8 +125,14 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		char *fname_e = fnamep;
 		fname_e = u_stpcpy(fname_e, ep->d_name);
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
-		if (b_proc_exist_at(proc_name, proc_name_len, fname))
-			return (unsigned int)atoi(ep->d_name);
+		const int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
+		if (unlikely(ret == -1)) {
+			closedir(dp);
+			DIE(return (unsigned int)-1);
+		}
+		if (ret == 0)
+			break;
+		return (unsigned int)atoi(ep->d_name);
 	}
 	if (unlikely(errno == EBADF))
 		DIE(return (unsigned int)-1);

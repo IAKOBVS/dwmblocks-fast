@@ -38,7 +38,7 @@ b_read_ram_usage_percent(void)
 	const int percent = 100 - (int)(((long double)(info.freeram + info.bufferram) / (long double)info.totalram) * (long double)100);
 #	else
 	char buf[B_PAGE_SIZE + 1];
-	unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), "/proc/meminfo");
+	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/meminfo");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
 	const unsigned long long avail = b_proc_value_getull(buf, read_sz, S_LITERAL("MemAvailable:"), ' ');
@@ -56,7 +56,7 @@ unsigned long long
 b_read_ram_usage_available(void)
 {
 	char buf[B_PAGE_SIZE + 1];
-	unsigned int read_sz = b_proc_read_procfs(buf, sizeof(buf), "/proc/meminfo");
+	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/meminfo");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return (unsigned long long)-1);
 	const unsigned long long avail = b_proc_value_getull(buf, sizeof(buf), S_LITERAL("MemAvailable:"), ' ');
@@ -69,11 +69,11 @@ b_read_ram_usage_available(void)
 char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	int usage = b_read_ram_usage_percent();
+	const int usage = b_read_ram_usage_percent();
 	if (unlikely(usage == -1))
 		DIE(return dst);
 	char *p = dst;
-	p = u_utoa_lt3_p((unsigned int)usage, p);
+	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
 	(void)dst_size;
 	(void)unused;

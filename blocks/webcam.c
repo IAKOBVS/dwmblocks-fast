@@ -23,6 +23,7 @@
 #include "../macros.h"
 #include "../utils.h"
 #include "../config.h"
+#include "procfs.h"
 
 /* ../blocks/webcam.h */
 
@@ -31,16 +32,10 @@
 char *
 b_write_webcam_on(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	const int fd = open("/proc/modules", O_RDONLY);
-	if (unlikely(fd == -1))
-		DIE(return dst);
-	char buf[4096];
-	const ssize_t read_sz = read(fd, buf, sizeof(buf));
-	if (unlikely(close(fd) == -1))
-		DIE(return dst);
-	if (unlikely(read_sz == -1))
-		DIE(return dst);
-	buf[read_sz] = '\0';
+	char buf[B_PAGE_SIZE + 1];
+	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/modules");
+	if (unlikely(read_sz == (unsigned int)-1))
+		DIE();
 	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
 		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
 	return dst;

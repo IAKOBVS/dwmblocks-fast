@@ -64,7 +64,7 @@ u_utoa_lt2_p(unsigned int num, char *buf)
 }
 
 static ATTR_MAYBE_UNUSED char *
-u_utoa_lt3_p(unsigned int num, char *buf)
+u_utoa_le3_p(unsigned int num, char *buf)
 {
 	/* digits == 2 */
 	if (likely((unsigned int)(num - 10) < 90)) {
