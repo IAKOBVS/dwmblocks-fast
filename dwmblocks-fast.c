@@ -170,6 +170,7 @@ g_getcmds_init()
 	/* Initialize the original order of the staturbar. */
 	for (i = 0; i < LEN(g_blocks); ++i) {
 		g_blocks[i].internal_tostatus_idx = i;
+		/* Larger intervals mean less likely to need to update. */
 		if (g_blocks[i].interval == 0)
 			g_blocks[i].interval = (unsigned int)-1;
 	}
@@ -187,7 +188,6 @@ g_getcmds_init()
 		const size_t pad_len = strlen(g_blocks[i].pad_left) + strlen(g_blocks[i].pad_right);
 		if (unlikely(pad_len > sizeof(g_statusblocks[0])))
 			DIE();
-		/* Initialize intervals to packed array. */
 		g_internal_blocks.intervals[i] = g_blocks[i].interval;
 		g_internal_blocks.blocks[i].func = g_blocks[i].func;
 		g_internal_blocks.blocks[i].arg = g_blocks[i].arg;
