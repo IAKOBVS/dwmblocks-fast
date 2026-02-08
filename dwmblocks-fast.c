@@ -63,9 +63,9 @@
 
 /* Sort blocks according to their intervals and signals.
  * Improves branch prediction, which significantly reduces cpu usage. */
-#define INTERVAL_SORT 1
+#define BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL 1
 
-#if INTERVAL_SORT
+#if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
 #	define IDX_BLOCK_INTERVAL_NONZERO  g_idx_block_interval_firstnonzero
 #	define IDX_BLOCK_INTERVAL_LASTZERO g_idx_block_interval_firstnonzero
 #	define IDX_TOSTATUS(i)             g_blocks[i].internal_status_blocks_idx
@@ -155,7 +155,7 @@ static void
 g_getcmds_init()
 {
 	unsigned int i;
-#if INTERVAL_SORT
+#if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
 	/* Initialize the original order of the staturbar. */
 	for (i = 0; i < LEN(g_blocks); ++i)
 		g_blocks[i].internal_status_blocks_idx = i;
@@ -168,7 +168,7 @@ g_getcmds_init()
 	/* Initialize all status_blockss. */
 	for (i = 0; i < LEN(g_blocks); ++i) {
 		g_status_blocks_len[IDX_TOSTATUS(i)] = g_getcmd(&g_blocks[i], g_status_blocks[IDX_TOSTATUS(i)], sizeof(g_status_blocks[0])) - g_status_blocks[IDX_TOSTATUS(i)];
-#if INTERVAL_SORT
+#if BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
 		g_status_blocks_block_idx[IDX_TOSTATUS(i)] = i;
 #endif
 	}
@@ -181,7 +181,7 @@ static void
 g_getcmds(unsigned int time)
 {
 	for (unsigned int i = IDX_BLOCK_INTERVAL_NONZERO; i < LEN(g_blocks); ++i) {
-#if !INTERVAL_SORT
+#if !BLOCKS_SORT_BY_INTERVAL_AND_SIGNAL
 		if (g_blocks[i].interval == 0)
 			continue;
 #endif
