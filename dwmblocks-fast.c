@@ -212,7 +212,7 @@ g_getcmds(void)
 		/* May need update. */
 		char tmp[sizeof(g_statusblocks[0])];
 		/* Get the result of g_getcmd. */
-		const unsigned int tmp_len = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - tmp;
+		const unsigned int tmp_len = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i)) - tmp;
 		/* Check if there has been change. */
 		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))
 		    && !memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
@@ -231,7 +231,7 @@ g_getcmds_sig(unsigned int signal)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (B_SIGNAL(i) == signal)
-			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
+			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i)) - g_statusblocks[B_TOSTATUS(i)];
 }
 
 static int
