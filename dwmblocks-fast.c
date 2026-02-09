@@ -208,7 +208,7 @@ g_getcmds(void)
 		/* Check if needs update. */
 		if (B_SLEEP(i)-- > 0)
 			continue;
-		B_SLEEP(i) = B_INTERVAL(i);
+		B_SLEEP(i) = B_INTERVAL(i) - 1;
 		/* May need update. */
 		char tmp[sizeof(g_statusblocks[0])];
 		/* Get the result of g_getcmd. */
