@@ -109,7 +109,7 @@ static void
 g_handler_sig_dummy(int num);
 #endif
 static void
-g_getcmds(unsigned int time);
+g_getcmds(void);
 static void
 g_getcmds_sig(unsigned int signal);
 static g_ret_ty
@@ -184,12 +184,10 @@ b_init()
 
 /* Run commands or functions according to their interval. */
 static void
-
 g_getcmds_init()
 {
-	unsigned int i;
 	/* Initialize the original order of the staturbar. */
-	for (i = 0; i < LEN(g_blocks); ++i) {
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		g_blocks[i].internal_tostatus_idx = i;
 		/* Larger intervals mean less likely to need to update,
 		 * needed for sort. */
@@ -200,16 +198,11 @@ g_getcmds_init()
 	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
 	/* Initialize all statusblockss. */
 	b_init();
-	for (i = 0; i < LEN(g_blocks); ++i)
-		/* Initialize the status blocks. */
-		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
-	if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
-		DIE();
 }
 
 /* Run commands or functions according to their interval. */
 static void
-g_getcmds(unsigned int time)
+g_getcmds(void)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		/* Check if needs update. */
@@ -253,6 +246,18 @@ g_sigaction(int signum, void(handler)(int))
 	return sigaction(signum, &sa, NULL);
 }
 
+static ATTR_INLINE int
+g_sig_block()
+{
+	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
+}
+
+static ATTR_INLINE int
+g_sig_unblock()
+{
+	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
+}
+
 static g_ret_ty
 g_init_signals()
 {
@@ -284,6 +289,8 @@ g_init_signals()
 		DIE(return G_RET_ERR);
 	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
 		DIE(return G_RET_ERR);
+	if (unlikely(g_sig_block() != 0))
+		DIE(return G_RET_ERR);
 	return G_RET_SUCC;
 }
 
@@ -301,18 +308,6 @@ g_status_get(char *dst)
 		}
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_RIGHT));
 	return end;
-}
-
-static ATTR_INLINE int
-g_sig_block()
-{
-	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
-}
-
-static ATTR_INLINE int
-g_sig_unblock()
-{
-	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
 }
 
 static ATTR_INLINE void
@@ -434,13 +429,12 @@ g_status_cleanup()
 static g_ret_ty
 g_status_mainloop()
 {
-	unsigned int i = 0;
 	for (;;) {
-		g_sleep(INTERVAL_UPDATE);
-		g_getcmds(i++);
+		g_getcmds();
 		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
 				DIE(return G_RET_ERR);
+		g_sleep(INTERVAL_UPDATE);
 	}
 	return G_RET_SUCC;
 }
