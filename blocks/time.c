@@ -68,6 +68,8 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	*p++ = meridiem;
 	*p++ = 'M';
 	*p = '\0';
+	/* Set next update for when minute changes. */
+	*interval = (unsigned int)(60 - tm->tm_sec) + 1;
 	return p;
 	(void)dst_size;
 	(void)unused;
@@ -110,8 +112,8 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	}
 	/* Write year */
 	p = u_utoa_p((unsigned int)tm->tm_year + 1900, p);
-	/* Set next update before day changes. */
-	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (60 - tm->tm_sec));
+	/* Set next update for when the day changes. */
+	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (60 - tm->tm_sec)) + 1;
 	return p;
 	(void)dst_size;
 	(void)unused;

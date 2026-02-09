@@ -232,7 +232,6 @@ g_getcmds_sig(unsigned int signal)
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (B_SIGNAL(i) == signal)
 			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
-	g_status_changed = 1;
 }
 
 static int
