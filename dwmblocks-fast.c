@@ -53,7 +53,8 @@
 
 #define LEN(X)           (sizeof(X) / sizeof(X[0]))
 #define G_STATUSBLOCKLEN 64
-#define G_STATUSLEN      (S_LEN(G_STATUS_PAD_LEFT) + (LEN(g_blocks) * G_STATUSBLOCKLEN) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
+/* Length of pad_left and pad_right < sizeof(g_statusblocks[0]). */
+#define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (sizeof(g_statusblocks)) + sizeof(g_statusblocks) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
 #define G_STATUS_PAD_LEFT  " "
 #define G_STATUS_PAD_RIGHT " "
@@ -71,32 +72,37 @@ typedef enum {
 	G_WRITE_STDOUT
 } g_write_ty;
 
-typedef struct {
-	unsigned int intervals[LEN(g_blocks)];
-	struct {
-		char *(*func)(char *, unsigned int, const char *, unsigned int *);
-		const char *arg;
-	} blocks[LEN(g_blocks)];
-	unsigned char tostatus_idxs[LEN(g_blocks)];
-	unsigned char statusblocks_len[LEN(g_blocks)];
-	struct {
-		const char *pad_left;
-		const char *pad_right;
-	} statuses[LEN(g_blocks)];
-	unsigned char toblock_idxs[LEN(g_blocks)];
-	unsigned char signals[LEN(g_blocks)];
-} g_internal_block_ty;
-g_internal_block_ty g_internal_blocks;
+static unsigned int b_sleeps[LEN(g_blocks)];
+static struct {
+	char *(*func)(char *, unsigned int, const char *, unsigned int *);
+	const char *arg;
+} b_blocks[LEN(g_blocks)];
+static unsigned int b_intervals[LEN(g_blocks)];
+static unsigned char b_tostatus_idxs[LEN(g_blocks)];
+/* G_STATUSBLOCKLEN fits in an unsigned char. */
+static unsigned char b_statusblocks_len[LEN(g_blocks)];
+static unsigned char b_toblock_idxs[LEN(g_blocks)];
+static struct {
+	const char *pad_left;
+	const char *pad_right;
+} b_statuses[LEN(g_blocks)];
+static unsigned char b_signals[LEN(g_blocks)];
 
-#define B_INTERVAL(idx)         (g_internal_blocks.intervals[(idx)])
-#define B_SIGNAL(idx)           (g_internal_blocks.signals[(idx)])
-#define B_TOSTATUS(idx)         (g_internal_blocks.tostatus_idxs[(idx)])
-#define B_TOBLOCK(idx)          (g_internal_blocks.toblock_idxs[(idx)])
-#define B_FUNC(idx)             (g_internal_blocks.blocks[(idx)].func)
-#define B_ARG(idx)              (g_internal_blocks.blocks[(idx)].arg)
-#define B_STATUSBLOCKS_LEN(idx) (g_internal_blocks.statusblocks_len[(idx)])
-#define B_PAD_LEFT(idx)         (g_internal_blocks.statuses[(idx)].pad_left)
-#define B_PAD_RIGHT(idx)        (g_internal_blocks.statuses[(idx)].pad_right)
+static char g_statusblocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
+static char g_status_str[G_STATUSLEN];
+
+#define B_FUNC(idx) (b_blocks[(idx)].func)
+#define B_ARG(idx)  (b_blocks[(idx)].arg)
+
+#define B_PAD_LEFT(idx)  (b_statuses[(idx)].pad_left)
+#define B_PAD_RIGHT(idx) (b_statuses[(idx)].pad_right)
+
+#define B_SLEEP(idx)            (b_sleeps[(idx)])
+#define B_INTERVAL(idx)         (b_intervals[(idx)])
+#define B_TOSTATUS(idx)         (b_tostatus_idxs[(idx)])
+#define B_STATUSBLOCKS_LEN(idx) (b_statusblocks_len[(idx)])
+#define B_TOBLOCK(idx)          (b_toblock_idxs[(idx)])
+#define B_SIGNAL(idx)           (b_signals[(idx)])
 
 #if HAVE_RT_SIGNALS
 static void
@@ -129,20 +135,15 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static char g_statusblocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
-/* G_STATUSBLOCKLEN fits in an unsigned char. */
-static char g_status_str[G_STATUSLEN];
 static int g_status_changed;
-static unsigned char g_internal_idx_block_interval_firstnonzero;
 
 static sigset_t sigset_rt;
 static sigset_t sigset_old;
 
 /* Run command or execute C function. */
-static char *
+static ATTR_INLINE char *
 g_getcmd(char *dst, char *(*func)(char *, unsigned int, const char *, unsigned int *), const char *arg, unsigned int *interval)
 {
-	/* Add result of command or C function. */
 	return func(dst, sizeof(g_statusblocks[0]), arg, interval);
 }
 
@@ -162,8 +163,28 @@ compare_interval_and_signal(const void *a, const void *b)
 	return 0;
 }
 
+static void
+b_init()
+{
+	for (unsigned i = 0; i < LEN(g_blocks); ++i) {
+		/* Check too long padding. */
+		const size_t pad_len = strlen(g_blocks[i].pad_left) + strlen(g_blocks[i].pad_right);
+		if (unlikely(pad_len > sizeof(g_statusblocks[0])))
+			DIE();
+		B_INTERVAL(i) = g_blocks[i].interval;
+		B_FUNC(i) = g_blocks[i].func;
+		B_ARG(i) = g_blocks[i].arg;
+		B_TOSTATUS(i) = g_blocks[i].internal_tostatus_idx;
+		B_TOBLOCK(B_TOSTATUS(i)) = i;
+		B_PAD_LEFT(i) = g_blocks[i].pad_left;
+		B_PAD_RIGHT(i) = g_blocks[i].pad_right;
+		B_SIGNAL(i) = g_blocks[i].signal;
+	}
+}
+
 /* Run commands or functions according to their interval. */
 static void
+
 g_getcmds_init()
 {
 	unsigned int i;
@@ -176,27 +197,8 @@ g_getcmds_init()
 	}
 	/* Sort blocks from their intervals. */
 	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
-	/* Find first index where interval is not zero. */
-	for (i = 0; i < LEN(g_blocks); ++i)
-		if (g_blocks[i].interval) {
-			g_internal_idx_block_interval_firstnonzero = i;
-			break;
-		}
 	/* Initialize all statusblockss. */
-	for (i = 0; i < LEN(g_blocks); ++i) {
-		/* Check too long padding. */
-		const size_t pad_len = strlen(g_blocks[i].pad_left) + strlen(g_blocks[i].pad_right);
-		if (unlikely(pad_len > sizeof(g_statusblocks[0])))
-			DIE();
-		g_internal_blocks.intervals[i] = g_blocks[i].interval;
-		g_internal_blocks.blocks[i].func = g_blocks[i].func;
-		g_internal_blocks.blocks[i].arg = g_blocks[i].arg;
-		g_internal_blocks.tostatus_idxs[i] = g_blocks[i].internal_tostatus_idx;
-		g_internal_blocks.toblock_idxs[g_internal_blocks.tostatus_idxs[i]] = i;
-		g_internal_blocks.statuses[i].pad_left = g_blocks[i].pad_left;
-		g_internal_blocks.statuses[i].pad_right = g_blocks[i].pad_right;
-		g_internal_blocks.signals[i] = g_blocks[i].signal;
-	}
+	b_init();
 	for (i = 0; i < LEN(g_blocks); ++i)
 		/* Initialize the status blocks. */
 		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
@@ -210,10 +212,9 @@ g_getcmds(unsigned int time)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		/* Check if needs update. */
-		if (B_INTERVAL(i) == (unsigned int)-1)
+		if (B_SLEEP(i)-- > 0)
 			continue;
-		if (time % B_INTERVAL(i))
-			continue;
+		B_SLEEP(i) = B_INTERVAL(i);
 		/* May need update. */
 		char tmp[sizeof(g_statusblocks[0])];
 		/* Get the result of g_getcmd. */
@@ -237,6 +238,7 @@ g_getcmds_sig(unsigned int signal)
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (B_SIGNAL(i) == signal)
 			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_INTERVAL(i)) - g_statusblocks[B_TOSTATUS(i)];
+	g_status_changed = 1;
 }
 
 static int
