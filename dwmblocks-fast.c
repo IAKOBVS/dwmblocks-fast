@@ -133,7 +133,7 @@ static int g_screen;
 static Window g_win_root;
 static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
-static g_write_ty g_write_dst = G_WRITE_STDOUT;
+static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
 static int g_status_changed;
 
@@ -191,7 +191,8 @@ g_getcmds_init()
 	/* Initialize the original order of the staturbar. */
 	for (i = 0; i < LEN(g_blocks); ++i) {
 		g_blocks[i].internal_tostatus_idx = i;
-		/* Larger intervals mean less likely to need to update. */
+		/* Larger intervals mean less likely to need to update,
+		 * needed for sort. */
 		if (g_blocks[i].interval == 0)
 			g_blocks[i].interval = (unsigned int)-1;
 	}
@@ -480,11 +481,13 @@ g_handler_term(int signum)
 int
 main(int argc, char **argv)
 {
+#ifdef USE_X11
 	/* Handle command line arguments. */
 	for (int i = 0; i < argc; ++i)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
+#endif
 	if (unlikely(g_status_init() != G_RET_SUCC))
 		DIE(return EXIT_FAILURE);
 #ifndef TEST
