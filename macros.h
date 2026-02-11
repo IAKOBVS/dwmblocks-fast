@@ -51,13 +51,6 @@
 			x;                              \
 		} while (0)
 
-#	define DIE_RET(x)                              \
-		do {                                    \
-			if (errno)                      \
-				perror("errno error:"); \
-			return x;                       \
-		} while (0)
-
 #	ifdef __glibc_has_builtin
 #		define HAS_BUILTIN(name) __glibc_has_builtin(name)
 #	elif defined __has_builtin
