@@ -301,6 +301,8 @@ g_status_get(char *dst)
 {
 	char *end = dst;
 	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_LEFT));
+	/* TODO: avoid reconstructing the whole statusbar. Only start from the rightmost
+	 * bars that we need to reconstruct. */
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
 		if (B_STATUSBLOCKS_LEN(i)) {
 			end = u_stpcpy(end, B_PAD_LEFT(B_TOBLOCK(i)));
