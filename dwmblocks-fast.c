@@ -210,7 +210,7 @@ g_getcmds(void)
 		/* Get the result of g_getcmd. */
 		const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
 		if (unlikely(tmp_e == NULL))
-			return -1;
+			DIE(return -1);
 		const unsigned int tmp_len = tmp_e - tmp;
 		/* Check if there has been change. */
 		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))
@@ -241,8 +241,10 @@ g_sigaction(int signum, void(handler)(int))
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handler;
 	if (unlikely(sigfillset(&sa.sa_mask)) == -1)
-		return -1;
-	return sigaction(signum, &sa, NULL);
+		DIE(return -1);
+	if (unlikely(sigaction(signum, &sa, NULL)) == -1)
+		DIE(return -1);
+	return 0;
 }
 
 static ATTR_INLINE int
@@ -372,7 +374,7 @@ g_status_write(char *status)
 #endif
 	case G_WRITE_STDOUT:
 		if (unlikely(g_status_write_stdout(status, end - status) == -1))
-			return -1;
+			DIE(return -1);
 		break;
 	}
 	g_status_changed = 0;
