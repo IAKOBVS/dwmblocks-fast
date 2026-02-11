@@ -30,17 +30,17 @@ b_write_shell(char *dst, unsigned int dst_size, const char *cmd, unsigned int *i
 {
 	FILE *fp = popen(cmd, "r");
 	if (unlikely(fp == NULL))
-		DIE(return dst);
+		DIE(return NULL);
 	const int fd = io_fileno(fp);
 	if (unlikely(fd == -1)) {
 		pclose(fp);
-		DIE(return dst);
+		DIE(return NULL);
 	}
 	const ssize_t read_sz = read(fd, dst, dst_size);
 	if (unlikely(pclose(fp) == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	if (unlikely(read_sz == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	/* Chop newline. */
 	char *end = (char *)memchr(dst, '\n', (size_t)read_sz);
 	/* Nul-terminate newline or end of string. */

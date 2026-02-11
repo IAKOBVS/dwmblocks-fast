@@ -63,11 +63,6 @@
 #define INTERVAL_UPDATE 1
 
 typedef enum {
-	G_RET_SUCC = 0,
-	G_RET_ERR
-} g_ret_ty;
-
-typedef enum {
 	G_WRITE_STATUSBAR = 0,
 	G_WRITE_STDOUT
 } g_write_ty;
@@ -108,24 +103,24 @@ static char g_status_str[G_STATUSLEN];
 static void
 g_handler_sig_dummy(int num);
 #endif
-static void
+static int
 g_getcmds(void);
 static void
 g_getcmds_sig(unsigned int signal);
-static g_ret_ty
+static int
 g_init_signals();
 static void
 g_handler_sig(int signum);
 static char *
 g_status_get(char *str);
-static g_ret_ty
+static int
 g_status_write(char *status);
-static g_ret_ty
+static int
 g_status_mainloop();
 static void
 g_handler_term(int signum);
 #ifdef USE_X11
-static g_ret_ty
+static int
 g_init_x11();
 
 static Display *g_dpy;
@@ -163,14 +158,14 @@ compare_interval_and_signal(const void *a, const void *b)
 	return 0;
 }
 
-static void
+static int
 b_init()
 {
 	for (unsigned i = 0; i < LEN(g_blocks); ++i) {
 		/* Check too long padding. */
 		const size_t pad_len = strlen(g_blocks[i].pad_left) + strlen(g_blocks[i].pad_right);
 		if (unlikely(pad_len > sizeof(g_statusblocks[0])))
-			DIE();
+			DIE(return -1);
 		B_INTERVAL(i) = g_blocks[i].interval;
 		B_FUNC(i) = g_blocks[i].func;
 		B_ARG(i) = g_blocks[i].arg;
@@ -180,6 +175,7 @@ b_init()
 		B_PAD_RIGHT(i) = g_blocks[i].pad_right;
 		B_SIGNAL(i) = g_blocks[i].signal;
 	}
+	return 0;
 }
 
 /* Run commands or functions according to their interval. */
@@ -201,7 +197,7 @@ g_getcmds_init()
 }
 
 /* Run commands or functions according to their interval. */
-static void
+static int
 g_getcmds(void)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
@@ -212,7 +208,10 @@ g_getcmds(void)
 		/* May need update. */
 		char tmp[sizeof(g_statusblocks[0])];
 		/* Get the result of g_getcmd. */
-		const unsigned int tmp_len = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i)) - tmp;
+		const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+		if (unlikely(tmp_e == NULL))
+			return -1;
+		const unsigned int tmp_len = tmp_e - tmp;
 		/* Check if there has been change. */
 		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))
 		    && !memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
@@ -223,6 +222,7 @@ g_getcmds(void)
 		/* Mark change. */
 		g_status_changed = 1;
 	}
+	return 0;
 }
 
 /* Same as g_getcmds but executed when receiving a signal. */
@@ -257,18 +257,18 @@ g_sig_unblock()
 	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
 }
 
-static g_ret_ty
+static int
 g_init_signals()
 {
 	if (unlikely(sigemptyset(&sigset_rt)) == -1)
-		DIE(return G_RET_ERR);
+		DIE(return -1);
 	/* Initialize RT signals. */
 #if HAVE_RT_SIGNALS
 	for (int i = SIGRTMIN; i <= SIGRTMAX; ++i) {
 		if (unlikely(g_sigaction(i, g_handler_sig_dummy) == -1))
-			DIE(return G_RET_ERR);
+			DIE(return -1);
 		if (unlikely(sigaddset(&sigset_rt, i) == -1))
-			DIE(return G_RET_ERR);
+			DIE(return -1);
 	}
 #endif
 	/* Handle RT signals. */
@@ -277,20 +277,20 @@ g_init_signals()
 #ifdef HAVE_RT_SIGNALS
 			if (unlikely(SIGMINUS + B_SIGNAL(i) > SIGRTMAX)) {
 				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", B_SIGNAL(i), SIGRTMAX);
-				DIE();
+				DIE(return -1);
 			}
 #endif
 			if (unlikely(g_sigaction(SIGMINUS + (int)B_SIGNAL(i), g_handler_sig) == -1))
-				DIE(return G_RET_ERR);
+				DIE(return -1);
 		}
 	/* Handle termination signals. */
 	if (unlikely(g_sigaction(SIGTERM, g_handler_term) == -1))
-		DIE(return G_RET_ERR);
+		DIE(return -1);
 	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
-		DIE(return G_RET_ERR);
-	if (unlikely(g_sig_block() != 0))
-		DIE(return G_RET_ERR);
-	return G_RET_SUCC;
+		DIE(return -1);
+	if (unlikely(g_sig_block() == -1))
+		DIE(return -1);
+	return 0;
 }
 
 /* Construct the status string. */
@@ -312,10 +312,10 @@ g_status_get(char *dst)
 static ATTR_INLINE void
 g_sleep(unsigned int secs)
 {
-	if (unlikely(g_sig_unblock() != 0))
+	if (unlikely(g_sig_unblock() == -1))
 		DIE();
 	sleep(secs);
-	if (unlikely(g_sig_block() != 0))
+	if (unlikely(g_sig_block() == -1))
 		DIE();
 }
 
@@ -327,17 +327,17 @@ g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 	return XChangeProperty(dpy, w, XA_WM_NAME, XA_STRING, 8, PropModeReplace, (_Xconst unsigned char *)name, len);
 }
 
-static g_ret_ty
+static int
 g_init_x11()
 {
 	g_dpy = XOpenDisplay(NULL);
 	if (unlikely(g_dpy == NULL)) {
 		fprintf(stderr, "dwmblocks-fast: Failed to open display.\n");
-		DIE(return G_RET_ERR);
+		DIE(return -1);
 	}
 	g_screen = DefaultScreen(g_dpy);
 	g_win_root = RootWindow(g_dpy, g_screen);
-	return G_RET_SUCC;
+	return 0;
 }
 #endif
 
@@ -350,17 +350,17 @@ g_status_write_x11(const char *status, int status_len)
 }
 #endif
 
-static g_ret_ty
+static int
 g_status_write_stdout(char *status, int status_len)
 {
 	status[status_len++] = '\n';
 	ssize_t ret = write(STDOUT_FILENO, status, (unsigned int)status_len);
 	if (unlikely(ret != status_len))
-		DIE(return G_RET_ERR);
-	return G_RET_SUCC;
+		DIE(return -1);
+	return 0;
 }
 
-static g_ret_ty
+static int
 g_status_write(char *status)
 {
 	const char *end = g_status_get(status);
@@ -371,24 +371,24 @@ g_status_write(char *status)
 		break;
 #endif
 	case G_WRITE_STDOUT:
-		if (unlikely(g_status_write_stdout(status, end - status) != G_RET_SUCC))
-			return G_RET_ERR;
+		if (unlikely(g_status_write_stdout(status, end - status) == -1))
+			return -1;
 		break;
 	}
 	g_status_changed = 0;
-	return G_RET_SUCC;
+	return 0;
 }
 
 /* Update hwmon/hwmon[0-9]* and thermal/thermal_zone[0-9]* to point to
  * the real file, given that the number may change between reboots. */
-static g_ret_ty
+static int
 g_paths_sysfs_resolve()
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (g_blocks[i].arg) {
 			const char *p = path_sysfs_resolve(g_blocks[i].arg);
 			if (unlikely(p == NULL))
-				DIE();
+				DIE(return -1);
 			if (p != g_blocks[i].arg) {
 				DBG(fprintf(stderr, "%s:%d:%s: %s doesn't exist, resolved to %s (which is malloc'd).\n", __FILE__, __LINE__, ASSERT_FUNC, g_blocks[i].arg, p));
 				/* Set new path. */
@@ -398,22 +398,22 @@ g_paths_sysfs_resolve()
 			}
 		}
 	}
-	return G_RET_SUCC;
+	return 0;
 }
 
-static g_ret_ty
+static int
 g_status_init()
 {
-	if (unlikely(g_paths_sysfs_resolve() != G_RET_SUCC))
-		DIE(return G_RET_ERR);
+	if (unlikely(g_paths_sysfs_resolve() == -1))
+		DIE(return -1);
 #ifdef USE_X11
-	if (unlikely(g_init_x11() != G_RET_SUCC))
-		DIE(return G_RET_ERR);
+	if (unlikely(g_init_x11() == -1))
+		DIE(return -1);
 #endif
 	g_getcmds_init();
-	if (unlikely(g_init_signals() != G_RET_SUCC))
-		DIE(return G_RET_ERR);
-	return G_RET_SUCC;
+	if (unlikely(g_init_signals() == -1))
+		DIE(return -1);
+	return 0;
 }
 
 static void
@@ -425,17 +425,18 @@ g_status_cleanup()
 }
 
 /* Main loop. */
-static g_ret_ty
+static int
 g_status_mainloop()
 {
 	for (;;) {
-		g_getcmds();
+		if (unlikely(g_getcmds() == -1))
+			DIE(return -1);
 		if (g_status_changed)
-			if (unlikely(g_status_write(g_status_str) != G_RET_SUCC))
-				DIE(return G_RET_ERR);
+			if (unlikely(g_status_write(g_status_str) == -1))
+				DIE(return -1);
 		g_sleep(INTERVAL_UPDATE);
 	}
-	return G_RET_SUCC;
+	return 0;
 }
 
 #ifdef HAVE_RT_SIGNALS
@@ -481,10 +482,10 @@ main(int argc, char **argv)
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
 #endif
-	if (unlikely(g_status_init() != G_RET_SUCC))
+	if (unlikely(g_status_init() == -1))
 		DIE(return EXIT_FAILURE);
 #ifndef TEST
-	if (unlikely(g_status_mainloop() != G_RET_SUCC))
+	if (unlikely(g_status_mainloop() == -1))
 		DIE(return EXIT_FAILURE);
 #endif
 	g_status_cleanup();

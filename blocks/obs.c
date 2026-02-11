@@ -61,7 +61,7 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *
 			dst = u_stpcpy(dst, proc_icon_off);
 			return dst;
 		} else if (unlikely(ret == -1)) {
-			DIE(return dst);
+			DIE(return NULL);
 		}
 	}
 	dst = u_stpcpy(dst, proc_icon_on);

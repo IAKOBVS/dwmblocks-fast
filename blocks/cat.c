@@ -29,12 +29,12 @@ b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned int
 		return dst;
 	const int fd = open(filename, O_RDONLY);
 	if (unlikely(fd == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	int read_sz = read(fd, dst, dst_size - 1);
 	if (unlikely(close(fd) == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	if (unlikely(read_sz == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	const char *nl = memchr(dst, '\n', dst_size- 1);
 	if (nl)
 		read_sz = nl - dst;

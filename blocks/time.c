@@ -38,7 +38,7 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 {
 	struct tm *tm = b_read_time();
 	if (unlikely(tm == NULL))
-		DIE(return dst);
+		DIE(return NULL);
 	unsigned int h = (unsigned int)tm->tm_hour;
 	char meridiem;
 	char *p = dst;
@@ -81,7 +81,7 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 {
 	struct tm *tm = b_read_time();
 	if (unlikely(tm == NULL))
-		DIE(return dst);
+		DIE(return NULL);
 	char *p = dst;
 	/* Write day */
 	switch (tm->tm_wday) {

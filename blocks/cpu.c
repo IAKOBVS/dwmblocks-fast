@@ -61,7 +61,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
 	if (unlikely(usage == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
 	(void)dst_size;

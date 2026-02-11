@@ -56,7 +56,7 @@ b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpo
 {
 	const unsigned int usage = b_read_disk_usage_percent(mountpoint);
 	if (unlikely(usage == (unsigned int)-1))
-		DIE(return dst);
+		DIE(return NULL);
 	char *p = dst;
 	p = u_ulltoa_p((unsigned int)usage, p);
 	return p;

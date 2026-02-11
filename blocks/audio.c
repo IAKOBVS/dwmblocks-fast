@@ -53,7 +53,7 @@ b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned i
 	}
 	int vol = b_read_mic_vol();
 	if (unlikely(vol == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	*p++ = ' ';
 	p = u_utoa_le3_p((unsigned int)vol, p);
 	return p;

@@ -28,13 +28,13 @@ b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file)
 {
 	const int fd = open(temp_file, O_RDONLY);
 	if (unlikely(fd == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	/* Milidegrees = degrees * 1000 */
 	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"));
 	if (unlikely(close(fd) == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	if (unlikely(read_sz  == -1))
-		DIE(return dst);
+		DIE(return NULL);
 	/* Don't read the newline. */
 	if (*(dst + read_sz - 1) == '\n')
 		--read_sz;
@@ -51,7 +51,7 @@ b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned i
 	char *p = dst;
 	p = b_write_temp_internal(p, dst_size, temp_file);
 	if (unlikely(p == dst))
-		DIE(return dst);
+		DIE(return NULL);
 	return p;
 	(void)dst_size;
 	(void)interval;
