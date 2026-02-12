@@ -83,14 +83,14 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	{ .func = b_write_date,               .arg = NULL,          .pad_left = "📅 ",      .pad_right = " | ",  .interval = 3600, .signal = 0          },
 
 	/* Disk */
-	{ .func = b_write_disk_usage_percent, .arg = "/home",       .pad_left = "📁 /home", .pad_right = "% ",   .interval = 60,   .signal = 0          },
+	{ .func = b_write_disk_usage_percent, .arg = "/home",       .pad_left = "📁 /home ", .pad_right = "% ",   .interval = 60,   .signal = 0          },
 	{ .func = b_write_disk_usage_free,    .arg = "/home",       .pad_left = "",         .pad_right = " | ",  .interval = 60,   .signal = 0          },
 	{ .func = b_write_disk_usage_percent, .arg = "/",           .pad_left = "📁 / ",    .pad_right = "% ",   .interval = 60,   .signal = 0          },
 	{ .func = b_write_disk_usage_free,    .arg = "/",           .pad_left = "",         .pad_right = " | ",  .interval = 60,   .signal = 0          },
 
 	/* Ram */
 #	ifdef HAVE_PROCFS
-	{ .func = b_write_ram_usage_percent,  .arg = NULL,          .pad_left = "🧠 ",      .pad_right = "% | ", .interval = 60,   .signal = 0          },
+	{ .func = b_write_ram_usage_percent,  .arg = NULL,          .pad_left = "🧠 ",      .pad_right = "% ", .interval = 60,   .signal = 0          },
 	{ .func = b_write_ram_usage_available, .arg = NULL,          .pad_left = "",          .pad_right = " | ",  .interval = 60,   .signal = 0       },
 #	endif
 
