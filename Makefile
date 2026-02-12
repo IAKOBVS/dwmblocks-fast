@@ -150,12 +150,15 @@ $(SCRIPTS):
 
 $(CONFIG):
 	cp $(CONFIG_DEF) $@
+	chmod 644 $@
 
 $(BLOCKS):
 	cp $(BLOCKS_DEF) $@
+	chmod 644 $@
 
 config.mk:
 	cp config.def.mk $@
+	chmod 644 $@
 
 $(CPU_TEMP_GENERATED):
 	./getcpufile > $@

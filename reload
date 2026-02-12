@@ -2,5 +2,6 @@
 BIN=dwmblocks-fast
 LOG_FILE=/tmp/dwmblocks-fast.log
 killall "$BIN"
+make
 sudo make install
 nohup dwmblocks-fast >/dev/null 2>"$LOG_FILE" &
