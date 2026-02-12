@@ -143,7 +143,7 @@ $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 	mkdir -p $(BIN)
 	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(LDFLAGS)
 
-$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ)
+$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
