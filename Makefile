@@ -29,7 +29,6 @@ CC = cc
 CFLAGS += -O2 -Wpedantic -pedantic -Wall -Wextra -Wuninitialized -Wshadow -Warray-bounds -Wnull-dereference -Wformat -Wunused -Wwrite-strings
 SRC = .
 BIN = bin
-HFILES = src/*.h
 SCRIPTSBASE = dwmblocks-fast-*
 PROG = dwmblocks-fast
 PROG_BIN = $(BIN)/dwmblocks-fast
@@ -144,7 +143,7 @@ $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 	mkdir -p $(BIN)
 	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(LDFLAGS)
 
-$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
+$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ)
 
 $(SCRIPTS):
 	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
