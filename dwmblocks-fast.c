@@ -105,7 +105,7 @@ g_handler_sig_dummy(int num);
 #endif
 static int
 g_getcmds(void);
-static void
+static int
 g_getcmds_sig(unsigned int signal);
 static int
 g_init_signals();
@@ -131,6 +131,9 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
 static int g_status_changed;
+static int g_status_changed_len;
+static unsigned int g_status_start_idx;
+static unsigned int g_status_idx[LEN(g_blocks)];
 
 static sigset_t sigset_rt;
 static sigset_t sigset_old;
@@ -213,25 +216,40 @@ g_getcmds(void)
 			DIE(return -1);
 		const unsigned int tmp_len = tmp_e - tmp;
 		/* Check if there has been change. */
-		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))
-		    && !memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
-			continue;
+		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))) {
+			if (!memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len)) {
+				continue;
+			}
+		} else {
+			++g_status_changed_len;
+		}
 		/* Get the latest change. */
-		memcpy(g_statusblocks[B_TOSTATUS(i)], tmp, tmp_len);
+		u_stpcpy_len(g_statusblocks[B_TOSTATUS(i)], tmp, tmp_len);
 		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = tmp_len;
 		/* Mark change. */
-		g_status_changed = 1;
+		++g_status_changed;
+		/* Get latest rightmost. */
+		g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
 	}
 	return 0;
 }
 
 /* Same as g_getcmds but executed when receiving a signal. */
-static void
+static int
 g_getcmds_sig(unsigned int signal)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		if (B_SIGNAL(i) == signal)
-			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i)) - g_statusblocks[B_TOSTATUS(i)];
+		if (B_SIGNAL(i) == signal) {
+			const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+			if (end == NULL)
+				DIE(return -1);
+			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = end - g_statusblocks[B_TOSTATUS(i)];
+			/* Mark change. */
+			++g_status_changed;
+			/* Get latest rightmost. */
+			g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
+		}
+	return 0;
 }
 
 static int
@@ -299,18 +317,24 @@ g_init_signals()
 static char *
 g_status_get(char *dst)
 {
-	char *end = dst;
-	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_LEFT));
-	/* TODO: avoid reconstructing the whole statusbar. Only start from the rightmost
-	 * bars that we need to reconstruct. */
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+	dst += S_LEN(G_STATUS_PAD_LEFT);
+	char *start = dst;
+	/* Skip things we don't need to update. */
+	dst += g_status_idx[g_status_start_idx];
+	for (unsigned int i = g_status_start_idx; i < LEN(g_statusblocks); ++i) {
+		g_status_idx[i] = dst - start;
 		if (B_STATUSBLOCKS_LEN(i)) {
-			end = u_stpcpy(end, B_PAD_LEFT(B_TOBLOCK(i)));
-			end = u_stpcpy_len(end, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
-			end = u_stpcpy(end, B_PAD_RIGHT(B_TOBLOCK(i)));
+			dst = u_stpcpy(dst, B_PAD_LEFT(B_TOBLOCK(i)));
+			dst = u_mempcpy(dst, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
+			dst = u_stpcpy(dst, B_PAD_RIGHT(B_TOBLOCK(i)));
+			DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(B_TOBLOCK(i))));
+			DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, i, g_statusblocks[i]));
+			DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(B_TOBLOCK(i))));
 		}
-	end = u_stpcpy_len(end, S_LITERAL(G_STATUS_PAD_RIGHT));
-	return end;
+	}
+	dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_RIGHT));
+	g_status_start_idx = (unsigned int)-1;
+	return dst;
 }
 
 static ATTR_INLINE void
@@ -380,6 +404,7 @@ g_status_write(char *status)
 		break;
 	}
 	g_status_changed = 0;
+	g_status_changed_len = 0;
 	return 0;
 }
 
@@ -415,6 +440,7 @@ g_status_init()
 		DIE(return -1);
 #endif
 	g_getcmds_init();
+	memcpy(g_status_str, S_LITERAL(G_STATUS_PAD_LEFT));
 	if (unlikely(g_init_signals() == -1))
 		DIE(return -1);
 	return 0;
@@ -465,8 +491,8 @@ g_handler_sig_dummy(int signum)
 static void
 g_handler_sig(int signum)
 {
-	g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS);
-	g_status_changed = 1;
+	if (unlikely(g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS)))
+		DIE();
 }
 
 static void

@@ -138,6 +138,18 @@ u_stpcpy_len(char *dst, const char *src, size_t n)
 }
 
 static ATTR_INLINE char *
+u_mempcpy(char *dst, const char *src, size_t n)
+{
+#	ifdef HAVE_MEMPCPY
+	dst = (char *)mempcpy(dst, src, n);
+	return dst;
+#	else
+	dst = (char *)memcpy(dst, src, n) + n;
+	return dst;
+#	endif
+}
+
+static ATTR_INLINE char *
 u_stpcpy(char *dst, const char *src)
 {
 #	ifdef HAVE_STPCPY
