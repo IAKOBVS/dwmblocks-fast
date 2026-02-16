@@ -34,25 +34,28 @@ b_read_cpu_usage()
 	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/stat");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
-	static int l_user, l_nice, l_system, l_idle, l_iowait, l_irq, l_softirq;
-	int user = l_user, nice = l_nice, system = l_system, idle = l_idle, iowait = l_iowait, irq = l_irq, softirq = l_softirq;
+	typedef struct {
+		int user, nice, system, idle, iowait, irq, softirq;
+	} time_ty;
+	static time_ty last;
+	time_ty curr;
+	memcpy(&curr, &last, sizeof(last));
 	const char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
-	l_user = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	l_nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	l_system = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	l_idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	l_iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	l_irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	l_softirq = (int)u_strtou10(p, &p);
+	last.user = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	last.nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	last.system = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	last.idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	last.iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	last.irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	last.softirq = (int)u_strtou10(p, &p);
 	/* clang-format off */
-	const int tot = nice + user + system + idle + iowait + irq + softirq;
-	const int l_tot = l_nice + l_user + l_system + l_idle + l_iowait + l_irq + l_softirq;
-	const int sum = tot - l_tot;
-	const int l_tot2 = l_user + l_nice + l_system + l_irq + l_softirq;
-	const int tot2 = user + nice + system + irq + softirq;
-	return (int)((long double)100 * ((long double)(tot2 - l_tot2) / (long double)sum));
+	const int curr_tot = curr.nice + curr.user + curr.system + curr.idle + curr.iowait + curr.irq + curr.softirq;
+	const int last_tot = last.nice + last.user + last.system + last.idle + last.iowait + last.irq + last.softirq;
+	const int last_used = last.user + last.nice + last.system + last.irq + last.softirq;
+	const int curr_used = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
+	return (int)((long double)100 * ((long double)(curr_used - last_used) / (long double)(curr_tot - last_tot)));
 }
 
 char *
