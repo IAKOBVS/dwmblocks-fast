@@ -250,6 +250,7 @@ g_getcmds_sig(unsigned int signal)
 		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = end - g_statusblocks[B_TOSTATUS(i)];
 		/* Mark change. */
 		++g_status_changed;
+		++g_status_changed_len;
 		/* Get latest rightmost. */
 		g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
 	}
