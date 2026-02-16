@@ -22,7 +22,6 @@
 #	include <string.h>
 #	include "macros.h"
 
-
 static ATTR_MAYBE_UNUSED char *
 u_ulltoa_p(unsigned long long num, char *buf)
 {

@@ -1,2 +1,0 @@
-#!/bin/sh
-renice 19 -p $(pgrep dwmblocks-fast)

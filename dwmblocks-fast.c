@@ -217,9 +217,8 @@ g_getcmds(void)
 		const unsigned int tmp_len = tmp_e - tmp;
 		/* Check if there has been change. */
 		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))) {
-			if (!memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len)) {
+			if (!memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
 				continue;
-			}
 		} else {
 			++g_status_changed_len;
 		}

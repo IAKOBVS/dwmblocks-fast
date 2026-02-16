@@ -28,6 +28,7 @@
 #	include "../utils.h"
 #	include "procfs.h"
 
+
 int
 b_read_ram_usage_percent(void)
 {
