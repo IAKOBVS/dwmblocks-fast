@@ -88,6 +88,7 @@ static unsigned char b_signals[LEN(g_blocks)];
 
 static char g_statusblocks[LEN(g_blocks)][G_STATUSBLOCKLEN];
 static char g_status_str[G_STATUSLEN];
+static unsigned int g_status_str_len;
 
 #define B_FUNC(idx) (b_blocks[(idx)].func)
 #define B_ARG(idx)  (b_blocks[(idx)].arg)
@@ -240,17 +241,18 @@ g_getcmds(void)
 static int
 g_getcmds_sig(unsigned int signal)
 {
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
-		if (B_SIGNAL(i) == signal) {
-			const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-			if (end == NULL)
-				DIE(return -1);
-			B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = end - g_statusblocks[B_TOSTATUS(i)];
-			/* Mark change. */
-			++g_status_changed;
-			/* Get latest rightmost. */
-			g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
-		}
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
+		if (likely(B_SIGNAL(i) != signal))
+			continue;
+		const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+		if (unlikely(end == NULL))
+			DIE(return -1);
+		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = end - g_statusblocks[B_TOSTATUS(i)];
+		/* Mark change. */
+		++g_status_changed;
+		/* Get latest rightmost. */
+		g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
+	}
 	return 0;
 }
 
@@ -323,18 +325,28 @@ g_status_get(char *dst)
 	char *start = dst;
 	/* Skip things we don't need to update. */
 	dst += g_status_idx[g_status_start_idx];
-	for (unsigned int i = g_status_start_idx; i < LEN(g_statusblocks); ++i) {
-		g_status_idx[i] = dst - start;
-		if (B_STATUSBLOCKS_LEN(i)) {
-			dst = u_stpcpy(dst, B_PAD_LEFT(B_TOBLOCK(i)));
-			dst = u_mempcpy(dst, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
-			dst = u_stpcpy(dst, B_PAD_RIGHT(B_TOBLOCK(i)));
-			DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(B_TOBLOCK(i))));
-			DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, i, g_statusblocks[i]));
-			DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(B_TOBLOCK(i))));
+	/* Slow path: multiple bars need to be updated, or there is length change. */
+	if (g_status_changed_len || g_status_changed != 1) {
+		for (unsigned int i = g_status_start_idx; i < LEN(g_statusblocks); ++i) {
+			g_status_idx[i] = dst - start;
+			if (B_STATUSBLOCKS_LEN(i)) {
+				dst = u_stpcpy(dst, B_PAD_LEFT(B_TOBLOCK(i)));
+				dst = u_mempcpy(dst, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
+				dst = u_stpcpy(dst, B_PAD_RIGHT(B_TOBLOCK(i)));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(B_TOBLOCK(i))));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, i, g_statusblocks[i]));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(B_TOBLOCK(i))));
+			}
+		}
+		dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_RIGHT));
+	} else {
+		/* Fast path: only one bar needs to be updated and no length change. */
+		if (B_STATUSBLOCKS_LEN(g_status_start_idx)) {
+			memcpy(dst + strlen(B_PAD_LEFT(B_TOBLOCK(g_status_start_idx))), g_statusblocks[g_status_start_idx], B_STATUSBLOCKS_LEN(g_status_start_idx));
+			dst = g_status_str + g_status_str_len;
+			DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, g_status_start_idx, g_statusblocks[g_status_start_idx]));
 		}
 	}
-	dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_RIGHT));
 	g_status_start_idx = (unsigned int)-1;
 	return dst;
 }
@@ -405,6 +417,7 @@ g_status_write(char *status)
 			DIE(return -1);
 		break;
 	}
+	g_status_str_len = end - status;
 	g_status_changed = 0;
 	g_status_changed_len = 0;
 	return 0;
