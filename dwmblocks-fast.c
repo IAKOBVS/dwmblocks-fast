@@ -39,6 +39,9 @@
 #include "utils.h"
 #include "path.h"
 
+#include "dwmblocks-fast.h"
+unsigned int g_time;
+
 #if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
 #	define HAVE_RT_SIGNALS 1
 #endif
@@ -463,6 +466,7 @@ g_status_mainloop()
 		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) == -1))
 				DIE(return -1);
+		++g_time;
 		g_sleep(INTERVAL_UPDATE);
 	}
 	return 0;

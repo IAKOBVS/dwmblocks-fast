@@ -64,7 +64,8 @@ REQ_H =\
 	$(INCLUDE)/utils.h\
 	$(INCLUDE)/config.h\
 	$(INCLUDE)/blocks.h\
-	$(INCLUDE)/path.h
+	$(INCLUDE)/path.h\
+	$(INCLUDE)/dwmblocks-fast.h
 
 # Targets
 all: options $(PROG_BIN) $(SCRIPTS)

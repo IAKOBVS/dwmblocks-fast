@@ -26,41 +26,46 @@
 
 #	include "../macros.h"
 #	include "../utils.h"
+#	include "../dwmblocks-fast.h"
 #	include "procfs.h"
 
+char b_ram_meminfo[B_PAGE_SIZE + 1];
+unsigned int b_ram_meminfo_time = (unsigned int)-1;
+unsigned int b_ram_meminfo_sz;
+
+int
+b_ram_meminfo_read(char *buf)
+{
+	if (g_time != b_ram_meminfo_time) {
+		b_ram_meminfo_time = g_time;
+		b_ram_meminfo_sz = b_proc_read_file(buf, sizeof(b_ram_meminfo), "/proc/meminfo");
+		if (unlikely(b_ram_meminfo_sz == (unsigned int)-1))
+			DIE(return -1);
+	}
+	return 0;
+}
 
 int
 b_read_ram_usage_percent(void)
 {
-#	if 0
-	struct sysinfo info;
-	if (unlikely(sysinfo(&info) != 0))
+	if (unlikely(b_ram_meminfo_read(b_ram_meminfo) == -1))
 		DIE(return -1);
-	const int percent = 100 - (int)(((long double)(info.freeram + info.bufferram) / (long double)info.totalram) * (long double)100);
-#	else
-	char buf[B_PAGE_SIZE + 1];
-	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/meminfo");
-	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return -1);
-	const unsigned long long avail = b_proc_value_getull(buf, read_sz, S_LITERAL("MemAvailable:"), ' ');
+	const unsigned long long avail = b_proc_value_getull(b_ram_meminfo, b_ram_meminfo_sz, S_LITERAL("MemAvailable:"), ' ');
 	if (unlikely(avail == (unsigned long long )-1))
 		DIE(return -1);
-	const unsigned long long total = b_proc_value_getull(buf, read_sz, S_LITERAL("MemTotal:"), ' ');
+	const unsigned long long total = b_proc_value_getull(b_ram_meminfo, b_ram_meminfo_sz, S_LITERAL("MemTotal:"), ' ');
 	if (unlikely(total == (unsigned long long)-1))
 		DIE(return -1);
 	const int percent = 100 - (int)((long double)avail / (long double)total * (long double)100);
-#	endif
 	return percent;
 }
 
 unsigned long long
 b_read_ram_usage_available(void)
 {
-	char buf[B_PAGE_SIZE + 1];
-	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/meminfo");
-	if (unlikely(read_sz == (unsigned int)-1))
+	if (unlikely(b_ram_meminfo_read(b_ram_meminfo) == -1))
 		DIE(return (unsigned long long)-1);
-	const unsigned long long avail = b_proc_value_getull(buf, sizeof(buf), S_LITERAL("MemAvailable:"), ' ');
+	const unsigned long long avail = b_proc_value_getull(b_ram_meminfo, sizeof(b_ram_meminfo), S_LITERAL("MemAvailable:"), ' ');
 	if (unlikely(avail == (unsigned long long)-1))
 		DIE(return (unsigned long long )-1);
 	/* Values are in KiB. */
