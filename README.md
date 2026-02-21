@@ -84,10 +84,13 @@ fi
     # Retry until Pipewire is running.
 	while [ $retry -gt 0 ]; do
         # Check if pipewire is running.
-        dwmblocks-fast >>$LOG_DIR/dwmblocks-fast.log 2>> $LOG_DIR/dwmblocks-fast.log && exit
+      	dwmblocks-fast >>$LOG_DIR/dwmblocks-fast.log 2>> $LOG_DIR/dwmblocks-fast.log && exit
         # Retry
-		retry=$((retry - 1))
+      	retry=$((retry - 1))
 		sleep 1
+		for pid in $(ps -e -o comm --no-headers | grep -F -e 'dwmblocks-fast'); do
+			kill -15 "$pid"
+		done
 	done
 	exit 1 
 } &
