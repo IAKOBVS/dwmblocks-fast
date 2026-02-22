@@ -134,6 +134,7 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
+static unsigned int g_signal;
 static int g_status_changed;
 static int g_status_changed_len;
 static unsigned int g_status_start_idx;
@@ -244,6 +245,7 @@ g_getcmds_sig(unsigned int signal)
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (likely(B_SIGNAL(i) != signal))
 			continue;
+		g_signal = 1;
 		const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
 		if (unlikely(end == NULL))
 			DIE(return -1);
@@ -475,8 +477,13 @@ static int
 g_status_mainloop()
 {
 	for (;;) {
-		if (unlikely(g_getcmds() == -1))
-			DIE(return -1);
+		if (likely(g_signal == 0)) {
+			if (unlikely(g_getcmds() == -1))
+				DIE(return -1);
+		} else {
+			g_getcmds_sig(g_signal);
+			g_signal = 0;
+		}
 		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) == -1))
 				DIE(return -1);
@@ -508,8 +515,7 @@ g_handler_sig_dummy(int signum)
 static void
 g_handler_sig(int signum)
 {
-	if (unlikely(g_getcmds_sig((unsigned int)signum - (unsigned int)SIGPLUS)))
-		DIE();
+	g_signal = (unsigned int)signum - (unsigned int)SIGPLUS;
 }
 
 static void
