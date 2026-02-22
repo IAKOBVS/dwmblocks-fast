@@ -74,6 +74,11 @@ b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 int
 b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
 {
+#if HAVE_PROCFS_PID_COMM
+	if (proc_buf_sz - 1 == proc_name_len)
+		return !memcmp(proc_buf, proc_name, proc_name_len) && *(proc_buf + proc_name_len) == '\n';
+	return 0;
+#else
 	const char *p = u_strstr_len(proc_buf, proc_buf_sz, S_LITERAL("Name:\t"));
 	if (p) {
 		p += S_LEN("Name:\t");
@@ -82,6 +87,7 @@ b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *pr
 			return 1;
 	}
 	return 0;
+#endif
 }
 
 int
@@ -111,8 +117,15 @@ b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *p
 unsigned int
 b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
-	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1] = "/proc/";
-	char *fnamep = fname + S_LEN("/proc/");
+	/* Construct path: /proc/[pid]/(status|comm). */
+#if HAVE_PROCFS_PID_COMM
+	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/comm") + 1];
+#else
+	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
+#endif
+	char *fnamep = fname;
+	/* /proc/ */
+	fnamep = u_stpcpy_len(fnamep, S_LITERAL("/proc/"));
 	/* Open /proc/ */
 	DIR *dp = opendir("/proc/");
 	if (unlikely(dp == NULL))
@@ -124,8 +137,14 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		if (*(ep->d_name) == '.' || !u_isdigit(*(ep->d_name)))
 			continue;
 		char *fname_e = fnamep;
+		/* /proc/[pid] */
 		fname_e = u_stpcpy(fname_e, ep->d_name);
+		/* /proc/[pid]/(status|comm) */
+#if HAVE_PROCFS_PID_COMM
+		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/comm"));
+#else
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
+#endif
 		const int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
 		if (unlikely(ret == -1)) {
 			closedir(dp);

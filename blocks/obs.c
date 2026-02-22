@@ -44,16 +44,24 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *
 			return dst;
 		}
 	} else {
-		/* Construct path: /proc/[pid]/status. */
+		/* Construct path: /proc/[pid]/(status|comm). */
+#if HAVE_PROCFS_PID_COMM
+		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/comm") + 1];
+#else
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
-		char *fnamep = fname;
+#endif
+		char *fname_e = fname;
 		/* /proc/ */
-		fnamep = u_stpcpy_len(fnamep, S_LITERAL("/proc/"));
+		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/proc/"));
 		/* /proc/[pid] */
-		fnamep = u_utoa_p(*pid_cache, fnamep);
-		/* /proc/[pid]/status */
-		fnamep = u_stpcpy_len(fnamep, S_LITERAL("/status"));
-		(void)fnamep;
+		fname_e = u_utoa_p(*pid_cache, fname_e);
+		/* /proc/[pid]/(status|comm) */
+#if HAVE_PROCFS_PID_COMM
+		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/comm"));
+#else
+		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
+#endif
+		(void)fname_e;
 		int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
 		if (ret == 0) {
 			*pid_cache = 0;

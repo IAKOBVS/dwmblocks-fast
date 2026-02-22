@@ -259,4 +259,14 @@
 #		define HAVE_SYSFS   1
 #	endif
 
+#ifdef __linux__
+#	include <linux/version.h>
+#	if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
+#		define HAVE_PROCFS_PID_COMM 1
+#	endif
+#endif
+#ifndef HAVE_PROCFS_PID_COMM
+#	define HAVE_PROCFS_PID_COMM 0
+#endif
+
 #endif /* MACROS_H */
