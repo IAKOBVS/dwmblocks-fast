@@ -45,10 +45,10 @@
 
 #	define DIE_DO(x)                               \
 		do {                                    \
+			x;                              \
 			if (errno)                      \
 				perror("errno error:"); \
 			assert(0);                      \
-			x;                              \
 		} while (0)
 
 #	ifdef __glibc_has_builtin
@@ -259,14 +259,14 @@
 #		define HAVE_SYSFS   1
 #	endif
 
-#ifdef __linux__
-#	include <linux/version.h>
-#	if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
-#		define HAVE_PROCFS_PID_COMM 1
+#	ifdef __linux__
+#		include <linux/version.h>
+#		if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
+#			define HAVE_PROCFS_PID_COMM 1
+#		endif
 #	endif
-#endif
-#ifndef HAVE_PROCFS_PID_COMM
-#	define HAVE_PROCFS_PID_COMM 0
-#endif
+#	ifndef HAVE_PROCFS_PID_COMM
+#		define HAVE_PROCFS_PID_COMM 0
+#	endif
 
 #endif /* MACROS_H */
