@@ -22,24 +22,37 @@
 
 #include "../macros.h"
 #include "../utils.h"
+#include "../dwmblocks-fast.h"
+
+struct statvfs b_statvfs;
+unsigned int b_statvfs_time = (unsigned int)-1;
+
+int
+b_read_statvfs(const char *mountpoint, struct statvfs *sfs)
+{
+	if (g_time != b_statvfs_time) {
+		b_statvfs_time = g_time;
+		if (unlikely(statvfs(mountpoint, sfs) != 0))
+			DIE(return -1);
+	}
+	return 0;
+}
 
 unsigned int
 b_read_disk_usage_percent(const char *mountpoint)
 {
-	struct statvfs sfs;
-	if (unlikely(statvfs(mountpoint, &sfs) != 0))
+	if (unlikely(b_read_statvfs(mountpoint, &b_statvfs) != 0))
 		DIE(return (unsigned int)-1);
-	const unsigned int percent = 100 - (unsigned int)(((long double)sfs.f_bfree / (long double)sfs.f_blocks) * (long double)100);
+	const unsigned int percent = 100 - (unsigned int)(((long double)b_statvfs.f_bfree / (long double)b_statvfs.f_blocks) * (long double)100);
 	return percent;
 }
 
 char *
 b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval)
 {
-	struct statvfs sfs;
-	if (unlikely(statvfs(mountpoint, &sfs) != 0))
+	if (unlikely(b_read_statvfs(mountpoint, &b_statvfs) != 0))
 		DIE(return NULL);
-	unsigned long long avail = sfs.f_bsize * sfs.f_bavail;
+	unsigned long long avail = b_statvfs.f_bsize * b_statvfs.f_bavail;
 	int unit = u_humanize(&avail);
 	char *p = dst;
 	p = u_ulltoa_p(avail, dst);
