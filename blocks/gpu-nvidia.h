@@ -23,7 +23,7 @@
 
 #	ifdef USE_CUDA
 
-/* ../src/blocks/gpu.c */
+/* ../blocks/gpu.c */
 
 char *
 b_write_gpu_all(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);

@@ -21,7 +21,7 @@
 
 #include "../macros.h"
 
-/* ../src/blocks/shell.c */
+/* ../blocks/shell.c */
 
 #if defined HAVE_POPEN && defined HAVE_PCLOSE && defined HAVE_FILENO
 

@@ -19,7 +19,7 @@
 #ifndef B_TIME_H
 #define B_TIME_H 1
 
-/* ../src/blocks/time.c */
+/* ../blocks/time.c */
 
 char *
 b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);

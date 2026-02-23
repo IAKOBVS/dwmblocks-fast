@@ -23,7 +23,7 @@
 
 #	ifdef USE_ALSA
 
-/* ../src/blocks/audio-alsa.c */
+/* ../blocks/audio-alsa.c */
 
 int
 b_read_mic_vol(void);

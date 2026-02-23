@@ -23,7 +23,7 @@
 
 #	if defined USE_ALSA
 
-/* ../src/blocks/audio.c */
+/* ../blocks/audio.c */
 
 char *
 b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);

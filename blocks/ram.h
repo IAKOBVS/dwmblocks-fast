@@ -21,7 +21,7 @@
 
 #	include "../macros.h"
 
-/* ../src/blocks/ram.c */
+/* ../blocks/ram.c */
 
 #	ifdef HAVE_PROCFS
 

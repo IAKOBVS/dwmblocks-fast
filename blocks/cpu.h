@@ -23,7 +23,7 @@
 
 #	ifdef HAVE_PROCFS
 
-/* ../src/blocks/cpu.c */
+/* ../blocks/cpu.c */
 
 char *
 b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval);

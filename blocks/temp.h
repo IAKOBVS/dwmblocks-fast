@@ -23,7 +23,7 @@
 
 #	ifdef HAVE_PROCFS
 
-/* ../src/blocks/temp.c */
+/* ../blocks/temp.c */
 
 int
 b_read_temp(const char *temp_file);

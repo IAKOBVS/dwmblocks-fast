@@ -29,10 +29,27 @@
 
 #define B_PAGE_SIZE 4096
 
-char *
-b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len)
+/* key: value */
+static char *
+value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
 {
-	const char *value = u_strstr_len(procfs_buf, procfs_buf_len, key, key_len);
+	const char *value = procfs_buf;
+	for (unsigned int value_len = procfs_buf_len; value_len >= key_len; value_len -= value - procfs_buf) {
+		if (!memcmp(value, key, key_len) && *(value + key_len) == delimiter)
+			return (char *)value;
+		value += key_len;
+		value_len -= key_len;
+		value = memchr(value, *key, value_len);
+		if (unlikely(value == NULL))
+			break;
+	}
+	return NULL;
+}
+
+char *
+b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
+{
+	const char *value = value_get(procfs_buf, procfs_buf_len, key, key_len, delimiter);
 	if (unlikely(value == NULL))
 		DIE(return NULL);
 	procfs_buf_len -= key_len;
@@ -43,14 +60,14 @@ b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char
 }
 
 unsigned long long
-b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
+b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter, int space)
 {
-	const char *val = b_proc_value_get(procfs_buf, procfs_buf_len, key, key_len);
+	const char *val = b_proc_value_get(procfs_buf, procfs_buf_len, key, key_len, delimiter);
 	if (unlikely(val == NULL))
 		DIE(return (unsigned long long)-1);
 	procfs_buf_len -= val - procfs_buf;
 	--procfs_buf_len;
-	for (; procfs_buf_len && *val == delimiter; --procfs_buf_len, ++val) {}
+	for (; procfs_buf_len && *val == space; --procfs_buf_len, ++val) {}
 	return u_atoull10(val);
 }
 

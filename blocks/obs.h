@@ -19,7 +19,7 @@
 #ifndef B_OBS_H
 #	define B_OBS_H 1
 
-/* ../src/blocks/obs.c */
+/* ../blocks/obs.c */
 
 char *
 b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache);

@@ -23,7 +23,7 @@
 
 #	ifdef HAVE_PROCFS
 
-/* ../src/blocks/webcam.c */
+/* ../blocks/webcam.c */
 
 char *
 b_write_webcam_on(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
