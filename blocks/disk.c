@@ -24,10 +24,10 @@
 #include "../utils.h"
 #include "../dwmblocks-fast.h"
 
-struct statvfs b_statvfs;
-unsigned int b_statvfs_time = (unsigned int)-1;
+static struct statvfs b_statvfs;
+static unsigned int b_statvfs_time = (unsigned int)-1;
 
-int
+static int
 b_read_statvfs(const char *mountpoint, struct statvfs *sfs)
 {
 	if (g_time != b_statvfs_time) {

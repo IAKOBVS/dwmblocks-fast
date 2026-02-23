@@ -29,11 +29,11 @@
 #	include "../dwmblocks-fast.h"
 #	include "procfs.h"
 
-char b_meminfo[B_PAGE_SIZE + 1];
-unsigned int b_meminfo_time = (unsigned int)-1;
-unsigned int b_meminfo_sz;
+static char b_meminfo[B_PAGE_SIZE + 1];
+static unsigned int b_meminfo_time = (unsigned int)-1;
+static unsigned int b_meminfo_sz;
 
-int
+static int
 b_meminfo_read(char *meminfo, unsigned int meminfo_sz)
 {
 	if (g_time != b_meminfo_time) {
