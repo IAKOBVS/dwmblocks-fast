@@ -25,12 +25,14 @@
 #include "../dwmblocks-fast.h"
 
 static struct statvfs b_statvfs;
+static const char *b_mountpoint;
 static unsigned int b_statvfs_time = (unsigned int)-1;
 
 static int
 b_read_statvfs(const char *mountpoint, struct statvfs *sfs)
 {
-	if (g_time != b_statvfs_time) {
+	if (g_time != b_statvfs_time || b_mountpoint != mountpoint) {
+		b_mountpoint = mountpoint;
 		b_statvfs_time = g_time;
 		if (unlikely(statvfs(mountpoint, sfs) != 0))
 			DIE(return -1);
