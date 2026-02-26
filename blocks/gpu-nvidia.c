@@ -48,7 +48,7 @@ typedef enum {
 } b_gpus_ty;
 
 void
-b_gpu_cleanup()
+b_gpu_cleanup(void)
 {
 	if (b_gpu.init)
 		nvmlShutdown();
@@ -59,7 +59,7 @@ b_gpu_cleanup()
 }
 
 void
-b_gpu_err()
+b_gpu_err(void)
 {
 	fprintf(stderr, "nvml error: %s\n\n", nvmlErrorString(b_gpu.ret));
 	b_gpu_cleanup();
@@ -82,7 +82,7 @@ b_gpu_nvmlDeviceGetTemperature(nvmlDevice_t device, nvmlTemperatureSensors_t sen
 }
 
 void
-b_gpu_init()
+b_gpu_init(void)
 {
 	b_gpu.ret = nvmlInit();
 	if (unlikely(unlikely(b_gpu.ret != NVML_SUCCESS)))

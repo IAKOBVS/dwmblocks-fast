@@ -5,6 +5,7 @@ config.h
 bin/*
 tests/*-bin
 *.generated.h
+compile_commands.json
 
 # Prerequisites
 *.d

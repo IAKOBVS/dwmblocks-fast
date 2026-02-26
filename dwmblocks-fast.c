@@ -167,7 +167,7 @@ compare_interval_and_signal(const void *a, const void *b)
 }
 
 static int
-b_init()
+b_init(void)
 {
 	for (unsigned i = 0; i < LEN(g_blocks); ++i) {
 		/* Check too long padding. */
@@ -188,7 +188,7 @@ b_init()
 
 /* Run commands or functions according to their interval. */
 static void
-g_getcmds_init()
+g_getcmds_init(void)
 {
 	/* Initialize the original order of the staturbar. */
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
@@ -273,19 +273,19 @@ g_sigaction(int signum, void(handler)(int))
 }
 
 static ATTR_INLINE int
-g_sig_block()
+g_sig_block(void)
 {
 	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
 }
 
 static ATTR_INLINE int
-g_sig_unblock()
+g_sig_unblock(void)
 {
 	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
 }
 
 static int
-g_init_signals()
+g_init_signals(void)
 {
 	if (unlikely(sigemptyset(&sigset_rt)) == -1)
 		DIE(return -1);
@@ -373,7 +373,7 @@ g_XStoreNameLen(Display *dpy, Window w, const char *name, int len)
 }
 
 static int
-g_init_x11()
+g_init_x11(void)
 {
 	g_dpy = XOpenDisplay(NULL);
 	if (unlikely(g_dpy == NULL)) {
@@ -429,7 +429,7 @@ g_status_write(char *status)
 /* Update hwmon/hwmon[0-9]* and thermal/thermal_zone[0-9]* to point to
  * the real file, given that the number may change between reboots. */
 static int
-g_paths_sysfs_resolve()
+g_paths_sysfs_resolve(void)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (g_blocks[i].arg) {
@@ -449,7 +449,7 @@ g_paths_sysfs_resolve()
 }
 
 static int
-g_status_init()
+g_status_init(void)
 {
 	if (unlikely(g_paths_sysfs_resolve() == -1))
 		DIE(return -1);
@@ -465,7 +465,7 @@ g_status_init()
 }
 
 static void
-g_status_cleanup()
+g_status_cleanup(void)
 {
 #ifdef USE_X11
 	XCloseDisplay(g_dpy);
@@ -474,7 +474,7 @@ g_status_cleanup()
 
 /* Main loop. */
 static int
-g_status_mainloop()
+g_status_mainloop(void)
 {
 	for (;;) {
 		if (likely(g_signal == 0)) {

@@ -52,7 +52,7 @@ b_audio_alsa_cleanup_one(b_audio_alsa_ty *audio_alsa)
 }
 
 void
-b_audio_alsa_cleanup()
+b_audio_alsa_cleanup(void)
 {
 	b_audio_alsa_cleanup_one(&b_audio_alsa_speaker);
 	b_audio_alsa_cleanup_one(&b_audio_alsa_mic);
@@ -122,7 +122,7 @@ b_audio_alsa_mic_init(void)
 }
 
 void
-b_audio_alsa_inits()
+b_audio_alsa_inits(void)
 {
 	b_audio_alsa_speaker_init();
 	b_audio_alsa_mic_init();

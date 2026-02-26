@@ -28,7 +28,7 @@
 #include "procfs.h"
 
 int
-b_read_cpu_usage()
+b_read_cpu_usage(void)
 {
 	char buf[B_PAGE_SIZE + 1];
 	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/stat");
