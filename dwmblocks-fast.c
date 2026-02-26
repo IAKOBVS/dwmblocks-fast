@@ -112,7 +112,7 @@ g_getcmds(void);
 static int
 g_getcmds_sig(unsigned int signal);
 static int
-g_init_signals();
+g_init_signals(void);
 static void
 g_handler_sig(int signum);
 static char *
@@ -120,12 +120,12 @@ g_status_get(char *str);
 static int
 g_status_write(char *status);
 static int
-g_status_mainloop();
+g_status_mainloop(void);
 static void
 g_handler_term(int signum);
 #ifdef USE_X11
 static int
-g_init_x11();
+g_init_x11(void);
 
 static Display *g_dpy;
 static int g_screen;
