@@ -93,7 +93,7 @@ b_audio_alsa_init_one(b_audio_alsa_ty *audio_alsa, const char *card, const char 
 	snd_mixer_selem_id_set_name(audio_alsa->sid, audio_alsa->selem_name);
 	audio_alsa->elem = snd_mixer_find_selem(audio_alsa->handle, audio_alsa->sid);
 	if (audio_alsa->elem == NULL)
-		DIE_DO(b_audio_alsa_err());
+		DIE(fprintf(stderr, "alsa error: %s not found\n", selem_name));
 	if (playback_or_capture == B_AUDIO_ALSA_PLAYBACK)
 		snd_mixer_selem_get_playback_volume_range(audio_alsa->elem, &audio_alsa->min_vol, &audio_alsa->max_vol);
 	else if (audio_alsa->playback_or_capture == B_AUDIO_ALSA_CAPTURE)

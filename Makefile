@@ -22,7 +22,7 @@
 include config.mk
 
 # Variables
-CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
+CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument -g
 LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
@@ -80,7 +80,7 @@ clean:
 	rm -f $(PROG_BIN) $(SCRIPTS) $(OBJS) $(SRC)/*.o
 
 install: $(PROG_BIN) $(SCRIPTS)
-	strip $(PROG_BIN)
+	# strip $(PROG_BIN)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin

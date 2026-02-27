@@ -90,8 +90,8 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	case 2: p = u_stpcpy_len(p, S_LITERAL("Tue, ")); break;
 	case 3: p = u_stpcpy_len(p, S_LITERAL("Wed, ")); break;
 	case 4: p = u_stpcpy_len(p, S_LITERAL("Thu, ")); break;
-	case 5: p = u_stpcpy_len(p, S_LITERAL("Thu, ")); break;
-	case 6: p = u_stpcpy_len(p, S_LITERAL("Fri, ")); break;
+	case 5: p = u_stpcpy_len(p, S_LITERAL("Fri, ")); break;
+	case 6: p = u_stpcpy_len(p, S_LITERAL("Sat, ")); break;
 	}
 	p = u_utoa_lt2_p((unsigned int)tm->tm_mday, p);
 	*p++ = ' ';

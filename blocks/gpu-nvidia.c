@@ -61,7 +61,7 @@ b_gpu_cleanup(void)
 void
 b_gpu_err(void)
 {
-	fprintf(stderr, "nvml error: %s\n\n", nvmlErrorString(b_gpu.ret));
+	fprintf(stderr, "nvml error: %s\n", nvmlErrorString(b_gpu.ret));
 	b_gpu_cleanup();
 }
 
