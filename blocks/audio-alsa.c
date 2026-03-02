@@ -48,7 +48,8 @@ b_audio_alsa_cleanup_one(b_audio_alsa_ty *audio_alsa)
 {
 	if (audio_alsa->handle)
 		snd_mixer_close(audio_alsa->handle);
-	snd_mixer_selem_id_free(audio_alsa->sid);
+	if (audio_alsa->sid)
+		snd_mixer_selem_id_free(audio_alsa->sid);
 }
 
 void
@@ -69,8 +70,6 @@ b_audio_alsa_err(void)
 void
 b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, const char *selem_name, int playback_or_capture)
 {
-	if (audio_alsa->init)
-		return;
 	snd_mixer_selem_id_malloc(&audio_alsa->sid);
 	if (audio_alsa->sid == NULL)
 		DIE();
@@ -122,10 +121,8 @@ b_audio_alsa_init(b_audio_alsa_ty *audio_alsa)
 int
 b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 {
-	if (unlikely(audio_alsa->init == 0)) {
+	if (unlikely(audio_alsa->init == 0))
 		b_audio_alsa_init(audio_alsa);
-		audio_alsa->init = 1;
-	}
 	audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 	if (audio_alsa->ret < 0)
 		DIE_DO(b_audio_alsa_err());
@@ -145,10 +142,8 @@ int
 b_read_audio_alsa_muted(b_audio_alsa_ty *audio_alsa)
 {
 	if (audio_alsa->has_mute) {
-		if (unlikely(audio_alsa->init == 0)) {
+		if (unlikely(audio_alsa->init == 0))
 			b_audio_alsa_init(audio_alsa);
-			audio_alsa->init = 1;
-		}
 		audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 		if (audio_alsa->ret < 0)
 			DIE_DO(b_audio_alsa_err());
