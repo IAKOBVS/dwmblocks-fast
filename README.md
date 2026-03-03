@@ -64,7 +64,6 @@ $ sudo make install
 ```
 dwmblocks-fast >>/tmp/dwmblocks-fast.log 2>>/tmp/dwmblocks-fast.log &
 ```
-```
 ## Print to stdout (for other window managers that read stdin)
 ```
 dwmblocks -p # | some_window_manager
