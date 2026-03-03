@@ -62,7 +62,7 @@ $ sudo make install
 # Usage
 ## .xinitrc (for window managers that use WM_NAME)
 ```
-dwmblocks-fast &
+dwmblocks-fast >>/tmp/dwmblocks-fast.log 2>>/tmp/dwmblocks-fast.log &
 ```
 ## .xinitrc (pipewire-alsa)
 For Pipewire, since the program depends on alsa-lib for audio,
@@ -80,21 +80,23 @@ else
 fi
 
 {
+	log_file="/tmp/dwmblocks-fast.log"
 	# Statusbar
 	retry=10
 	while [ $retry -gt 0 ]; do
-		nice -n 19 dwmblocks-fast >>"$LOG_DIR/dwmblocks-fast.log" 2>> "$LOG_DIR/dwmblocks-fast.log"
+		nice -n 19 dwmblocks-fast >>"$log_file" 2>>"$log_file"
 		for pid in $(ps -e -o pid,comm --no-headers | awk '$2 == "dwmblocks-fast" { print $1; }'); do
 			kill -15 "$pid"
 		done
-		echo "dwmblocks-fast: retrying to run program" >&2
+		echo "dwmblocks-fast: retrying to run program" 2>>"$log_file"
 		# Retry
 		retry=$((retry - 1))
 		sleep 1
 	done
 	unset retry
-	echo "dwmblocks-fast: can not run program" >&2
-	exit 1 
+	unset log_file
+	echo "dwmblocks-fast: can not run program" 2>>"$log_file"
+	exit 1
 } &
 ```
 ## Print to stdout (for other window managers that read stdin)
