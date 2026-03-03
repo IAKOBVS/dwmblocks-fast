@@ -488,6 +488,9 @@ g_status_mainloop(void)
 			if (unlikely(g_status_write(g_status_str) == -1))
 				DIE(return -1);
 		++g_time;
+#ifdef TEST
+		return 0;
+#endif
 		g_sleep(INTERVAL_UPDATE);
 	}
 	return 0;
@@ -534,10 +537,8 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-#endif
 	if (unlikely(g_status_init() == -1))
 		DIE(return EXIT_FAILURE);
-#ifndef TEST
 	if (unlikely(g_status_mainloop() == -1))
 		DIE(return EXIT_FAILURE);
 #endif
