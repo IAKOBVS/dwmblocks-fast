@@ -22,7 +22,7 @@
 include config.mk
 
 # Variables
-CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument -g
+CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
 LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
@@ -72,7 +72,7 @@ all: options $(PROG_BIN) $(SCRIPTS)
 
 check: $(PROG_BIN) $(SRC)/test.o
 	mkdir -p $(BIN)
-	$(CC) -o tests/test-run-bin $(CFLAGS) -g -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
+	$(CC) -o tests/test-run-bin $(CFLAGS) -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
 	@./tests/test-run
 	@rm $(SRC)/test.o
 
