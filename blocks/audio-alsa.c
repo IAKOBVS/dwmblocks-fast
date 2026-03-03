@@ -41,7 +41,8 @@ typedef struct {
 	int last_vol;
 	int last_muted;
 } b_audio_alsa_ty;
-b_audio_alsa_ty b_audio_alsa_speaker, b_audio_alsa_mic;
+b_audio_alsa_ty b_audio_alsa_speaker = { .card = "default", .selem_name = "Master", .playback_or_capture = B_AUDIO_ALSA_PLAYBACK },
+                b_audio_alsa_mic = { .card = "default", .selem_name = "Capture", .playback_or_capture = B_AUDIO_ALSA_CAPTURE };
 
 void
 b_audio_alsa_cleanup_one(b_audio_alsa_ty *audio_alsa)
@@ -67,8 +68,8 @@ b_audio_alsa_err(void)
 	b_audio_alsa_cleanup();
 }
 
-void
-b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, const char *selem_name, int playback_or_capture)
+int
+b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, int playback_or_capture)
 {
 	snd_mixer_selem_id_malloc(&audio_alsa->sid);
 	if (audio_alsa->sid == NULL)
@@ -88,8 +89,10 @@ b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, const 
 	snd_mixer_selem_id_set_index(audio_alsa->sid, 0);
 	snd_mixer_selem_id_set_name(audio_alsa->sid, audio_alsa->selem_name);
 	audio_alsa->elem = snd_mixer_find_selem(audio_alsa->handle, audio_alsa->sid);
-	if (audio_alsa->elem == NULL)
-		DIE_DO(fprintf(stderr, "alsa error: %s not found\n", selem_name));
+	if (audio_alsa->elem == NULL) {
+		b_audio_alsa_cleanup_one(audio_alsa);
+		return 1;
+	}
 	if (playback_or_capture == B_AUDIO_ALSA_PLAYBACK) {
 		snd_mixer_selem_get_playback_volume_range(audio_alsa->elem, &audio_alsa->min_vol, &audio_alsa->max_vol);
 		audio_alsa->has_mute = snd_mixer_selem_has_playback_switch(audio_alsa->elem);
@@ -100,29 +103,21 @@ b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, const 
 		DIE();
 	}
 	audio_alsa->init = 1;
+	return 0;
 }
 
-void
+int
 b_audio_alsa_init(b_audio_alsa_ty *audio_alsa)
 {
-	audio_alsa->card = "default";
-	if (audio_alsa == &b_audio_alsa_speaker) {
-		audio_alsa->selem_name = "Master";
-		audio_alsa->playback_or_capture = B_AUDIO_ALSA_PLAYBACK;
-	} else if (audio_alsa == &b_audio_alsa_mic) {
-		audio_alsa->selem_name = "Capture";
-		audio_alsa->playback_or_capture = B_AUDIO_ALSA_CAPTURE;
-	} else {
-		DIE();
-	}
-	b_audio_alsa_init_internal(audio_alsa, audio_alsa->card, audio_alsa->selem_name, audio_alsa->playback_or_capture);
+	return b_audio_alsa_init_internal(audio_alsa, audio_alsa->card, audio_alsa->playback_or_capture);
 }
 
 int
 b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 {
 	if (unlikely(audio_alsa->init == 0))
-		b_audio_alsa_init(audio_alsa);
+		if (unlikely(b_audio_alsa_init(audio_alsa) != 0))
+			return -1;
 	audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 	if (audio_alsa->ret < 0)
 		DIE_DO(b_audio_alsa_err());
@@ -143,7 +138,8 @@ b_read_audio_alsa_muted(b_audio_alsa_ty *audio_alsa)
 {
 	if (audio_alsa->has_mute) {
 		if (unlikely(audio_alsa->init == 0))
-			b_audio_alsa_init(audio_alsa);
+			if (unlikely(b_audio_alsa_init(audio_alsa) != 0))
+				return -1;
 		audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 		if (audio_alsa->ret < 0)
 			DIE_DO(b_audio_alsa_err());

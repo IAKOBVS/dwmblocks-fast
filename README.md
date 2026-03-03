@@ -64,40 +64,6 @@ $ sudo make install
 ```
 dwmblocks-fast >>/tmp/dwmblocks-fast.log 2>>/tmp/dwmblocks-fast.log &
 ```
-## .xinitrc (pipewire-alsa)
-For Pipewire, since the program depends on alsa-lib for audio,
-it needs to be already running before the program.
-Otherwise, the program will fail when it tries to call
-alsa-lib functions.
-```
-# Start Pipewire
-if ps -e -o comm | grep -q -F 'systemd'; then
-	systemctl --user start pipewire.service
-	systemctl --user start wireplumber.service
-else
-	pipewire &
-	wireplumber &
-fi
-
-{
-	log_file="/tmp/dwmblocks-fast.log"
-	# Statusbar
-	retry=10
-	while [ $retry -gt 0 ]; do
-		nice -n 19 dwmblocks-fast >>"$log_file" 2>>"$log_file"
-		for pid in $(ps -e -o pid,comm --no-headers | awk '$2 == "dwmblocks-fast" { print $1; }'); do
-			kill -15 "$pid"
-		done
-		echo "dwmblocks-fast: retrying to run program" 2>>"$log_file"
-		# Retry
-		retry=$((retry - 1))
-		sleep 1
-	done
-	unset retry
-	unset log_file
-	echo "dwmblocks-fast: can not run program" 2>>"$log_file"
-	exit 1
-} &
 ```
 ## Print to stdout (for other window managers that read stdin)
 ```
