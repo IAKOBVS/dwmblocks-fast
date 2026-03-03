@@ -60,7 +60,7 @@ $ sudo make install
 - procps: send signals with pkill
 
 # Usage
-## .xinitrc (for window managers that use WM_NAME)
+## xinitrc (for window managers that use WM_NAME)
 ```
 dwmblocks-fast >>/tmp/dwmblocks-fast.log 2>>/tmp/dwmblocks-fast.log &
 ```
