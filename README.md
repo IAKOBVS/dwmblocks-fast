@@ -87,12 +87,13 @@ fi
 		for pid in $(ps -e -o pid,comm --no-headers | awk '$2 == "dwmblocks-fast" { print $1; }'); do
 			kill -15 "$pid"
 		done
+		echo "dwmblocks-fast: retrying to run program" >&2
 		# Retry
 		retry=$((retry - 1))
 		sleep 1
 	done
 	unset retry
-	echo "dwmblocks-fast: can not run program"
+	echo "dwmblocks-fast: can not run program" >&2
 	exit 1 
 } &
 ```
