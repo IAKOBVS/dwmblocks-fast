@@ -136,10 +136,10 @@ b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 int
 b_read_audio_alsa_muted(b_audio_alsa_ty *audio_alsa)
 {
+	if (unlikely(audio_alsa->init == 0))
+		if (unlikely(b_audio_alsa_init(audio_alsa) != 0))
+			return -1;
 	if (audio_alsa->has_mute) {
-		if (unlikely(audio_alsa->init == 0))
-			if (unlikely(b_audio_alsa_init(audio_alsa) != 0))
-				return -1;
 		audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 		if (audio_alsa->ret < 0)
 			DIE_DO(b_audio_alsa_err());
