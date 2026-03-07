@@ -53,7 +53,7 @@ b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned i
 	if (!muted) {
 		p = u_stpcpy_len(p, S_LITERAL(ICON_AUDIO_MIC_ON));
 	} else {
-		*interval = 5;
+		*interval = 4;
 		if (unlikely(muted == -1))
 			return dst;
 		if (S_LEN(ICON_AUDIO_MIC_OFF) == 0)
@@ -62,7 +62,7 @@ b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned i
 	}
 	int vol = b_read_mic_vol();
 	if (unlikely(vol == 1)) {
-		*interval = 5;
+		*interval = 4;
 		return dst;
 	}
 	*p++ = ' ';
