@@ -76,7 +76,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 
 	/* Audio volume (mic) */
 #	if defined USE_ALSA
-	{ .func = b_write_mic_vol,            .arg = NULL,          .pad_left = "",         .pad_right = "% | ", .interval = 0,    .signal = SIG_MIC    },
+	{ .func = b_write_mic_vol,            .arg = NULL,          .pad_left = "",         .pad_right = "% | ", .interval = 4,    .signal = SIG_MIC    },
 #	endif
 
 	/* Date */
