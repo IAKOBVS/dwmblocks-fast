@@ -150,7 +150,7 @@ $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 $(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
 
 $(SCRIPTS):
-	./updatesig scripts/$(SCRIPTSBASE)
+	./updatesig
 
 $(CONFIG):
 	cp $(CONFIG_DEF) $@
