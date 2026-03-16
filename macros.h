@@ -254,19 +254,16 @@
 #	endif
 
 #	ifdef __linux__
-#		define HAVE_PROCFS  1
-#		define HAVE_SYSINFO 1
-#		define HAVE_SYSFS   1
-#	endif
-
-#	ifdef __linux__
+#		define HAVE_PROCFS   1
+#		define HAVE_SYSINFO  1
+#		define HAVE_SYSFS    1
 #		include <linux/version.h>
 #		if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
 #			define HAVE_PROCFS_PID_COMM 1
 #		endif
-#	endif
-#	ifndef HAVE_PROCFS_PID_COMM
-#		define HAVE_PROCFS_PID_COMM 0
+#		if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 24)
+#			define HAVE_POWERCAP 1
+#		endif
 #	endif
 
 #endif /* MACROS_H */

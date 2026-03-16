@@ -91,7 +91,7 @@ b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 int
 b_proc_name_match(const char *proc_buf, unsigned int proc_buf_sz, const char *proc_name, unsigned int proc_name_len)
 {
-#if HAVE_PROCFS_PID_COMM
+#ifdef HAVE_PROCFS_PID_COMM
 	if (proc_buf_sz - 1 == proc_name_len)
 		return !memcmp(proc_buf, proc_name, proc_name_len) && *(proc_buf + proc_name_len) == '\n';
 	return 0;
@@ -135,7 +135,7 @@ unsigned int
 b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
 	/* Construct path: /proc/[pid]/(status|comm). */
-#if HAVE_PROCFS_PID_COMM
+#ifdef HAVE_PROCFS_PID_COMM
 	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/comm") + 1];
 #else
 	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
@@ -157,7 +157,7 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		/* /proc/[pid] */
 		fname_e = u_stpcpy(fname_e, ep->d_name);
 		/* /proc/[pid]/(status|comm) */
-#if HAVE_PROCFS_PID_COMM
+#ifdef HAVE_PROCFS_PID_COMM
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/comm"));
 #else
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));

@@ -45,7 +45,7 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *
 		}
 	} else {
 		/* Construct path: /proc/[pid]/(status|comm). */
-#if HAVE_PROCFS_PID_COMM
+#ifdef HAVE_PROCFS_PID_COMM
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/comm") + 1];
 #else
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
@@ -56,7 +56,7 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned int *
 		/* /proc/[pid] */
 		fname_e = u_utoa_p(*pid_cache, fname_e);
 		/* /proc/[pid]/(status|comm) */
-#if HAVE_PROCFS_PID_COMM
+#ifdef HAVE_PROCFS_PID_COMM
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/comm"));
 #else
 		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
