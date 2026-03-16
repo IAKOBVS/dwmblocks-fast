@@ -19,6 +19,7 @@
 #include "../config.h"
 
 #include <assert.h>
+#include <bits/time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
@@ -66,16 +67,17 @@ b_read_cpu_usage_power(void)
 	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
-	int energy;
-	time_t clock;
 	static int last_energy;
-	static time_t last_clock;
+	static struct timespec last_clock;
 	const char *unused;
-	clock = last_clock;
-	last_clock = time(NULL);
-	energy = last_energy;
-	last_energy = (int)u_strtou10(buf, &unused);
-	return ((double)(last_energy - energy) / (difftime(last_clock, clock) * (double)1000000));
+	struct timespec clock;
+	clock_gettime(CLOCK_MONOTONIC, &clock);
+	const int energy = (int)u_strtou10(buf, &unused);
+	const double clock_diff = (double)(clock.tv_sec - last_clock.tv_sec) + (double)(clock.tv_nsec - last_clock.tv_nsec) / 1000000000;
+	const double energy_diff = (double)(energy - last_energy);
+	last_energy = energy;
+	last_clock = clock;
+	return (int)(energy_diff / (clock_diff * 1000000.0));
 }
 
 char *
