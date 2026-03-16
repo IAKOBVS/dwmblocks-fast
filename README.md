@@ -6,7 +6,7 @@ A modular status bar for window managers written in C (fork of dwmblocks).
 - Blocks are implemented as [C functions](#adding-a-c-function) or [shell scripts](#adding-a-shell-script).
 - Only updates the statusbar when no change has occured.
 - Improved input validation and error handling for signals.
-- Monitors Nvidia GPU temperature, usage, and VRAM usage.
+- Monitors CPU and Nvidia GPU temperature, usage, VRAM usage, and power usage.
 - Avoids using printf and scanf-like functions, which avoids the runtime overhead of format parsing.
 - Sorts blocks according to their intervals and signals, while maintaining the original print
 order, which improves branch prediction and cache locality.
