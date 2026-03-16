@@ -73,18 +73,18 @@ all: options $(PROG_BIN) $(SCRIPTS)
 check: $(PROG_BIN) $(SRC)/test.o
 	mkdir -p $(BIN)
 	$(CC) -o tests/test-run-bin $(CFLAGS) -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
-	@./tests/test-run
-	@rm $(SRC)/test.o
+	./tests/test-run
+	rm $(SRC)/test.o
 
 clean:
 	rm -f $(PROG_BIN) $(SCRIPTS) $(OBJS) $(SRC)/*.o
 
 install: $(PROG_BIN) $(SCRIPTS)
-	# strip $(PROG_BIN)
+	strip $(PROG_BIN)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -af $^ $(DESTDIR)$(PREFIX)/bin
-	# To allow access of /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
+	@# To allow access of /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
 	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep $(DESTDIR)$(PREFIX)/bin/$(PROG)
 
 uninstall: 
@@ -111,30 +111,30 @@ config: $(CFGS)
 # Configuration scripts
 disable-cuda: $(config) config.mk
 	@# Comment out parts of the config.h and the config.mk
-	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
 	@# Comment out USE_CUDA line
-	@sed 's/\(^#.*define.*USE_CUDA.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
-	@rm $(INCLUDE)/config.h.bak
-	@cp config.mk config.mk.bak
+	sed 's/\(^#.*define.*USE_CUDA.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	rm $(INCLUDE)/config.h.bak
+	cp config.mk config.mk.bak
 	@# Comment out LDFLAGS_CUDA line
-	@sed 's/^\(LDFLAGS_CUDA\)/# \1/' config.mk.bak > config.mk
-	@rm config.mk.bak
+	sed 's/^\(LDFLAGS_CUDA\)/# \1/' config.mk.bak > config.mk
+	rm config.mk.bak
 
 disable-x11: $(config) config.mk
-	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	@sed 's/\(^#.*define.*USE_X11.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
-	@rm $(INCLUDE)/config.h.bak
-	@cp config.mk config.mk.bak
-	@sed 's/^\(LDFLAGS_X11.*\)/# \1/' config.mk.bak > config.mk
-	@rm config.mk.bak
+	mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	sed 's/\(^#.*define.*USE_X11.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	rm $(INCLUDE)/config.h.bak
+	cp config.mk config.mk.bak
+	sed 's/^\(LDFLAGS_X11.*\)/# \1/' config.mk.bak > config.mk
+	rm config.mk.bak
 
 disable-alsa: $(config) config.mk
-	@mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
-	@sed 's/\(^#.*define.*USE_ALSA.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
-	@rm $(INCLUDE)/config.h.bak
-	@cp config.mk config.mk.bak
-	@sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' config.mk.bak > config.mk
-	@rm config.mk.bak
+	mv $(INCLUDE)/config.h $(INCLUDE)/config.h.bak
+	sed 's/\(^#.*define.*USE_ALSA.*1\)/\/* \1 *\//' $(INCLUDE)/config.h.bak > $(INCLUDE)/config.h
+	rm $(INCLUDE)/config.h.bak
+	cp config.mk config.mk.bak
+	sed 's/^\(LDFLAGS_ALSA.*\)/# \1/' config.mk.bak > config.mk
+	rm config.mk.bak
 
 .c.o:
 	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
@@ -149,7 +149,7 @@ $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 $(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
 
 $(SCRIPTS):
-	@./updatesig $(BIN) scripts/$(SCRIPTSBASE)
+	./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
 $(CONFIG):
 	cp $(CONFIG_DEF) $@
