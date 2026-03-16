@@ -34,6 +34,7 @@ typedef struct {
 	unsigned int deviceCount;
 	nvmlDevice_t *device;
 	unsigned int *temp;
+	unsigned int *power;
 	nvmlUtilization_t *utilization;
 	nvmlMemory_t *memory;
 	nvmlReturn_t ret;
@@ -44,7 +45,8 @@ b_gpu_ty b_gpu;
 typedef enum {
 	B_GPU_MON_TEMP = 0,
 	B_GPU_MON_USAGE,
-	B_GPU_MON_VRAM
+	B_GPU_MON_VRAM,
+	B_GPU_MON_POWER_USAGE
 } b_gpus_ty;
 
 void
@@ -56,6 +58,7 @@ b_gpu_cleanup(void)
 	free(b_gpu.temp);
 	free(b_gpu.utilization);
 	free(b_gpu.memory);
+	free(b_gpu.power);
 }
 
 void
@@ -99,6 +102,9 @@ b_gpu_init(void)
 	b_gpu.utilization = (nvmlUtilization_t *)malloc(b_gpu.deviceCount * sizeof(nvmlUtilization_t));
 	if (b_gpu.utilization == NULL)
 		DIE_DO(b_gpu_err());
+	b_gpu.power = (unsigned int *)malloc(b_gpu.deviceCount * sizeof(unsigned int));
+	if (b_gpu.power == NULL)
+		DIE_DO(b_gpu_err());
 	b_gpu.memory = (nvmlMemory_t *)malloc(b_gpu.deviceCount * sizeof(nvmlMemory_t));
 	if (b_gpu.memory == NULL)
 		DIE_DO(b_gpu_err());
@@ -137,30 +143,43 @@ b_gpu_read_usage_vram(nvmlDevice_t device, nvmlMemory_t *memory)
 	return 100 - (unsigned int)(((long double)memory->free / (long double)memory->total) * (long double)100);
 }
 
+static unsigned int
+b_gpu_read_usage_power(nvmlDevice_t device, unsigned int *power)
+{
+	nvmlFieldValue_t values = { .fieldId = NVML_FI_DEV_POWER_INSTANT };
+	b_gpu.ret = nvmlDeviceGetFieldValues(device, 1, &values);
+	/* Convert from miliwatt to watt. */
+	*power = values.value.uiVal / 1000.0;
+	if (unlikely(b_gpu.ret != NVML_SUCCESS))
+		DIE_DO(b_gpu_err());
+	return *power;
+}
+
 static ATTR_INLINE char *
 b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval, b_gpus_ty mon_type)
 {
 	if (b_gpu.init == 0)
 		b_gpu_init();
 	unsigned int avg = 0;
-	switch (mon_type) {
-	case B_GPU_MON_TEMP:
-		for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
+	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
+		switch (mon_type) {
+		case B_GPU_MON_TEMP:
 			avg += b_gpu_read_temp(b_gpu.device[i], &b_gpu.temp[i]);
-		break;
-	case B_GPU_MON_USAGE:
-		for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
+			break;
+		case B_GPU_MON_USAGE:
 			avg += b_gpu_read_usage(b_gpu.device[i], &b_gpu.utilization[i]);
-		break;
-	case B_GPU_MON_VRAM:
-		for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
+			break;
+		case B_GPU_MON_VRAM:
 			avg += b_gpu_read_usage_vram(b_gpu.device[i], &b_gpu.memory[i]);
-		break;
-	}
+			break;
+		case B_GPU_MON_POWER_USAGE:
+			avg += b_gpu_read_usage_power(b_gpu.device[i], &b_gpu.power[i]);
+			break;
+		}
 	if (b_gpu.deviceCount > 1)
 		avg /= b_gpu.deviceCount;
 	char *p = dst;
-	p = u_utoa_le3_p(avg, p);
+	p = u_utoa_p(avg, p);
 	return p;
 	(void)dst_size;
 	(void)unused;
@@ -180,9 +199,15 @@ b_write_gpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 }
 
 char *
-b_write_gpu_vram(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_gpu_usage_vram(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_VRAM);
+}
+
+char *
+b_write_gpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+{
+	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_POWER_USAGE);
 }
 
 #endif

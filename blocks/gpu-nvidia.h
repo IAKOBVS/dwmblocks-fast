@@ -32,7 +32,9 @@ b_write_gpu_temp(char *dst, unsigned int dst_size, const char *unused, unsigned 
 char *
 b_write_gpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 char *
-b_write_gpu_vram(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_gpu_usage_vram(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+char *
+b_write_gpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
 
 #	endif /* USE_CUDA */
 
