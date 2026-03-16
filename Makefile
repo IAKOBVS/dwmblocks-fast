@@ -73,7 +73,7 @@ all: options $(PROG_BIN) $(SCRIPTS)
 check: $(PROG_BIN) $(SRC)/test.o
 	mkdir -p $(BIN)
 	$(CC) -o tests/test-run-bin $(CFLAGS) -fsanitize=address $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
-	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep ./tests/test-run
+	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep ./tests/test-run-bin
 	./tests/test-run
 	rm $(SRC)/test.o
 
