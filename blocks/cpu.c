@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "../macros.h"
 #include "../utils.h"
@@ -58,11 +59,44 @@ b_read_cpu_usage(void)
 	return (int)((long double)100 * ((long double)(curr_used - last_used) / (long double)(curr_tot - last_tot)));
 }
 
+int
+b_read_cpu_usage_power(void)
+{
+	char buf[B_PAGE_SIZE + 1];
+	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
+	if (unlikely(read_sz == (unsigned int)-1))
+		DIE(return -1);
+	int energy;
+	time_t clock;
+	static int last_energy;
+	static time_t last_clock;
+	const char *unused;
+	clock = last_clock;
+	last_clock = time(NULL);
+	energy = last_energy;
+	last_energy = (int)u_strtou10(buf, &unused);
+	return ((double)(last_energy - energy) / (difftime(last_clock, clock) * (double)1000000));
+}
+
 char *
 b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
+	if (unlikely(usage == -1))
+		DIE(return NULL);
+	p = u_utoa_le3_p((unsigned int)usage, p);
+	return p;
+	(void)dst_size;
+	(void)unused;
+	(void)interval;
+}
+
+char *
+b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+{
+	char *p = dst;
+	const int usage = b_read_cpu_usage_power();
 	if (unlikely(usage == -1))
 		DIE(return NULL);
 	p = u_utoa_le3_p((unsigned int)usage, p);

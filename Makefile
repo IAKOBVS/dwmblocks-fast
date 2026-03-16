@@ -83,7 +83,9 @@ install: $(PROG_BIN) $(SCRIPTS)
 	# strip $(PROG_BIN)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -f $^ $(DESTDIR)$(PREFIX)/bin
+	command -v rsync >/dev/null && rsync -a -r -c $^ $(DESTDIR)$(PREFIX)/bin || cp -af $^ $(DESTDIR)$(PREFIX)/bin
+	# To allow access of /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
+	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep $(DESTDIR)$(PREFIX)/bin/$(PROG)
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/$(PROG_BIN) $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)

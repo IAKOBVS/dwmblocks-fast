@@ -149,7 +149,7 @@ b_gpu_read_usage_power(nvmlDevice_t device, unsigned int *power)
 	nvmlFieldValue_t values = { .fieldId = NVML_FI_DEV_POWER_INSTANT };
 	b_gpu.ret = nvmlDeviceGetFieldValues(device, 1, &values);
 	/* Convert from miliwatt to watt. */
-	*power = values.value.uiVal / 1000.0;
+	*power = values.value.uiVal / (double)1000;
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
 	return *power;

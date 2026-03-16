@@ -100,7 +100,10 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 #		ifdef HAVE_SYSFS
 	{ .func = b_write_cpu_temp,           .arg = TEMP_FILE_CPU, .pad_left = "💻 ",      .pad_right = "° ",   .interval = 2,    .signal = 0          },
 #		endif
-	{ .func = b_write_cpu_usage,          .arg = NULL,          .pad_left = "",         .pad_right = "% | ", .interval = 2,    .signal = 0          },
+	{ .func = b_write_cpu_usage,          .arg = NULL,          .pad_left = "",         .pad_right = "% ", .interval = 2,    .signal = 0          },
+#		ifdef __linux__
+	{ .func = b_write_cpu_usage_power,    .arg = NULL,          .pad_left = "",         .pad_right = "W | ", .interval = 2,    .signal = 0          },
+#		endif
 #	endif
 
 	/* GPU temp, usage */
