@@ -109,7 +109,7 @@ static ATTR_MAYBE_UNUSED g_block_ty g_blocks[] = {
 	{ .func = b_write_gpu_temp,           .arg = NULL,          .pad_left = "🚀 ",      .pad_right = "° ",   .interval = 2,    .signal = 0          },
 	{ .func = b_write_gpu_usage,          .arg = NULL,          .pad_left = "",         .pad_right = "% ",   .interval = 2,    .signal = 0          },
 	{ .func = b_write_gpu_usage_vram,     .arg = NULL,          .pad_left = "",         .pad_right = "% ", .interval = 2,    .signal = 0          },
-	{ .func = b_write_gpu_usage_power,    .arg = NULL,          .pad_left = "",         .pad_right = "W | ", .interval = 1,    .signal = 0          },
+	{ .func = b_write_gpu_usage_power,    .arg = NULL,          .pad_left = "",         .pad_right = "W | ", .interval = 2,    .signal = 0          },
 #	endif
 
 	/* Audio volume (speaker) */
