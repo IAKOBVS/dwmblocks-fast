@@ -37,26 +37,30 @@ b_read_cpu_usage(void)
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
 	typedef struct {
-		int user, nice, system, idle, iowait, irq, softirq;
+		unsigned long long user, nice, system, idle, iowait, irq, softirq;
+		unsigned long long time;
+		unsigned long long cpu_time;
 	} time_ty;
 	static time_ty last;
-	const time_ty curr = last;
+	time_ty curr;
 	const char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
-	last.user = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	last.nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	last.system = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	last.idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	last.iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	last.irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	last.softirq = (int)u_strtou10(p, &p);
+	curr.user = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	curr.nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	curr.system = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	curr.idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	curr.iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	curr.irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
+	curr.softirq = (int)u_strtou10(p, &p);
 	/* clang-format off */
-	const int curr_tot = curr.nice + curr.user + curr.system + curr.idle + curr.iowait + curr.irq + curr.softirq;
-	const int last_tot = last.nice + last.user + last.system + last.idle + last.iowait + last.irq + last.softirq;
-	const int last_used = last.user + last.nice + last.system + last.irq + last.softirq;
-	const int curr_used = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
-	return (int)((long double)100 * ((long double)(curr_used - last_used) / (long double)(curr_tot - last_tot)));
+	curr.time = curr.user + curr.nice + curr.system + curr.idle + curr.iowait + curr.irq + curr.softirq;
+	curr.cpu_time = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
+	if (unlikely(curr.time == 0))
+		return 0;
+	const int usage = (int)((long double)100 * ((long double)(curr.cpu_time - last.cpu_time) / (long double)(curr.time - last.time)));
+	last = curr;
+	return usage;
 }
 
 int
@@ -69,14 +73,14 @@ b_read_cpu_usage_power(void)
 	static int last_energy;
 	static struct timespec last_clock;
 	const char *unused;
-	struct timespec clock;
-	if (unlikely(clock_gettime(CLOCK_MONOTONIC, &clock) != 0))
+	struct timespec curr_clock;
+	if (unlikely(clock_gettime(CLOCK_MONOTONIC, &curr_clock) != 0))
 		DIE(return -1);
-	const int energy = (int)u_strtou10(buf, &unused);
-	const double clock_diff = (double)(clock.tv_sec - last_clock.tv_sec) + (double)(clock.tv_nsec - last_clock.tv_nsec) / 1000000000;
-	const double energy_diff = (double)(energy - last_energy);
-	last_energy = energy;
-	last_clock = clock;
+	const int curr_energy = (int)u_strtou10(buf, &unused);
+	const double clock_diff = (double)(curr_clock.tv_sec - last_clock.tv_sec) + (double)(curr_clock.tv_nsec - last_clock.tv_nsec) / 1000000000;
+	const double energy_diff = (double)(curr_energy - last_energy);
+	last_energy = curr_energy;
+	last_clock = curr_clock;
 	return (int)(energy_diff / (clock_diff * 1000000.0));
 }
 
