@@ -40,8 +40,7 @@ b_read_cpu_usage(void)
 		int user, nice, system, idle, iowait, irq, softirq;
 	} time_ty;
 	static time_ty last;
-	time_ty curr;
-	memcpy(&curr, &last, sizeof(last));
+	const time_ty curr = last;
 	const char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
