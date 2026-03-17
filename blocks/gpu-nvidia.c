@@ -31,12 +31,16 @@
 #	include "../utils.h"
 
 typedef struct {
+	nvmlDevice_t dev;
+	unsigned int temp;
+	unsigned int power;
+	nvmlUtilization_t utilization;
+	nvmlMemory_t memory;
+} b_gpu_mon_ty;
+
+typedef struct {
 	unsigned int deviceCount;
-	nvmlDevice_t *device;
-	unsigned int *temp;
-	unsigned int *power;
-	nvmlUtilization_t *utilization;
-	nvmlMemory_t *memory;
+	b_gpu_mon_ty *buf;
 	nvmlReturn_t ret;
 	int init;
 } b_gpu_ty;
@@ -54,11 +58,7 @@ b_gpu_cleanup(void)
 {
 	if (b_gpu.init)
 		nvmlShutdown();
-	free(b_gpu.device);
-	free(b_gpu.temp);
-	free(b_gpu.utilization);
-	free(b_gpu.memory);
-	free(b_gpu.power);
+	free(b_gpu.buf);
 }
 
 void
@@ -70,17 +70,17 @@ b_gpu_err(void)
 
 static ATTR_INLINE
 nvmlReturn_t
-b_gpu_nvmlDeviceGetTemperature(nvmlDevice_t device, nvmlTemperatureSensors_t sensorType, unsigned int *temp)
+b_gpu_nvmlDeviceGetTemperature(nvmlDevice_t dev, nvmlTemperatureSensors_t sensorType, unsigned int *temp)
 {
 #	if USE_NVML_DEVICEGETTEMPERATUREV
 	nvmlTemperature_t tmp;
 	tmp.sensorType = sensorType;
 	tmp.version = nvmlTemperature_v1;
-	const nvmlReturn_t ret = nvmlDeviceGetTemperatureV(device, &tmp);
+	const nvmlReturn_t ret = nvmlDeviceGetTemperatureV(dev, &tmp);
 	*temp = (unsigned int)tmp.temperature;
 	return ret;
 #	else
-	return nvmlDeviceGetTemperature(device, sensorType, temp);
+	return nvmlDeviceGetTemperature(buf.dev, sensorType, temp);
 #	endif
 }
 
@@ -93,23 +93,11 @@ b_gpu_init(void)
 	b_gpu.ret = nvmlDeviceGetCount(&b_gpu.deviceCount);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
-	b_gpu.device = (nvmlDevice_t *)calloc(b_gpu.deviceCount, sizeof(nvmlDevice_t));
-	if (b_gpu.device == NULL)
-		DIE_DO(b_gpu_err());
-	b_gpu.temp = (unsigned int *)malloc(b_gpu.deviceCount * sizeof(unsigned int));
-	if (b_gpu.temp == NULL)
-		DIE_DO(b_gpu_err());
-	b_gpu.utilization = (nvmlUtilization_t *)malloc(b_gpu.deviceCount * sizeof(nvmlUtilization_t));
-	if (b_gpu.utilization == NULL)
-		DIE_DO(b_gpu_err());
-	b_gpu.power = (unsigned int *)malloc(b_gpu.deviceCount * sizeof(unsigned int));
-	if (b_gpu.power == NULL)
-		DIE_DO(b_gpu_err());
-	b_gpu.memory = (nvmlMemory_t *)malloc(b_gpu.deviceCount * sizeof(nvmlMemory_t));
-	if (b_gpu.memory == NULL)
+	b_gpu.buf = (b_gpu_mon_ty *)calloc(b_gpu.deviceCount, sizeof(*b_gpu.buf));
+	if (b_gpu.buf == NULL)
 		DIE_DO(b_gpu_err());
 	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i) {
-		b_gpu.ret = nvmlDeviceGetHandleByIndex(i, &b_gpu.device[i]);
+		b_gpu.ret = nvmlDeviceGetHandleByIndex(i, &b_gpu.buf[i].dev);
 		if (unlikely(b_gpu.ret != NVML_SUCCESS))
 			DIE_DO(b_gpu_err());
 	}
@@ -117,37 +105,37 @@ b_gpu_init(void)
 }
 
 static unsigned int
-b_gpu_read_temp(nvmlDevice_t device, unsigned int *temp)
+b_gpu_read_temp(nvmlDevice_t dev, unsigned int *temp)
 {
-	b_gpu.ret = b_gpu_nvmlDeviceGetTemperature(device, NVML_TEMPERATURE_GPU, temp);
+	b_gpu.ret = b_gpu_nvmlDeviceGetTemperature(dev, NVML_TEMPERATURE_GPU, temp);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
 	return *temp;
 }
 
 static unsigned int
-b_gpu_read_usage(nvmlDevice_t device, nvmlUtilization_t *utilization)
+b_gpu_read_usage(nvmlDevice_t dev, nvmlUtilization_t *utilization)
 {
-	b_gpu.ret = nvmlDeviceGetUtilizationRates(device, utilization);
+	b_gpu.ret = nvmlDeviceGetUtilizationRates(dev, utilization);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
 	return utilization->gpu;
 }
 
 static unsigned int
-b_gpu_read_usage_vram(nvmlDevice_t device, nvmlMemory_t *memory)
+b_gpu_read_usage_vram(nvmlDevice_t dev, nvmlMemory_t *memory)
 {
-	b_gpu.ret = nvmlDeviceGetMemoryInfo(device, memory);
+	b_gpu.ret = nvmlDeviceGetMemoryInfo(dev, memory);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
 	return 100 - (unsigned int)(((long double)memory->free / (long double)memory->total) * (long double)100);
 }
 
 static unsigned int
-b_gpu_read_usage_power(nvmlDevice_t device, unsigned int *power)
+b_gpu_read_usage_power(nvmlDevice_t dev, unsigned int *power)
 {
 	nvmlFieldValue_t values = { .fieldId = NVML_FI_DEV_POWER_INSTANT };
-	b_gpu.ret = nvmlDeviceGetFieldValues(device, 1, &values);
+	b_gpu.ret = nvmlDeviceGetFieldValues(dev, 1, &values);
 	/* Convert from miliwatt to watt. */
 	*power = values.value.uiVal / (double)1000;
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
@@ -164,16 +152,16 @@ b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	for (unsigned int i = 0; i < b_gpu.deviceCount; ++i)
 		switch (mon_type) {
 		case B_GPU_MON_TEMP:
-			avg += b_gpu_read_temp(b_gpu.device[i], &b_gpu.temp[i]);
+			avg += b_gpu_read_temp(b_gpu.buf[i].dev, &b_gpu.buf[i].temp);
 			break;
 		case B_GPU_MON_USAGE:
-			avg += b_gpu_read_usage(b_gpu.device[i], &b_gpu.utilization[i]);
+			avg += b_gpu_read_usage(b_gpu.buf[i].dev, &b_gpu.buf[i].utilization);
 			break;
 		case B_GPU_MON_VRAM:
-			avg += b_gpu_read_usage_vram(b_gpu.device[i], &b_gpu.memory[i]);
+			avg += b_gpu_read_usage_vram(b_gpu.buf[i].dev, &b_gpu.buf[i].memory);
 			break;
 		case B_GPU_MON_POWER_USAGE:
-			avg += b_gpu_read_usage_power(b_gpu.device[i], &b_gpu.power[i]);
+			avg += b_gpu_read_usage_power(b_gpu.buf[i].dev, &b_gpu.buf[i].power);
 			break;
 		}
 	if (b_gpu.deviceCount > 1)
