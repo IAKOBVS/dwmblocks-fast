@@ -63,7 +63,7 @@ b_read_cpu_usage(void)
 int
 b_read_cpu_usage_power(void)
 {
-	char buf[B_PAGE_SIZE + 1];
+	char buf[sizeof(size_t) * 8 + 1];
 	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
