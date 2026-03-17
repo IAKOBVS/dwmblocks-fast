@@ -71,9 +71,6 @@ b_audio_alsa_err(void)
 int
 b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, int playback_or_capture)
 {
-	snd_mixer_selem_id_malloc(&audio_alsa->sid);
-	if (audio_alsa->sid == NULL)
-		DIE();
 	audio_alsa->ret = snd_mixer_open(&audio_alsa->handle, 0);
 	if (unlikely(audio_alsa->ret != 0))
 		DIE_DO(b_audio_alsa_err());
@@ -86,6 +83,9 @@ b_audio_alsa_init_internal(b_audio_alsa_ty *audio_alsa, const char *card, int pl
 	audio_alsa->ret = snd_mixer_load(audio_alsa->handle);
 	if (unlikely(audio_alsa->ret != 0))
 		DIE_DO(b_audio_alsa_err());
+	snd_mixer_selem_id_malloc(&audio_alsa->sid);
+	if (audio_alsa->sid == NULL)
+		DIE();
 	snd_mixer_selem_id_set_index(audio_alsa->sid, 0);
 	snd_mixer_selem_id_set_name(audio_alsa->sid, audio_alsa->selem_name);
 	audio_alsa->elem = snd_mixer_find_selem(audio_alsa->handle, audio_alsa->sid);
