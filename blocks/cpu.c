@@ -71,7 +71,8 @@ b_read_cpu_usage_power(void)
 	static struct timespec last_clock;
 	const char *unused;
 	struct timespec clock;
-	clock_gettime(CLOCK_MONOTONIC, &clock);
+	if (unlikely(clock_gettime(CLOCK_MONOTONIC, &clock) != 0))
+		DIE(return -1);
 	const int energy = (int)u_strtou10(buf, &unused);
 	const double clock_diff = (double)(clock.tv_sec - last_clock.tv_sec) + (double)(clock.tv_nsec - last_clock.tv_nsec) / 1000000000;
 	const double energy_diff = (double)(energy - last_energy);
