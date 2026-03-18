@@ -34,8 +34,8 @@ typedef struct {
 	snd_mixer_selem_id_t *sid;
 	snd_mixer_elem_t *elem;
 	long min_vol, max_vol, curr_vol;
-	int init;
 	int ret;
+	int init;
 	int playback_or_capture;
 	int has_mute;
 	int last_vol;

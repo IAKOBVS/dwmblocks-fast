@@ -39,9 +39,9 @@ typedef struct {
 } b_gpu_mon_ty;
 
 typedef struct {
-	unsigned int deviceCount;
 	b_gpu_mon_ty *buf;
 	nvmlReturn_t ret;
+	unsigned int deviceCount;
 	int init;
 } b_gpu_ty;
 b_gpu_ty b_gpu;
