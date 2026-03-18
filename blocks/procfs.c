@@ -26,8 +26,7 @@
 
 #include "../macros.h"
 #include "../utils.h"
-
-#define B_PAGE_SIZE 4096
+#include "procfs.h"
 
 /* key: value */
 static char *
