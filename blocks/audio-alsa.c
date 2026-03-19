@@ -141,7 +141,7 @@ b_read_audio_alsa_muted(b_audio_alsa_ty *audio_alsa)
 			return -1;
 	if (audio_alsa->has_mute) {
 		audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
-		if (audio_alsa->ret < 0)
+		if (unlikely(audio_alsa->ret < 0))
 			DIE_DO(b_audio_alsa_err());
 		int i = 1;
 		if (audio_alsa->playback_or_capture == B_AUDIO_ALSA_PLAYBACK)
