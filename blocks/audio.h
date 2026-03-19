@@ -32,4 +32,7 @@ b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned i
 
 #	endif /* USE_ALSA */
 
+char *
+b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned int *interval);
+
 #endif /* B_AUDIO_H */

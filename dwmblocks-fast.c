@@ -432,7 +432,7 @@ static int
 g_paths_sysfs_resolve(void)
 {
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (g_blocks[i].arg) {
+		if (g_blocks[i].arg && (strstr(g_blocks[i].arg, "/sys/"))) {
 			const char *p = path_sysfs_resolve(g_blocks[i].arg);
 			if (unlikely(p == NULL))
 				DIE(return -1);
