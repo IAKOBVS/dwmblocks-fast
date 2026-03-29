@@ -78,7 +78,7 @@ check: $(PROG_BIN) $(SRC)/test.o
 	rm $(SRC)/test.o
 
 clean:
-	rm -f $(PROG_BIN) $(SCRIPTS) $(OBJS) $(SRC)/*.o
+	rm -f $(PROG_BIN) $(SCRIPTS) $(REQ) $(OBJS) $(SRC)/*.o
 
 install: $(PROG_BIN) $(SCRIPTS)
 	strip $(PROG_BIN)

@@ -50,7 +50,7 @@ b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char
 {
 	const char *value = value_get(procfs_buf, procfs_buf_len, key, key_len, delimiter);
 	if (unlikely(value == NULL))
-		DIE(return NULL);
+		return NULL;
 	procfs_buf_len -= key_len;
 	value += key_len;
 	/* Skip space. */
@@ -63,7 +63,7 @@ b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const c
 {
 	const char *val = b_proc_value_get(procfs_buf, procfs_buf_len, key, key_len, delimiter);
 	if (unlikely(val == NULL))
-		DIE(return (unsigned long long)-1);
+		return (unsigned long long)-1;
 	procfs_buf_len -= val - procfs_buf;
 	--procfs_buf_len;
 	for (; procfs_buf_len && *val == space; --procfs_buf_len, ++val) {}
@@ -77,12 +77,12 @@ b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 		return (unsigned int)-1;
 	const int fd = open(filename, O_RDONLY);
 	if (unlikely(fd == -1))
-		DIE(return (unsigned int)-1);
+		return (unsigned int)-1;
 	const ssize_t read_sz = read(fd, dst, dst_size - 1);
 	if (unlikely(close(fd) == -1))
-		DIE(return (unsigned int)-1);
+		return (unsigned int)-1;
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return (unsigned int)-1);
+		return (unsigned int)-1;
 	dst[read_sz] = '\0';
 	return read_sz;
 }
@@ -117,16 +117,16 @@ b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *p
 	if (fd == -1) {
 		if (likely(errno != ENOMEM))
 			return 0;
-		DIE(return -1);
+		return -1;
 	}
 	const ssize_t read_sz = read(fd, buf, sizeof(buf) - 1);
 	if (unlikely(close(fd) == -1))
-		DIE(return -1);
+		return -1;
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return -1);
+		return -1;
 	buf[read_sz] = '\0';
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return -1);
+		return -1;
 	return b_proc_name_match(buf, (unsigned int)read_sz, proc_name, proc_name_len);
 }
 
@@ -145,7 +145,7 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 	/* Open /proc/ */
 	DIR *dp = opendir("/proc/");
 	if (unlikely(dp == NULL))
-		DIE(return (unsigned int)-1);
+		return (unsigned int)-1;
 	struct dirent *ep;
 	errno = 0;
 	while ((ep = readdir(dp))) {
@@ -164,14 +164,14 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		const int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
 		if (unlikely(ret == -1)) {
 			closedir(dp);
-			DIE(return (unsigned int)-1);
+			return (unsigned int)-1;
 		}
 		if (ret)
 			return (unsigned int)atoi(ep->d_name);
 	}
 	if (unlikely(errno == EBADF))
-		DIE(return (unsigned int)-1);
+		return (unsigned int)-1;
 	if (unlikely(closedir(dp) == -1))
-		DIE(return (unsigned int)-1);
+		return (unsigned int)-1;
 	return 0;
 }
