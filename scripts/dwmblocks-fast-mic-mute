@@ -2,7 +2,7 @@
 pamixer --source $(dwmblocks-fast-mic-get) -t
 pkill -RTMIN+"$SIG_MIC" dwmblocks-fast &
 # ffplay -nodisp -autoexit /usr/share/sounds/freedesktop/stereo/bell.oga &
-gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/bell.oga &
+nice -n 19 gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/bell.oga &
 if [ $(dwmblocks-fast-mic-ismuted) = 'true' ]; then
 	notif='🔇 Mic is muted!'
 else

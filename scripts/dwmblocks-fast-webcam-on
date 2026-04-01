@@ -5,5 +5,5 @@ if sudo modprobe uvcvideo; then
 else
 	notify-send "🔴📷 Error: can not turn on webcam!"
 fi
-gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/device-added.oga &
+nice -n 19 gst-play-1.0 -q /usr/share/sounds/freedesktop/stereo/device-added.oga &
 pkill -RTMIN+"$SIG_WEBCAM" dwmblocks-fast
