@@ -36,7 +36,7 @@
 #	define ICON_WEBCAM_ON         "📸"
 #	define ICON_WEBCAM_OFF        ""
 
-#	define ICON_OBS_RECORDING_ON  "🔴 Recording"
+#	define ICON_OBS_RECORDING_ON  "🔴 Rec"
 #	define ICON_OBS_RECORDING_OFF ""
 
 #	define ICON_OBS_ON            "🎥 OBS"
