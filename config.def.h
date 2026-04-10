@@ -51,8 +51,8 @@
 #	define ICON_AUDIO_MIC_ON      "🎤"
 #	define ICON_AUDIO_MIC_OFF     "🚫"
 
-#	define G_STATUS_PAD_LEFT  " "
-#	define G_STATUS_PAD_RIGHT " "
+#	define G_STATUS_PAD_LEFT  ""
+#	define G_STATUS_PAD_RIGHT ""
 
 /* These will be copied to each shell script in ./scripts as shell variables. */
 #	define SIG_AUDIO  1
