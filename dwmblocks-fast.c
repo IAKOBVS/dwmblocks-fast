@@ -59,9 +59,6 @@ unsigned int g_time;
 /* Length of pad_left and pad_right < sizeof(g_statusblocks[0]). */
 #define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (sizeof(g_statusblocks)) + sizeof(g_statusblocks) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
-#define G_STATUS_PAD_LEFT  " "
-#define G_STATUS_PAD_RIGHT " "
-
 /* Do not change. */
 #define INTERVAL_UPDATE 1
 
