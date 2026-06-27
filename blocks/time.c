@@ -23,20 +23,39 @@
 #include "../macros.h"
 #include "../utils.h"
 
-struct tm *
+static time_t utc_off = -1;
+
+time_t
+b_time_init(void)
+{
+	const time_t t = time(NULL);
+	if (t == (time_t)-1)
+		return -1;
+	const struct tm *tm = localtime(&t);
+	return tm->tm_gmtoff;
+}
+
+static struct tm *
 b_read_time(void)
 {
+	if (unlikely(utc_off == -1)) {
+		utc_off = b_time_init();
+		if (utc_off == -1)
+			return NULL;
+	}
 	time_t t = time(NULL);
 	if (t == (time_t)-1)
 		return NULL;
-	return localtime(&t);
+	t += utc_off;
+	return gmtime(&t);
 }
 
+/* TODO: optimize, cache time formatting */
 /* Format: 9:00 PM */
 char *
 b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	struct tm *tm = b_read_time();
+	const struct tm *tm = b_read_time();
 	if (unlikely(tm == NULL))
 		DIE(return NULL);
 	unsigned int h = (unsigned int)tm->tm_hour;
@@ -69,7 +88,7 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	*p++ = 'M';
 	*p = '\0';
 	/* Set next update for when minute changes. */
-	*interval = (unsigned int)(60 - tm->tm_sec);
+	*interval = (unsigned int)(90 - tm->tm_sec);
 	return p;
 	(void)dst_size;
 	(void)unused;
@@ -79,41 +98,44 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 char *
 b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	struct tm *tm = b_read_time();
+	const struct tm *tm = b_read_time();
 	if (unlikely(tm == NULL))
 		DIE(return NULL);
 	char *p = dst;
-	/* Write day */
-	switch (tm->tm_wday) {
-	case 0: p = u_stpcpy_len(p, S_LITERAL("Sun, ")); break;
-	case 1: p = u_stpcpy_len(p, S_LITERAL("Mon, ")); break;
-	case 2: p = u_stpcpy_len(p, S_LITERAL("Tue, ")); break;
-	case 3: p = u_stpcpy_len(p, S_LITERAL("Wed, ")); break;
-	case 4: p = u_stpcpy_len(p, S_LITERAL("Thu, ")); break;
-	case 5: p = u_stpcpy_len(p, S_LITERAL("Fri, ")); break;
-	case 6: p = u_stpcpy_len(p, S_LITERAL("Sat, ")); break;
-	}
+	const char *days[] = {
+		"Sun, ",
+		"Mon, ",
+		"Tue, ",
+		"Wed, ",
+		"Thu, ",
+		"Fri, ",
+		"Sat, ",
+	};
+	/* Write week day */
+	p = u_stpcpy_len(p, days[tm->tm_wday], S_LEN("Day, "));
+	/* Write month day */
 	p = u_utoa_lt2_p((unsigned int)tm->tm_mday, p);
 	*p++ = ' ';
+	const char *mons[] = {
+		"Jan ",
+		"Feb ",
+		"Mar ",
+		"Apr ",
+		"May ",
+		"Jun ",
+		"Jul ",
+		"Agu ",
+		"Sep ",
+		"Oct ",
+		"Nov ",
+		"Dec "
+	};
 	/* Write month */
-	switch (tm->tm_mon) {
-	case 0: p = u_stpcpy_len(p, S_LITERAL("Jan ")); break;
-	case 1: p = u_stpcpy_len(p, S_LITERAL("Feb ")); break;
-	case 2: p = u_stpcpy_len(p, S_LITERAL("Mar ")); break;
-	case 3: p = u_stpcpy_len(p, S_LITERAL("Apr ")); break;
-	case 4: p = u_stpcpy_len(p, S_LITERAL("May ")); break;
-	case 5: p = u_stpcpy_len(p, S_LITERAL("Jun ")); break;
-	case 6: p = u_stpcpy_len(p, S_LITERAL("Jul ")); break;
-	case 7: p = u_stpcpy_len(p, S_LITERAL("Agu ")); break;
-	case 8: p = u_stpcpy_len(p, S_LITERAL("Sep ")); break;
-	case 9: p = u_stpcpy_len(p, S_LITERAL("Oct ")); break;
-	case 10: p = u_stpcpy_len(p, S_LITERAL("Nov ")); break;
-	case 11: p = u_stpcpy_len(p, S_LITERAL("Dec ")); break;
-	}
+	p = u_stpcpy_len(p, mons[tm->tm_mon], S_LEN("Mon "));
 	/* Write year */
 	p = u_utoa_p((unsigned int)tm->tm_year + 1900, p);
 	/* Set next update for when the day changes. */
-	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (60 - tm->tm_sec));
+	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (59 - tm->tm_sec));
 	return p;
 	(void)dst_size;
 	(void)unused;
