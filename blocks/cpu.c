@@ -29,11 +29,31 @@
 #include "../blocks/temp.h"
 #include "procfs.h"
 
-int
+#define SIZE_T_MAX_DIGITS 20
+
+static int fd_cpu_usage = -1;
+static int fd_cpu_usage_power = -1;
+static int fd_cpu_temp = -1;
+
+static int
+b_cpu_init(const char *filename)
+{
+	int fd = open(filename, O_RDONLY);
+	if (unlikely(fd < 0))
+		return -1;
+	return fd;
+}
+
+static int
 b_read_cpu_usage(void)
 {
+	if (unlikely(fd_cpu_usage == -1)) {
+		fd_cpu_usage = b_cpu_init("/proc/stat");
+		if (unlikely(fd_cpu_usage < 0))
+			DIE();
+	}
 	char buf[B_PAGE_SIZE + 1];
-	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/stat");
+	const unsigned int read_sz = b_proc_read_filefd(buf, sizeof(buf), fd_cpu_usage);
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
 	typedef struct {
@@ -63,11 +83,16 @@ b_read_cpu_usage(void)
 	return usage;
 }
 
-int
+static int
 b_read_cpu_usage_power(void)
 {
-	char buf[sizeof(size_t) * 8 + 1];
-	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
+	if (unlikely(fd_cpu_usage_power == -1)) {
+		fd_cpu_usage_power = b_cpu_init("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
+		if (unlikely(fd_cpu_usage_power < 0))
+			DIE();
+	}
+	char buf[SIZE_T_MAX_DIGITS + 1];
+	const unsigned int read_sz = b_proc_read_filefd(buf, sizeof(buf), fd_cpu_usage_power);
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
 	static int last_energy;
@@ -115,5 +140,10 @@ b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, un
 char *
 b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
 {
-	return b_write_temp(dst, dst_size, temp_file, interval);
+	if (unlikely(fd_cpu_temp == -1)) {
+		fd_cpu_temp = b_cpu_init(temp_file);
+		if (unlikely(fd_cpu_temp < 0))
+			DIE();
+	}
+	return b_write_tempfd(dst, dst_size, fd_cpu_temp, interval);
 }

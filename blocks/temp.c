@@ -24,6 +24,23 @@
 #include "../config.h"
 
 char *
+b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
+{
+	/* Milidegrees = degrees * 1000 */
+	int read_sz = pread(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"), 0);
+	if (unlikely(read_sz  == -1))
+		DIE(return NULL);
+	/* Don't read the newline. */
+	if (*(dst + read_sz - 1) == '\n')
+		--read_sz;
+	/* Don't read the milidegrees. */
+	read_sz -= S_LEN("000");
+	*(dst + read_sz) = '\0';
+	return dst + read_sz;
+	(void)dst_size;
+}
+
+char *
 b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file)
 {
 	const int fd = open(temp_file, O_RDONLY);
@@ -50,6 +67,18 @@ b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned i
 {
 	char *p = dst;
 	p = b_write_temp_internal(p, dst_size, temp_file);
+	if (unlikely(p == dst))
+		DIE(return NULL);
+	return p;
+	(void)dst_size;
+	(void)interval;
+}
+
+char *
+b_write_tempfd(char *dst, unsigned int dst_size, int fd, unsigned int *interval)
+{
+	char *p = dst;
+	p = b_write_tempfd_internal(p, dst_size, fd);
 	if (unlikely(p == dst))
 		DIE(return NULL);
 	return p;

@@ -29,6 +29,8 @@ unsigned int
 b_proc_exist(const char *proc_name, unsigned int proc_name_len);
 unsigned int
 b_proc_read_file(char *dst, unsigned int dst_size, const char *filename);
+unsigned int
+b_proc_read_filefd(char *dst, unsigned int dst_size, int fd);
 char *
 b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter);
 unsigned long long

@@ -405,6 +405,7 @@ g_status_write_stdout(char *status, int status_len)
 static int
 g_status_write(char *status)
 {
+	/* TODO: optimize stdout path, use writev from uio.h.  */
 	const char *end = g_status_get(status);
 	switch (g_write_dst) {
 #ifdef USE_X11

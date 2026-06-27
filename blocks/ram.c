@@ -23,35 +23,51 @@
 /* #include <sys/sysinfo.h> */
 
 #	include <stdio.h>
+#	include <fcntl.h>
 
 #	include "../macros.h"
 #	include "../utils.h"
 #	include "../dwmblocks-fast.h"
 #	include "procfs.h"
 
+static int fd_ram = -1;
 static char b_meminfo[B_PAGE_SIZE + 1];
 static unsigned int b_meminfo_time = (unsigned int)-1;
 static unsigned int b_meminfo_sz;
+
+static int
+b_ram_init(const char *filename)
+{
+	int fd = open(filename, O_RDONLY);
+	if (unlikely(fd < 0))
+		return -1;
+	return fd;
+}
 
 static int
 b_meminfo_read(char *meminfo, unsigned int meminfo_sz)
 {
 	if (g_time != b_meminfo_time) {
 		b_meminfo_time = g_time;
-		b_meminfo_sz = b_proc_read_file(meminfo, meminfo_sz, "/proc/meminfo");
+		if (unlikely(fd_ram == -1)) {
+			fd_ram = b_ram_init("/proc/meminfo");
+			if (unlikely(fd_ram < 0))
+				DIE();
+		}
+		b_meminfo_sz = b_proc_read_filefd(meminfo, meminfo_sz, fd_ram);
 		if (unlikely(b_meminfo_sz == (unsigned int)-1))
 			DIE(return -1);
 	}
 	return 0;
 }
 
-int
+static int
 b_read_ram_usage_percent(void)
 {
 	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo)) == -1))
 		DIE(return -1);
 	const unsigned long long avail = b_proc_value_getull(b_meminfo, b_meminfo_sz, S_LITERAL("MemAvailable"), ':', ' ');
-	if (unlikely(avail == (unsigned long long )-1))
+	if (unlikely(avail == (unsigned long long)-1))
 		DIE(return -1);
 	const unsigned long long total = b_proc_value_getull(b_meminfo, b_meminfo_sz, S_LITERAL("MemTotal"), ':', ' ');
 	if (unlikely(total == (unsigned long long)-1))
@@ -60,14 +76,14 @@ b_read_ram_usage_percent(void)
 	return percent;
 }
 
-unsigned long long
+static unsigned long long
 b_read_ram_usage_available(void)
 {
 	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo)) == -1))
 		DIE(return (unsigned long long)-1);
 	const unsigned long long avail = b_proc_value_getull(b_meminfo, sizeof(b_meminfo), S_LITERAL("MemAvailable"), ':', ' ');
 	if (unlikely(avail == (unsigned long long)-1))
-		DIE(return (unsigned long long )-1);
+		DIE(return (unsigned long long)-1);
 	/* Values are in KiB. */
 	return avail * U_KIB;
 }

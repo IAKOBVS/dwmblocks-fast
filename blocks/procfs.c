@@ -71,6 +71,18 @@ b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const c
 }
 
 unsigned int
+b_proc_read_filefd(char *dst, unsigned int dst_size, int fd)
+{
+	if (unlikely(dst_size == 0))
+		return (unsigned int)-1;
+	const ssize_t read_sz = pread(fd, dst, dst_size - 1, 0);
+	if (unlikely(read_sz == (unsigned int)-1))
+		return (unsigned int)-1;
+	dst[read_sz] = '\0';
+	return read_sz;
+}
+
+unsigned int
 b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 {
 	if (unlikely(dst_size == 0))
