@@ -294,18 +294,24 @@ g_init_signals(void)
 			DIE(return -1);
 	}
 #endif
-	/* Handle RT signals. */
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+	/* Handle signals for blocks. */
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (B_SIGNAL(i) > 0) {
+			int target_sig = SIGMINUS + (int)B_SIGNAL(i);
 #ifdef HAVE_RT_SIGNALS
-			if (unlikely(SIGMINUS + B_SIGNAL(i) > SIGRTMAX)) {
+			if (unlikely(target_sig > SIGRTMAX)) {
 				fprintf(stderr, "dwmblocks-fast: Trying to handle signal (%u) over SIGRTMAX (%d).\n", B_SIGNAL(i), SIGRTMAX);
 				DIE(return -1);
 			}
 #endif
-			if (unlikely(g_sigaction(SIGMINUS + (int)B_SIGNAL(i), g_handler_sig) == -1))
+			/* FIX: Explicitly add fallback or RT signal to the block mask */
+			if (unlikely(sigaddset(&sigset_rt, target_sig) == -1))
+				DIE(return -1);
+
+			if (unlikely(g_sigaction(target_sig, g_handler_sig) == -1))
 				DIE(return -1);
 		}
+	}
 	/* Handle termination signals. */
 	if (unlikely(g_sigaction(SIGTERM, g_handler_term) == -1))
 		DIE(return -1);
@@ -353,11 +359,11 @@ g_status_get(char *dst)
 static ATTR_INLINE void
 g_sleep(unsigned int secs)
 {
-	if (unlikely(g_sig_unblock() == -1))
-		DIE();
-	sleep(secs);
-	if (unlikely(g_sig_block() == -1))
-		DIE();
+	struct timespec ts = {
+		.tv_sec = secs,
+		.tv_nsec = 0
+	};
+	pselect(0, NULL, NULL, NULL, &ts, &sigset_old);
 }
 
 #ifdef USE_X11
@@ -515,7 +521,7 @@ g_handler_sig_dummy(int signum)
 static void
 g_handler_sig(int signum)
 {
-	g_signal = (unsigned int)signum - (unsigned int)SIGPLUS;
+	g_signal = (sig_atomic_t)signum - (sig_atomic_t)SIGPLUS;
 }
 
 static void
