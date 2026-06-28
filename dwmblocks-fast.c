@@ -47,11 +47,11 @@ unsigned int g_time;
 #endif
 
 #ifdef HAVE_RT_SIGNALS
-#	define SIGPLUS  SIGRTMIN
-#	define SIGMINUS SIGRTMIN
+#	define SIGPLUS  (SIGRTMIN)
+#	define SIGMINUS (SIGRTMIN)
 #else
-#	define SIGPLUS  SIGUSR1 + 1
-#	define SIGMINUS SIGUSR1 - 1
+#	define SIGPLUS  (SIGUSR1 + 1)
+#	define SIGMINUS (SIGUSR1 - 1)
 #endif
 
 #define LEN(X)           (sizeof(X) / sizeof(X[0]))
@@ -131,7 +131,7 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static unsigned int g_signal;
+static volatile sig_atomic_t g_signal;
 static int g_status_changed;
 static int g_status_changed_len;
 static unsigned int g_status_start_idx;
@@ -242,7 +242,6 @@ g_getcmds_sig(unsigned int signal)
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (likely(B_SIGNAL(i) != signal))
 			continue;
-		g_signal = 1;
 		const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
 		if (unlikely(end == NULL))
 			DIE(return -1);
