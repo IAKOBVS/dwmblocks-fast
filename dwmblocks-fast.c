@@ -490,7 +490,7 @@ g_status_mainloop(void)
 		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) == -1))
 				DIE(return -1);
-		++g_time;
+		g_time += INTERVAL_UPDATE;
 #ifdef TEST
 		return 0;
 #endif
