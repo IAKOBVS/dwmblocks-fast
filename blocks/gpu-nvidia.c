@@ -134,10 +134,15 @@ b_gpu_read_usage_vram(nvmlDevice_t dev, nvmlMemory_t *memory)
 static ATTR_INLINE unsigned int
 b_gpu_read_usage_power(nvmlDevice_t dev, unsigned int *power)
 {
+#if 0
 	nvmlFieldValue_t values = { .fieldId = NVML_FI_DEV_POWER_INSTANT };
 	b_gpu.ret = nvmlDeviceGetFieldValues(dev, 1, &values);
 	/* Convert from miliwatt to watt. */
 	*power = values.value.uiVal / (double)1000;
+#else
+	b_gpu.ret = nvmlDeviceGetPowerUsage(dev, power);
+	*power = (double)*power / (double)1000;
+#endif
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
 	return *power;
