@@ -26,7 +26,7 @@ CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
 LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
-CFLAGS += -O2 -flto -Wpedantic -pedantic -Wall -Wextra -Wuninitialized -Wshadow -Warray-bounds -Wnull-dereference -Wformat -Wunused -Wwrite-strings
+CFLAGS += -g -O2 -flto -Wpedantic -pedantic -Wall -Wextra -Wuninitialized -Wshadow -Warray-bounds -Wnull-dereference -Wformat -Wunused -Wwrite-strings
 SRC = .
 BIN = bin
 SCRIPTSBASE = dwmblocks-fast-*
@@ -81,7 +81,7 @@ clean:
 	rm -f $(PROG_BIN) $(SCRIPTS) $(REQ) $(OBJS) $(SRC)/*.o
 
 install: $(PROG_BIN) $(SCRIPTS)
-	strip $(PROG_BIN)
+	# strip $(PROG_BIN)
 	chmod 755 $^
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	command -v rsync >/dev/null && rsync -parc $^ $(DESTDIR)$(PREFIX)/bin || cp -paf $^ $(DESTDIR)$(PREFIX)/bin

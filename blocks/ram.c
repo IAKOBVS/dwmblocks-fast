@@ -45,16 +45,21 @@ b_ram_init(const char *filename)
 }
 
 static int
-b_meminfo_read(char *meminfo, unsigned int meminfo_sz)
+b_meminfo_read(char *meminfo, unsigned int meminfo_sz, unsigned int interval)
 {
 	if (g_time != b_meminfo_time) {
 		b_meminfo_time = g_time;
-		if (unlikely(fd_ram == -1)) {
-			fd_ram = b_ram_init("/proc/meminfo");
-			if (unlikely(fd_ram < 0))
-				DIE();
+		/* Only cache fd if frequent intervals. */
+		if (interval <= 2) {
+			if (unlikely(fd_ram == -1)) {
+				fd_ram = b_ram_init("/proc/meminfo");
+				if (unlikely(fd_ram < 0))
+					DIE();
+			}
+			b_meminfo_sz = b_proc_read_filefd(meminfo, meminfo_sz, fd_ram);
+		} else {
+			b_meminfo_sz = b_proc_read_file(meminfo, meminfo_sz, "/proc/meminfo");
 		}
-		b_meminfo_sz = b_proc_read_filefd(meminfo, meminfo_sz, fd_ram);
 		if (unlikely(b_meminfo_sz == (unsigned int)-1))
 			DIE(return -1);
 	}
@@ -62,9 +67,9 @@ b_meminfo_read(char *meminfo, unsigned int meminfo_sz)
 }
 
 static int
-b_read_ram_usage_percent(void)
+b_read_ram_usage_percent(unsigned int interval)
 {
-	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo)) == -1))
+	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo), interval) == -1))
 		DIE(return -1);
 	const unsigned long long avail = b_proc_value_getull(b_meminfo, b_meminfo_sz, S_LITERAL("MemAvailable"), ':', ' ');
 	if (unlikely(avail == (unsigned long long)-1))
@@ -77,9 +82,9 @@ b_read_ram_usage_percent(void)
 }
 
 static unsigned long long
-b_read_ram_usage_available(void)
+b_read_ram_usage_available(unsigned int interval)
 {
-	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo)) == -1))
+	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo), interval) == -1))
 		DIE(return (unsigned long long)-1);
 	const unsigned long long avail = b_proc_value_getull(b_meminfo, sizeof(b_meminfo), S_LITERAL("MemAvailable"), ':', ' ');
 	if (unlikely(avail == (unsigned long long)-1))
@@ -91,7 +96,7 @@ b_read_ram_usage_available(void)
 char *
 b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	const int usage = b_read_ram_usage_percent();
+	const int usage = b_read_ram_usage_percent(*interval);
 	if (unlikely(usage == -1))
 		DIE(return NULL);
 	char *p = dst;
@@ -105,7 +110,7 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, 
 char *
 b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	unsigned long long usage = b_read_ram_usage_available();
+	unsigned long long usage = b_read_ram_usage_available(*interval);
 	if (unlikely(usage == (unsigned long long)-1))
 		DIE(return NULL);
 	const int unit = u_humanize(&usage);

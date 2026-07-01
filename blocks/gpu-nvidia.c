@@ -17,6 +17,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "../config.h"
+#include "temp.h"
 
 #ifdef USE_CUDA
 #	ifndef NVML_HEADER
@@ -26,6 +27,7 @@
 
 #	include <stdlib.h>
 #	include <assert.h>
+#	include <fcntl.h>
 
 #	include "../macros.h"
 #	include "../utils.h"
@@ -52,6 +54,17 @@ typedef enum {
 	B_GPU_MON_VRAM,
 	B_GPU_MON_POWER_USAGE
 } b_gpus_ty;
+
+int b_gpu_temp_fd = -1;
+
+static int
+b_gpu_temp_fd_init(const char *filename)
+{
+	int fd = open(filename, O_RDONLY);
+	if (unlikely(fd < 0))
+		return -1;
+	return fd;
+}
 
 void
 b_gpu_cleanup(void)
@@ -186,7 +199,13 @@ b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 char *
 b_write_gpu_temp(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
 {
-	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_TEMP, 3);
+	if (unlikely(b_gpu_temp_fd < 0)) {
+		b_gpu_temp_fd = b_gpu_temp_fd_init("/tmp/nvspeed/temp");
+		if (unlikely(b_gpu_temp_fd < 0))
+			DIE();
+	}
+	return b_write_tempfd(dst, dst_size, b_gpu_temp_fd, interval);
+	(void)unused;
 }
 
 char *
