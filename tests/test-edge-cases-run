@@ -1,0 +1,19 @@
+#!/bin/sh
+# Edge-case test runner for dwmblocks-fast
+# Called from Makefile.
+
+set -e
+
+cleanup() {
+	rm -f tests/test-edge-cases-bin
+}
+trap cleanup EXIT INT TERM
+
+./tests/test-edge-cases-bin
+ret=$?
+if [ $ret -eq 0 ]; then
+	echo "PASS: $(basename $0)"
+else
+	echo "FAIL: $(basename $0)"
+fi
+exit "$ret"

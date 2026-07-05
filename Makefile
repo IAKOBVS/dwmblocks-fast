@@ -22,7 +22,7 @@
 include config.mk
 
 # Variables
-CFLAGS = $(CFLAGS_OPTIMIZE) -fanalyzer -Wno-unknown-argument
+CFLAGS = $(CFLAGS_OPTIMIZE)
 LDFLAGS = $(LDFLAGS_OPTIMIZE) $(LDFLAGS_ALSA) $(LDFLAGS_X11) $(LDFLAGS_CUDA) $(LDFLAGS_FREEBSD) $(LDFLAGS_OPENBSD)
 PREFIX = /usr/local
 CC = cc
@@ -73,9 +73,20 @@ all: options $(PROG_BIN) $(SCRIPTS)
 check: $(PROG_BIN) $(SRC)/test.o
 	mkdir -p $(BIN)
 	$(CC) -o tests/test-run-bin $(CFLAGS) $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
-	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep tests/test-run-bin
+	command -v setcap >/dev/null 2>&1 && sudo setcap cap_dac_read_search+ep tests/test-run-bin 2>/dev/null; true
 	./tests/test-run
-	rm $(SRC)/test.o
+	rm -f $(SRC)/test.o tests/test-run-bin
+
+test-stress: $(PROG_BIN) tests/test-stress.c
+	$(CC) -o tests/test-stress-bin $(CFLAGS) $(CPPFLAGS) tests/test-stress.c -lrt
+	./tests/test-stress-run
+
+test-edge-cases: $(PROG_BIN) tests/test-edge-cases.c
+	mkdir -p $(BIN)
+	$(CC) -o tests/test-edge-cases-bin $(CFLAGS) $(CPPFLAGS) tests/test-edge-cases.c $(OBJS) $(REQ) $(LDFLAGS)
+	./tests/test-edge-cases-run
+
+test-all: check test-stress test-edge-cases
 
 clean:
 	rm -f $(PROG_BIN) $(SCRIPTS) $(REQ) $(OBJS) $(SRC)/*.o

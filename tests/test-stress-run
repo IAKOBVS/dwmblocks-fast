@@ -1,0 +1,20 @@
+#!/bin/sh
+# Stress test runner for dwmblocks-fast
+# Called from Makefile with: tests/test-stress-run
+# Expects tests/test-stress-bin to already exist.
+
+set -e
+
+cleanup() {
+	rm -f tests/test-stress-bin
+}
+trap cleanup EXIT INT TERM
+
+./tests/test-stress-bin
+ret=$?
+if [ $ret -eq 0 ]; then
+	echo "PASS: $(basename $0)"
+else
+	echo "FAIL: $(basename $0)"
+fi
+exit "$ret"

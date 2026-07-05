@@ -32,7 +32,7 @@ make clean
 - Block order in `g_blocks[]` determines print order after interval-sorting. `qsort` reorders by interval then signal; `internal_tostatus_idx` preserves original layout.
 - **OBS order constraint**: `b_write_obs_on` must precede `b_write_obs_recording` in `g_blocks[]`.
 - Signal-triggered updates: define `SIG_*` in `config.h`, set `.signal` in the block, then `pkill -RTMIN+<SIG> dwmblocks-fast`.
-- Signal handler uses `sigfillset(&sa.sa_mask)` (`g_sigaction`), blocking **all** signals during handler execution. No nesting. If multiple signals are pending after `pselect` unblocks, they're delivered sequentially and `g_signal` is last-one-wins (overwritten by the final handler). This is intentional.
+- Signal handler uses `sigfillset(&sa.sa_mask)` (`g_sigaction`), blocking **all** signals during handler execution. No nesting. The handler sets a bit in `g_signal_mask` (bitmask); multiple pending signals are all processed rather than overwriting each other. `SA_RESTART` is set so interrupted syscalls are retried.
 - Sysfs temp paths: must start with `/sys/devices/platform`, not `/sys/class` (the `path_sysfs_resolve` rewriter depends on this pattern).
 
 ## Build quirks
@@ -62,5 +62,28 @@ dwmblocks-fast -p                     # print to stdout (for wms that read stdin
 
 ## Test
 
-- Single test: `make check` — compiles `dwmblocks-fast.c` with `-DTEST=1`, runs one mainloop iteration (see `#ifdef TEST` in `g_status_mainloop`), prints PASS/FAIL.
+```sh
+make check            # compile with -DTEST=1, run one loop iteration
+make test-stress      # signal-bitmask unit tests + fork/kill stress tests
+make test-edge-cases  # block-function edge-case tests (NULL args, zero dst, etc.)
+make test-all         # run all of the above
+```
+
+- `make check` — compiles `dwmblocks-fast.c` with `-DTEST=1`, runs one mainloop iteration (see `#ifdef TEST` in `g_status_mainloop`). Needs `setcap` for powercap files or the binary may abort.
+- `make test-stress` — signal-bitmask accumulation unit tests. Fork/kill tests are skipped when `setcap` is unavailable.
+- `make test-edge-cases` — links against block object files, tests NULL/empty args, small dst buffers, interval modification.
+- `make test-all` — runs all three.
 - No test framework; just exit code 0 vs non-zero.
+
+## Signal handling
+
+- `g_signal_mask` (bitmask) replaces the old `g_signal` (last-one-wins). Multiple
+  pending signals are all processed rather than only the last one.
+- Signal handler (`g_handler_sig`) ORs bit `(1u << user_signal_num)`.
+  Index 0 is reserved (timer-only blocks); `SIGPLUS+0` is ignored.
+- Main loop atomically reads-and-clears the mask via `__sync_fetch_and_and`,
+  then calls `g_getcmds_sig(sig)` for each set bit.
+- `SA_RESTART` is set on all signal actions so interrupted syscalls
+  (e.g., `pselect`) are retried when possible.
+- `b_init()` validates function pointers are non-NULL and signal numbers
+  are within `G_SIGNAL_BITMASK_MAX`.
