@@ -384,7 +384,7 @@ g_status_get(char *dst)
 static ATTR_INLINE void
 g_sleep(unsigned int secs)
 {
-	struct timespec ts = {
+	const struct timespec ts = {
 		.tv_sec = secs,
 		.tv_nsec = 0
 	};
