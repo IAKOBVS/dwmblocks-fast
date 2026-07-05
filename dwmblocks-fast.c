@@ -506,7 +506,7 @@ g_status_mainloop(void)
 {
 	for (;;) {
 		unsigned int mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-		if (mask) {
+		if (unlikely(mask)) {
 			for (unsigned int sig = 0; mask; ++sig) {
 				if (mask & 1u) {
 					if (unlikely(g_getcmds_sig(sig) == -1))
