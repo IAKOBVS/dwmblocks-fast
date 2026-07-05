@@ -18,6 +18,7 @@
 
 #include "../config.h"
 #include "temp.h"
+#include <unistd.h>
 
 #ifdef USE_CUDA
 #	ifndef NVML_HEADER
@@ -61,9 +62,9 @@ int b_gpu_temp_fd = -1;
 static int
 b_gpu_temp_fd_init(const char *filename)
 {
-	int fd = open(filename, O_RDONLY);
-	if (unlikely(fd < 0))
-		return -1;
+	int fd;
+	for (int retry = 5; (fd = open(filename, O_RDONLY)) < 0 && retry; --retry)
+		sleep(1);
 	return fd;
 }
 

@@ -38,9 +38,9 @@ static int fd_cpu_temp = -1;
 static int
 b_cpu_init(const char *filename)
 {
-	int fd = open(filename, O_RDONLY);
-	if (unlikely(fd < 0))
-		return -1;
+	int fd;
+	for (int retry = 5; (fd = open(filename, O_RDONLY)) < 0 && retry; --retry) {}
+		sleep(1);
 	return fd;
 }
 
@@ -142,11 +142,13 @@ b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsign
 {
 	if (unlikely(fd_cpu_temp == -1)) {
 #if USE_CFAN
-		temp_file = "/tmp/cfan/temp_cpu";
-#endif
+		fd_cpu_temp = b_cpu_init("/tmp/cfan/temp_cpu");
+#else
 		fd_cpu_temp = b_cpu_init(temp_file);
+#endif
 		if (unlikely(fd_cpu_temp < 0))
 			DIE();
 	}
 	return b_write_tempfd(dst, dst_size, fd_cpu_temp, interval);
+	(void)temp_file;
 }
