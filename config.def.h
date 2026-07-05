@@ -29,6 +29,10 @@
 
 /* Monitor Nvidia GPU, requires CUDA. Comment to disable. */
 #	define USE_CUDA 1
+#	define USE_NVSPEED 0
+
+#	define USE_CFAN 0
+
 /* May not work for older versions of CUDA, in which case, comment it out. */
 #	define USE_NVML_DEVICEGETTEMPERATUREV 1
 #	define NVML_HEADER                    "/opt/cuda/include/nvml.h"
