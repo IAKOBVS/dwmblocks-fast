@@ -69,7 +69,7 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 		meridiem = 'A';
 	}
 	/* Write hour */
-	p = u_utoa_lt2_p(h, p);
+	p = u_utoa_le2_p(h, p);
 	/* Write : */
 	*p++ = ':';
 	/* Write minutes */
@@ -114,7 +114,7 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	/* Write week day */
 	p = u_stpcpy_len(p, days[tm->tm_wday], S_LEN("Day, "));
 	/* Write month day */
-	p = u_utoa_lt2_p((unsigned int)tm->tm_mday, p);
+	p = u_utoa_le2_p((unsigned int)tm->tm_mday, p);
 	*p++ = ' ';
 	const char *mons[] = {
 		"Jan ",
