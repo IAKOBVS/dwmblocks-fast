@@ -19,6 +19,7 @@
 #include <sys/statvfs.h>
 #include <assert.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 #include "../macros.h"
 #include "../utils.h"
@@ -27,6 +28,26 @@
 static struct statvfs b_statvfs;
 static const char *b_mountpoint;
 static unsigned int b_statvfs_time = (unsigned int)-1;
+static int b_mountpoint_root_fd = -1;
+static int b_mountpoint_home_fd = -1;
+
+static int
+b_fd_init(const char *file, int *fdp)
+{
+	if (*fdp == -1)
+		*fdp = open(file, O_RDONLY);
+	return *fdp;
+}
+
+static int
+b_mountpoint_getfd(const char *mountpoint)
+{
+	if (!strcmp(mountpoint, "/"))
+		return b_fd_init(mountpoint, &b_mountpoint_root_fd);
+	else if (!strcmp(mountpoint, "/home"))
+		return b_fd_init(mountpoint, &b_mountpoint_home_fd);
+	return 0;
+}
 
 static int
 b_read_statvfs(const char *mountpoint, struct statvfs *sfs)
@@ -34,8 +55,16 @@ b_read_statvfs(const char *mountpoint, struct statvfs *sfs)
 	if (g_time != b_statvfs_time || b_mountpoint != mountpoint) {
 		b_mountpoint = mountpoint;
 		b_statvfs_time = g_time;
-		if (unlikely(statvfs(mountpoint, sfs) != 0))
+		int fd = b_mountpoint_getfd(mountpoint);
+		if (unlikely(fd == 0)) {
+			if (unlikely(statvfs(mountpoint, sfs) != 0))
+				DIE(return -1);
+		} else if (fd > 0) {
+			if (unlikely(fstatvfs(fd, sfs) != 0))
+				DIE(return -1);
+		} else {
 			DIE(return -1);
+		}
 	}
 	return 0;
 }
