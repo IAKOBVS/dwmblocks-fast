@@ -39,7 +39,7 @@ static int
 b_cpu_init(const char *filename)
 {
 	int fd;
-	for (int retry = 5; (fd = open(filename, O_RDONLY)) < 0 && retry; --retry) {}
+	for (int retry = 10; (fd = open(filename, O_RDONLY)) < 0 && retry; --retry) {}
 		sleep(1);
 	return fd;
 }
