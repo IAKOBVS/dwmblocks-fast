@@ -199,19 +199,18 @@ b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 }
 
 char *
-b_write_gpu_temp(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_gpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
 {
 #if USE_NVSPEED
 	if (unlikely(b_gpu_temp_fd < 0)) {
-		b_gpu_temp_fd = b_gpu_temp_fd_init("/tmp/nvspeed/temp");
+		b_gpu_temp_fd = b_gpu_temp_fd_init(temp_file);
 		if (unlikely(b_gpu_temp_fd < 0))
 			DIE();
 	}
 	return b_write_tempfd(dst, dst_size, b_gpu_temp_fd, interval);
 #else
-	return b_write_gpus(dst, dst_size, unused, interval, B_GPU_MON_TEMP, 3);
+	return b_write_gpus(dst, dst_size, temp_file, interval, B_GPU_MON_TEMP, 3);
 #endif
-	(void)unused;
 }
 
 char *

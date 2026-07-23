@@ -148,11 +148,7 @@ char *
 b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
 {
 	if (unlikely(fd_cpu_temp == -1)) {
-#if USE_CFAN
-		fd_cpu_temp = b_cpu_init("/tmp/cfan/temp_cpu");
-#else
 		fd_cpu_temp = b_cpu_init(temp_file);
-#endif
 		if (unlikely(fd_cpu_temp < 0))
 			DIE();
 	}
