@@ -47,10 +47,14 @@ b_audio_alsa_ty b_audio_alsa_speaker = { .card = "default", .selem_name = "Maste
 void
 b_audio_alsa_cleanup_one(b_audio_alsa_ty *audio_alsa)
 {
-	if (audio_alsa->handle)
+	if (audio_alsa->handle) {
 		snd_mixer_close(audio_alsa->handle);
-	if (audio_alsa->sid)
+		audio_alsa->handle = NULL;
+	}
+	if (audio_alsa->sid) {
 		snd_mixer_selem_id_free(audio_alsa->sid);
+		audio_alsa->sid = NULL;
+	}
 }
 
 void
@@ -129,6 +133,8 @@ b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 		DIE();
 	if (unlikely(audio_alsa->ret != 0))
 		DIE_DO(b_audio_alsa_err());
+	if (unlikely(audio_alsa->max_vol == audio_alsa->min_vol))
+		return 0;
 	const int percent = (int)((double)100 * ((double)(audio_alsa->curr_vol - audio_alsa->min_vol) / (double)(audio_alsa->max_vol - audio_alsa->min_vol)));
 	return percent;
 }
