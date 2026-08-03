@@ -28,7 +28,7 @@ b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
 {
 	/* Milidegrees = degrees * 1000 */
 	int read_sz = pread(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"), 0);
-	if (unlikely(read_sz  == -1))
+	if (unlikely(read_sz <= 0))
 		DIE(return NULL);
 	/* Don't read the newline. */
 	if (*(dst + read_sz - 1) == '\n')
