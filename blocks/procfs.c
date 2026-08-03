@@ -76,7 +76,7 @@ b_proc_read_filefd(char *dst, unsigned int dst_size, int fd)
 	if (unlikely(dst_size == 0))
 		return (unsigned int)-1;
 	const ssize_t read_sz = pread(fd, dst, dst_size - 1, 0);
-	if (unlikely(read_sz == (unsigned int)-1))
+	if (unlikely(read_sz == -1))
 		return (unsigned int)-1;
 	dst[read_sz] = '\0';
 	return read_sz;
@@ -93,7 +93,7 @@ b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 	const ssize_t read_sz = read(fd, dst, dst_size - 1);
 	if (unlikely(close(fd) == -1))
 		return (unsigned int)-1;
-	if (unlikely(read_sz == (unsigned int)-1))
+	if (unlikely(read_sz == -1))
 		return (unsigned int)-1;
 	dst[read_sz] = '\0';
 	return read_sz;
@@ -134,11 +134,9 @@ b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *p
 	const ssize_t read_sz = read(fd, buf, sizeof(buf) - 1);
 	if (unlikely(close(fd) == -1))
 		return -1;
-	if (unlikely(read_sz == (unsigned int)-1))
+	if (unlikely(read_sz == -1))
 		return -1;
 	buf[read_sz] = '\0';
-	if (unlikely(read_sz == (unsigned int)-1))
-		return -1;
 	return b_proc_name_match(buf, (unsigned int)read_sz, proc_name, proc_name_len);
 }
 

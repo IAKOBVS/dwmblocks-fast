@@ -44,6 +44,13 @@ b_cpu_init(const char *filename)
 	return fd;
 }
 
+typedef struct {
+	unsigned long long user, nice, system, idle, iowait, irq, softirq;
+	unsigned long long time;
+	unsigned long long cpu_time;
+} time_ty;
+static time_ty last;
+
 static int
 b_read_cpu_usage(void)
 {
@@ -56,12 +63,6 @@ b_read_cpu_usage(void)
 	const unsigned int read_sz = b_proc_read_filefd(buf, sizeof(buf), fd_cpu_usage);
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
-	typedef struct {
-		unsigned long long user, nice, system, idle, iowait, irq, softirq;
-		unsigned long long time;
-		unsigned long long cpu_time;
-	} time_ty;
-	static time_ty last;
 	time_ty curr;
 	const char *p = buf;
 	/* clang-format off */
@@ -83,24 +84,28 @@ b_read_cpu_usage(void)
 	return usage;
 }
 
+static int last_energy;
+static struct timespec last_clock;
+
 static int
 b_read_cpu_usage_power(void)
 {
 	if (unlikely(fd_cpu_usage_power == -1)) {
 		fd_cpu_usage_power = b_cpu_init("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
 		if (unlikely(fd_cpu_usage_power < 0))
-			DIE();
+			/* DIE(return -1); */
+			return -1;
 	}
 	char buf[SIZE_T_MAX_DIGITS + 1];
 	const unsigned int read_sz = b_proc_read_filefd(buf, sizeof(buf), fd_cpu_usage_power);
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return -1);
-	static int last_energy;
-	static struct timespec last_clock;
+		/* DIE(return -1); */
+		return -1;
 	const char *unused;
 	struct timespec curr_clock;
 	if (unlikely(clock_gettime(CLOCK_MONOTONIC, &curr_clock) != 0))
-		DIE(return -1);
+		/* DIE(return -1); */
+		return -1;
 	const int curr_energy = (int)u_strtou10(buf, &unused);
 	const double clock_diff = (double)(curr_clock.tv_sec - last_clock.tv_sec) + (double)(curr_clock.tv_nsec - last_clock.tv_nsec) / 1000000000;
 	const double energy_diff = (double)(curr_energy - last_energy);
@@ -116,6 +121,8 @@ b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 	const int usage = b_read_cpu_usage();
 	if (unlikely(usage == -1))
 		DIE(return NULL);
+	if (unlikely(usage >= 101 || usage <= -1))
+		DIE(return NULL);
 	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
 	(void)dst_size;
@@ -128,8 +135,10 @@ b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, un
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage_power();
-	if (unlikely(usage == -1))
-		DIE(return NULL);
+	if (unlikely(usage == -1)) {
+		/* DIE(return NULL); */
+		memcpy(dst, S_LITERAL("???"));
+	}
 	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
 	(void)dst_size;

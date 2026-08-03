@@ -574,11 +574,12 @@ main(int argc, char **argv)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
+#endif
 	if (unlikely(g_status_init() == -1))
 		DIE(return EXIT_FAILURE);
 	if (unlikely(g_status_mainloop() == -1))
 		DIE(return EXIT_FAILURE);
-#endif
 	g_status_cleanup();
+	perror("Exiting!");
 	return EXIT_SUCCESS;
 }
