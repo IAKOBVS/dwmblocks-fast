@@ -74,6 +74,8 @@ b_read_disk_usage_percent(const char *mountpoint)
 {
 	if (unlikely(b_read_statvfs(mountpoint, &b_statvfs) != 0))
 		DIE(return (unsigned int)-1);
+	if (unlikely(b_statvfs.f_blocks == 0))
+		return 0;
 	const unsigned int percent = 100 - (unsigned int)(((long double)b_statvfs.f_bfree / (long double)b_statvfs.f_blocks) * (long double)100);
 	return percent;
 }
