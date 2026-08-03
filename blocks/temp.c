@@ -28,7 +28,7 @@ b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
 {
 	/* Milidegrees = degrees * 1000 */
 	int read_sz = pread(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"), 0);
-	if (unlikely(read_sz <= 0))
+	if (unlikely(read_sz <= 3))
 		DIE(return NULL);
 	/* Don't read the newline. */
 	if (*(dst + read_sz - 1) == '\n')
@@ -50,7 +50,7 @@ b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file)
 	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"));
 	if (unlikely(close(fd) == -1))
 		DIE(return NULL);
-	if (unlikely(read_sz  == -1))
+	if (unlikely(read_sz <= 3))
 		DIE(return NULL);
 	/* Don't read the newline. */
 	if (*(dst + read_sz - 1) == '\n')
