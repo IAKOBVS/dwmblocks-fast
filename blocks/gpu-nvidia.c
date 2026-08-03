@@ -205,7 +205,7 @@ b_write_gpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsign
 	if (unlikely(b_gpu_temp_fd < 0)) {
 		b_gpu_temp_fd = b_gpu_temp_fd_init(temp_file);
 		if (unlikely(b_gpu_temp_fd < 0))
-			DIE();
+			DIE(return dst);
 	}
 	return b_write_tempfd(dst, dst_size, b_gpu_temp_fd, interval);
 #else
