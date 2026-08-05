@@ -35,7 +35,7 @@ b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned int
 		DIE(return NULL);
 	if (unlikely(read_sz == -1))
 		DIE(return NULL);
-	const char *nl = memchr(dst, '\n', dst_size);
+	const char *nl = memchr(dst, '\n', read_sz);
 	if (nl)
 		read_sz = nl - dst;
 	*(dst + read_sz) = '\0';
