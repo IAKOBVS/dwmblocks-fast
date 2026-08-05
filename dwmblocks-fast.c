@@ -57,10 +57,8 @@ unsigned int g_time;
 #endif
 
 #ifdef HAVE_RT_SIGNALS
-#	define SIGPLUS  (SIGRTMIN)
 #	define SIGMINUS (SIGRTMIN)
 #else
-#	define SIGPLUS  (SIGUSR1 + 1)
 #	define SIGMINUS (SIGUSR1 - 1)
 #endif
 
@@ -200,7 +198,7 @@ b_init(void)
 }
 
 /* Run commands or functions according to their interval. */
-static void
+static int
 g_getcmds_init(void)
 {
 	/* Initialize the original order of the staturbar. */
@@ -214,7 +212,7 @@ g_getcmds_init(void)
 	/* Sort blocks from their intervals. */
 	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);
 	/* Initialize all statusblockss. */
-	b_init();
+	return b_init();
 }
 
 /* Run commands or functions according to their interval. */
@@ -485,7 +483,8 @@ g_status_init(void)
 	if (unlikely(g_init_x11() == -1))
 		DIE(return -1);
 #endif
-	g_getcmds_init();
+	if (unlikely(g_getcmds_init() == -1))
+		DIE(return -1);
 	memcpy(g_status_str, S_LITERAL(G_STATUS_PAD_LEFT));
 	if (unlikely(g_init_signals() == -1))
 		DIE(return -1);
@@ -552,7 +551,7 @@ g_handler_sig_dummy(int signum)
 static void
 g_handler_sig(int signum)
 {
-	int sig_idx = (sig_atomic_t)signum - (sig_atomic_t)SIGPLUS;
+	int sig_idx = (sig_atomic_t)signum - (sig_atomic_t)SIGMINUS;
 	/* Signal index 0 is reserved (timer-only blocks use B_SIGNAL == 0). */
 	if (sig_idx > 0 && sig_idx <= G_SIGNAL_BITMASK_MAX)
 		g_signal_mask |= (sig_atomic_t)(1u << sig_idx);

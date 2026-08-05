@@ -103,8 +103,8 @@ void
 b_gpu_init(void)
 {
 	b_gpu.ret = nvmlInit();
-	if (unlikely(unlikely(b_gpu.ret != NVML_SUCCESS)))
-		DIE_DO(nvmlErrorString(b_gpu.ret));
+	if (unlikely(b_gpu.ret != NVML_SUCCESS))
+		DIE_DO(b_gpu_err());
 	b_gpu.ret = nvmlDeviceGetCount(&b_gpu.deviceCount);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());

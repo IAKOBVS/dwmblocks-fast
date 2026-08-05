@@ -52,7 +52,7 @@ b_meminfo_read(char *meminfo, unsigned int meminfo_sz)
 		if (unlikely(fd_ram == -1)) {
 			fd_ram = b_ram_init("/proc/meminfo");
 			if (unlikely(fd_ram < 0))
-				DIE(return NULL);
+				DIE(return -1);
 		}
 		b_meminfo_sz = b_proc_read_filefd(meminfo, meminfo_sz, fd_ram);
 		if (unlikely(b_meminfo_sz == (unsigned int)-1))

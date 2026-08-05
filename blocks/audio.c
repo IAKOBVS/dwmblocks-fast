@@ -17,11 +17,12 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "../config.h"
+#include <string.h>
+#include "../utils.h"
 #include "procfs.h"
 
 #ifdef USE_ALSA
 #	include "../blocks/audio-alsa.h"
-#	include "../utils.h"
 #	include "../config.h"
 
 char *

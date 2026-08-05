@@ -28,6 +28,8 @@
 char *
 b_write_shell(char *dst, unsigned int dst_size, const char *cmd, unsigned int *interval)
 {
+	if (unlikely(dst_size == 0))
+		return dst;
 	FILE *fp = popen(cmd, "r");
 	if (unlikely(fp == NULL))
 		DIE(return NULL);
@@ -36,7 +38,7 @@ b_write_shell(char *dst, unsigned int dst_size, const char *cmd, unsigned int *i
 		pclose(fp);
 		DIE(return NULL);
 	}
-	const ssize_t read_sz = read(fd, dst, dst_size);
+	const ssize_t read_sz = read(fd, dst, dst_size - 1);
 	if (unlikely(pclose(fp) == -1))
 		DIE(return NULL);
 	if (unlikely(read_sz == -1))
