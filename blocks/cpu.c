@@ -147,7 +147,7 @@ b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsign
 	if (unlikely(fd_cpu_temp == -1)) {
 		fd_cpu_temp = b_cpu_init(temp_file);
 		if (unlikely(fd_cpu_temp < 0))
-			DIE(return dst);
+			DIE(return NULL);
 	}
 	return b_write_tempfd(dst, dst_size, fd_cpu_temp, interval);
 	(void)temp_file;

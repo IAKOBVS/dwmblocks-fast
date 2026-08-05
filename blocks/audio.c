@@ -82,7 +82,7 @@ b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned 
 	char buf[B_PAGE_SIZE + 1];
 	unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/asound/cards");
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return dst);
+		DIE(return NULL);
 	if (u_strstr_len(buf, read_sz, name, strlen(name))) {
 		return stpcpy(dst, name);
 	} else {
