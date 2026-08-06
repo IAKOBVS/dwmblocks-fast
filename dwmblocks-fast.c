@@ -86,7 +86,6 @@ static unsigned int b_intervals[LEN(g_blocks)];
 static unsigned char b_tostatus_idxs[LEN(g_blocks)];
 /* G_STATUSBLOCKLEN fits in an unsigned char. */
 static unsigned char b_statusblocks_len[LEN(g_blocks)];
-static unsigned char b_toblock_idxs[LEN(g_blocks)];
 static struct {
 	const char *pad_left;
 	const char *pad_right;
@@ -107,7 +106,6 @@ static unsigned int g_status_str_len;
 #define B_INTERVAL(idx)         (b_intervals[(idx)])
 #define B_TOSTATUS(idx)         (b_tostatus_idxs[(idx)])
 #define B_STATUSBLOCKS_LEN(idx) (b_statusblocks_len[(idx)])
-#define B_TOBLOCK(idx)          (b_toblock_idxs[(idx)])
 #define B_SIGNAL(idx)           (b_signals[(idx)])
 
 #if HAVE_RT_SIGNALS
@@ -191,9 +189,8 @@ b_init(void)
 		B_FUNC(i) = g_blocks[i].func;
 		B_ARG(i) = g_blocks[i].arg;
 		B_TOSTATUS(i) = g_blocks[i].internal_tostatus_idx;
-		B_TOBLOCK(B_TOSTATUS(i)) = i;
-		B_PAD_LEFT(i) = g_blocks[i].pad_left;
-		B_PAD_RIGHT(i) = g_blocks[i].pad_right;
+		B_PAD_LEFT(B_TOSTATUS(i)) = g_blocks[i].pad_left;
+		B_PAD_RIGHT(B_TOSTATUS(i)) = g_blocks[i].pad_right;
 		B_SIGNAL(i) = g_blocks[i].signal;
 	}
 	return 0;
@@ -360,19 +357,19 @@ g_status_get(char *dst)
 		for (unsigned int i = g_status_start_idx; i < LEN(g_statusblocks); ++i) {
 			g_status_idx[i] = dst - start;
 			if (B_STATUSBLOCKS_LEN(i)) {
-				dst = u_stpcpy(dst, B_PAD_LEFT(B_TOBLOCK(i)));
+				dst = u_stpcpy(dst, B_PAD_LEFT(i));
 				dst = u_mempcpy(dst, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
-				dst = u_stpcpy(dst, B_PAD_RIGHT(B_TOBLOCK(i)));
-				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(B_TOBLOCK(i))));
+				dst = u_stpcpy(dst, B_PAD_RIGHT(i));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(i)));
 				DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, i, g_statusblocks[i]));
-				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(B_TOBLOCK(i))));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(i)));
 			}
 		}
 		dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_RIGHT));
 	} else {
 		/* Fast path: only one bar needs to be updated and no length change. */
 		if (B_STATUSBLOCKS_LEN(g_status_start_idx)) {
-			memcpy(dst + strlen(B_PAD_LEFT(B_TOBLOCK(g_status_start_idx))), g_statusblocks[g_status_start_idx], B_STATUSBLOCKS_LEN(g_status_start_idx));
+			memcpy(dst + strlen(B_PAD_LEFT(g_status_start_idx)), g_statusblocks[g_status_start_idx], B_STATUSBLOCKS_LEN(g_status_start_idx));
 			dst = g_status_str + g_status_str_len;
 			DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, g_status_start_idx, g_statusblocks[g_status_start_idx]));
 		}
@@ -507,12 +504,11 @@ g_status_mainloop(void)
 	for (;;) {
 		unsigned int mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
 		if (unlikely(mask)) {
-			for (unsigned int sig = 0; mask; ++sig) {
-				if (mask & 1u) {
-					if (unlikely(g_getcmds_sig(sig) == -1))
-						DIE(return -1);
-				}
-				mask >>= 1u;
+			while (mask) {
+				unsigned int sig = (unsigned int)__builtin_ctz(mask);
+				if (unlikely(g_getcmds_sig(sig) == -1))
+					DIE(return -1);
+				mask &= mask - 1;
 			}
 		} else {
 			if (unlikely(g_getcmds() == -1))

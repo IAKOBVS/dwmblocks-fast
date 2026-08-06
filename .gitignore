@@ -6,6 +6,7 @@ bin/*
 tests/*-bin
 *.generated.h
 compile_commands.json
+dummy_temp
 
 # Prerequisites
 *.d
