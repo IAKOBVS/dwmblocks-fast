@@ -65,7 +65,7 @@ unsigned int g_time;
 #endif
 
 #define LEN(X)           (sizeof(X) / sizeof(X[0]))
-#define G_STATUSBLOCKLEN 64
+#define G_STATUSBLOCKLEN 32
 /* Length of pad_left and pad_right < sizeof(g_statusblocks[0]). */
 #define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (sizeof(g_statusblocks)) + sizeof(g_statusblocks) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
 
@@ -83,10 +83,10 @@ static struct {
 	const char *arg;
 } b_blocks[LEN(g_blocks)];
 static unsigned int b_intervals[LEN(g_blocks)];
+
 static unsigned char b_tostatus_idxs[LEN(g_blocks)];
 /* G_STATUSBLOCKLEN fits in an unsigned char. */
 static unsigned char b_statusblocks_len[LEN(g_blocks)];
-static unsigned char b_toblock_idxs[LEN(g_blocks)];
 static struct {
 	const char *pad_left;
 	const char *pad_right;
@@ -107,7 +107,6 @@ static unsigned int g_status_str_len;
 #define B_INTERVAL(idx)         (b_intervals[(idx)])
 #define B_TOSTATUS(idx)         (b_tostatus_idxs[(idx)])
 #define B_STATUSBLOCKS_LEN(idx) (b_statusblocks_len[(idx)])
-#define B_TOBLOCK(idx)          (b_toblock_idxs[(idx)])
 #define B_SIGNAL(idx)           (b_signals[(idx)])
 
 #if HAVE_RT_SIGNALS
@@ -191,9 +190,8 @@ b_init(void)
 		B_FUNC(i) = g_blocks[i].func;
 		B_ARG(i) = g_blocks[i].arg;
 		B_TOSTATUS(i) = g_blocks[i].internal_tostatus_idx;
-		B_TOBLOCK(B_TOSTATUS(i)) = i;
-		B_PAD_LEFT(i) = g_blocks[i].pad_left;
-		B_PAD_RIGHT(i) = g_blocks[i].pad_right;
+		B_PAD_LEFT(B_TOSTATUS(i)) = g_blocks[i].pad_left;
+		B_PAD_RIGHT(B_TOSTATUS(i)) = g_blocks[i].pad_right;
 		B_SIGNAL(i) = g_blocks[i].signal;
 	}
 	return 0;
@@ -299,11 +297,13 @@ g_sig_block(void)
 	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
 }
 
+#if 0
 static ATTR_INLINE int
 g_sig_unblock(void)
 {
 	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
 }
+#endif
 
 static int
 g_init_signals(void)
@@ -360,19 +360,19 @@ g_status_get(char *dst)
 		for (unsigned int i = g_status_start_idx; i < LEN(g_statusblocks); ++i) {
 			g_status_idx[i] = dst - start;
 			if (B_STATUSBLOCKS_LEN(i)) {
-				dst = u_stpcpy(dst, B_PAD_LEFT(B_TOBLOCK(i)));
+				dst = u_stpcpy(dst, B_PAD_LEFT(i));
 				dst = u_mempcpy(dst, g_statusblocks[i], B_STATUSBLOCKS_LEN(i));
-				dst = u_stpcpy(dst, B_PAD_RIGHT(B_TOBLOCK(i)));
-				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(B_TOBLOCK(i))));
+				dst = u_stpcpy(dst, B_PAD_RIGHT(i));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_left: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_LEFT(i)));
 				DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, i, g_statusblocks[i]));
-				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(B_TOBLOCK(i))));
+				DBG(fprintf(stderr, "%s:%d:%s: Printing pad_right: %s\n", __FILE__, __LINE__, ASSERT_FUNC, B_PAD_RIGHT(i)));
 			}
 		}
 		dst = u_stpcpy_len(dst, S_LITERAL(G_STATUS_PAD_RIGHT));
 	} else {
 		/* Fast path: only one bar needs to be updated and no length change. */
 		if (B_STATUSBLOCKS_LEN(g_status_start_idx)) {
-			memcpy(dst + strlen(B_PAD_LEFT(B_TOBLOCK(g_status_start_idx))), g_statusblocks[g_status_start_idx], B_STATUSBLOCKS_LEN(g_status_start_idx));
+			memcpy(dst + strlen(B_PAD_LEFT(g_status_start_idx)), g_statusblocks[g_status_start_idx], B_STATUSBLOCKS_LEN(g_status_start_idx));
 			dst = g_status_str + g_status_str_len;
 			DBG(fprintf(stderr, "%s:%d:%s: Printing g_statusblocks[%d]: %s\n", __FILE__, __LINE__, ASSERT_FUNC, g_status_start_idx, g_statusblocks[g_status_start_idx]));
 		}
