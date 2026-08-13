@@ -159,21 +159,17 @@ b_proc_iter_next(struct b_proc_iter *iter, const char **key, unsigned int *key_l
 
 		const char *k_start = line_start;
 		const char *k_end = delim_pos;
-		while (k_start < k_end && (*k_start == ' ' || *k_start == '\t' || *k_start == '\r')) {
+		while (k_start < k_end && (*k_start == ' '))
 			k_start++;
-		}
-		while (k_end > k_start && (*(k_end - 1) == ' ' || *(k_end - 1) == '\t' || *(k_end - 1) == '\r')) {
+		while (k_end > k_start && (*(k_end - 1) == ' '))
 			k_end--;
-		}
 
 		const char *v_start = delim_pos + 1;
 		const char *v_end = line_end;
-		while (v_start < v_end && (*v_start == ' ' || *v_start == '\t' || *v_start == '\r')) {
+		while (v_start < v_end && (*v_start == ' '))
 			v_start++;
-		}
-		while (v_end > v_start && (*(v_end - 1) == ' ' || *(v_end - 1) == '\t' || *(v_end - 1) == '\r')) {
+		while (v_end > v_start && (*(v_end - 1) == ' '))
 			v_end--;
-		}
 
 		*key = k_start;
 		*key_len = (unsigned int)(k_end - k_start);

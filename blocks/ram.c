@@ -72,14 +72,19 @@ b_read_ram_usage_percent(void)
 	b_proc_iter_init(&iter, b_meminfo, b_meminfo_sz);
 	const char *key, *val;
 	unsigned int key_len, val_len;
+	unsigned int remaining = 2;
 	while (b_proc_iter_next(&iter, &key, &key_len, &val, &val_len, ':')) {
 		if (key_len == S_LEN("MemTotal") && !memcmp(key, "MemTotal", S_LEN("MemTotal"))) {
 			total = u_atoull10(val);
+			--remaining;
+			if (remaining == 0)
+				break;
 		} else if (key_len == S_LEN("MemAvailable") && !memcmp(key, "MemAvailable", S_LEN("MemAvailable"))) {
 			avail = u_atoull10(val);
+			--remaining;
+			if (remaining == 0)
+				break;
 		}
-		if (total != (unsigned long long)-1 && avail != (unsigned long long)-1)
-			break;
 	}
 	if (unlikely(total == (unsigned long long)-1))
 		DIE(return -1);
