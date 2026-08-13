@@ -83,11 +83,11 @@ b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned 
 	unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/asound/cards");
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return NULL);
-	if (u_strstr_len(buf, read_sz, name, strlen(name))) {
-		return stpcpy(dst, name);
-	} else {
+	const size_t name_len = strlen(name);
+	if (u_strstr_len(buf, read_sz, name, name_len))
+		return u_stpcpy_len(dst, name, name_len);
+	else
 		return dst;
-	}
 	(void)dst_size;
 	(void)interval;
 }
