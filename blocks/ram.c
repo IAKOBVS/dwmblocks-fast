@@ -66,10 +66,23 @@ b_read_ram_usage_percent(void)
 {
 	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo)) == -1))
 		DIE(return -1);
-	const unsigned long long total = b_proc_value_getull(b_meminfo, b_meminfo_sz, S_LITERAL("MemTotal"), ':', ' ');
+	unsigned long long total = (unsigned long long)-1;
+	unsigned long long avail = (unsigned long long)-1;
+	struct b_proc_iter iter;
+	b_proc_iter_init(&iter, b_meminfo, b_meminfo_sz);
+	const char *key, *val;
+	unsigned int key_len, val_len;
+	while (b_proc_iter_next(&iter, &key, &key_len, &val, &val_len, ':')) {
+		if (key_len == S_LEN("MemTotal") && !memcmp(key, "MemTotal", S_LEN("MemTotal"))) {
+			total = u_atoull10(val);
+		} else if (key_len == S_LEN("MemAvailable") && !memcmp(key, "MemAvailable", S_LEN("MemAvailable"))) {
+			avail = u_atoull10(val);
+		}
+		if (total != (unsigned long long)-1 && avail != (unsigned long long)-1)
+			break;
+	}
 	if (unlikely(total == (unsigned long long)-1))
 		DIE(return -1);
-	const unsigned long long avail = b_proc_value_getull(b_meminfo, b_meminfo_sz, S_LITERAL("MemAvailable"), ':', ' ');
 	if (unlikely(avail == (unsigned long long)-1))
 		DIE(return -1);
 	const int percent = 100 - (int)((long double)avail / (long double)total * (long double)100);
