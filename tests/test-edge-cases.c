@@ -20,6 +20,8 @@
 #include <unistd.h>
 #include <time.h>
 
+#include "../blocks/procfs.h"
+
 /* Satisfy extern reference from block object files. */
 unsigned int g_time;
 
@@ -157,6 +159,77 @@ test_consecutive_calls(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  Test 6 — procfs iterator                                          */
+/* ------------------------------------------------------------------ */
+
+static int
+test_procfs_iterator(void)
+{
+	printf("  [edge 6] procfs iterator tests                       ... ");
+	const char *test_data =
+		"MemTotal:       16315212 kB\n"
+		"MemFree:          821344 kB\n"
+		"MemAvailable:    5671234 kB\n"
+		"NoDelimiterLine\n"
+		"  WithSpaces   :   ValueWithSpaces   \n"
+		"\n"
+		"EmptyKey: \n"
+		" : EmptyValue\n"
+		"TrailingNoNewline: last";
+
+	struct b_proc_iter iter;
+	b_proc_iter_init(&iter, test_data, strlen(test_data));
+
+	const char *k, *v;
+	unsigned int kl, vl;
+
+	/* 1. MemTotal */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 8 && memcmp(k, "MemTotal", 8) == 0, "key should be MemTotal");
+	CHECK(vl == 11 && memcmp(v, "16315212 kB", 11) == 0, "val should be 16315212 kB");
+
+	/* 2. MemFree */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 7 && memcmp(k, "MemFree", 7) == 0, "key should be MemFree");
+	CHECK(vl == 9 && memcmp(v, "821344 kB", 9) == 0, "val should be 821344 kB");
+
+	/* 3. MemAvailable */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 12 && memcmp(k, "MemAvailable", 12) == 0, "key should be MemAvailable");
+	CHECK(vl == 10 && memcmp(v, "5671234 kB", 10) == 0, "val should be 5671234 kB");
+
+	/* NoDelimiterLine gets skipped */
+
+	/* 4. WithSpaces */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 10 && memcmp(k, "WithSpaces", 10) == 0, "key should be WithSpaces");
+	CHECK(vl == 15 && memcmp(v, "ValueWithSpaces", 15) == 0, "val should be ValueWithSpaces");
+
+	/* Empty lines get skipped */
+
+	/* 5. EmptyKey */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 8 && memcmp(k, "EmptyKey", 8) == 0, "key should be EmptyKey");
+	CHECK(vl == 0, "val should be empty");
+
+	/* 6. EmptyValue */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 0, "key should be empty");
+	CHECK(vl == 10 && memcmp(v, "EmptyValue", 10) == 0, "val should be EmptyValue");
+
+	/* 7. TrailingNoNewline */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 1, "expected next pair");
+	CHECK(kl == 17 && memcmp(k, "TrailingNoNewline", 17) == 0, "key should be TrailingNoNewline");
+	CHECK(vl == 4 && memcmp(v, "last", 4) == 0, "val should be last");
+
+	/* End of iteration */
+	CHECK(b_proc_iter_next(&iter, &k, &kl, &v, &vl, ':') == 0, "expected no more pairs");
+
+	printf("PASS\n");
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
 /*  main                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -171,6 +244,7 @@ main(void)
 	test_interval_modified();
 	test_disk_zero_dst();
 	test_consecutive_calls();
+	test_procfs_iterator();
 
 	printf("\n%s: %s\n",
 	       nfail ? "FAIL" : "PASS",

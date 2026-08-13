@@ -19,6 +19,8 @@
 #ifndef B_PROCFS_H
 #	define B_PROCFS_H 1
 
+#	include "../macros.h"
+
 /* ../blocks/procfs.c */
 
 #define B_PAGE_SIZE 4096
@@ -35,5 +37,20 @@ char *
 b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter);
 unsigned long long
 b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter, int space);
+
+struct b_proc_iter {
+	const char *pos;
+	const char *end;
+};
+
+static ATTR_INLINE void
+b_proc_iter_init(struct b_proc_iter *iter, const char *buf, unsigned int len)
+{
+	iter->pos = buf;
+	iter->end = buf + len;
+}
+
+int
+b_proc_iter_next(struct b_proc_iter *iter, const char **key, unsigned int *key_len, const char **val, unsigned int *val_len, int delimiter);
 
 #endif /* B_PROCFS_H */

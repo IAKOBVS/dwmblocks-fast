@@ -140,6 +140,50 @@ b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *p
 	return b_proc_name_match(buf, (unsigned int)read_sz, proc_name, proc_name_len);
 }
 
+int
+b_proc_iter_next(struct b_proc_iter *iter, const char **key, unsigned int *key_len, const char **val, unsigned int *val_len, int delimiter)
+{
+	while (iter->pos < iter->end) {
+		const char *line_start = iter->pos;
+		const char *line_end = memchr(line_start, '\n', iter->end - line_start);
+		if (line_end == NULL) {
+			line_end = iter->end;
+			iter->pos = iter->end;
+		} else {
+			iter->pos = line_end + 1;
+		}
+
+		const char *delim_pos = memchr(line_start, delimiter, line_end - line_start);
+		if (delim_pos == NULL)
+			continue;
+
+		const char *k_start = line_start;
+		const char *k_end = delim_pos;
+		while (k_start < k_end && (*k_start == ' ' || *k_start == '\t' || *k_start == '\r')) {
+			k_start++;
+		}
+		while (k_end > k_start && (*(k_end - 1) == ' ' || *(k_end - 1) == '\t' || *(k_end - 1) == '\r')) {
+			k_end--;
+		}
+
+		const char *v_start = delim_pos + 1;
+		const char *v_end = line_end;
+		while (v_start < v_end && (*v_start == ' ' || *v_start == '\t' || *v_start == '\r')) {
+			v_start++;
+		}
+		while (v_end > v_start && (*(v_end - 1) == ' ' || *(v_end - 1) == '\t' || *(v_end - 1) == '\r')) {
+			v_end--;
+		}
+
+		*key = k_start;
+		*key_len = (unsigned int)(k_end - k_start);
+		*val = v_start;
+		*val_len = (unsigned int)(v_end - v_start);
+		return 1;
+	}
+	return 0;
+}
+
 unsigned int
 b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
