@@ -24,12 +24,44 @@
 #include <unistd.h>
 #include <time.h>
 
+#include <stdint.h>
+
 #include "../macros.h"
 #include "../utils.h"
 #include "../blocks/temp.h"
 #include "procfs.h"
 
 #define SIZE_T_MAX_DIGITS 20
+
+static ATTR_INLINE uint64_t
+u_strtou10_special(const char *p, const char **endp)
+{
+	uint64_t n = 0;
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+	if (u_isdigit(*p)) { n = n * 10 + (*p++ - '0'); } else { goto out; }
+out:
+	*endp = p;
+	return n;
+}
+#define u_strtou10 u_strtou10_special
 
 static int fd_cpu_usage = -1;
 static int fd_cpu_usage_power = -1;
@@ -67,13 +99,13 @@ b_read_cpu_usage(void)
 	const char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
-	curr.user = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.system = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.softirq = (int)u_strtou10(p, &p);
+	curr.user = u_strtou10(p, &p); p += S_LEN(" ");
+	curr.nice = u_strtou10(p, &p); p += S_LEN(" ");
+	curr.system = u_strtou10(p, &p); p += S_LEN(" ");
+	curr.idle = u_strtou10(p, &p); p += S_LEN(" ");
+	curr.iowait = u_strtou10(p, &p); p += S_LEN(" ");
+	curr.irq = u_strtou10(p, &p); p += S_LEN(" ");
+	curr.softirq = u_strtou10(p, &p);
 	/* clang-format off */
 	curr.time = curr.user + curr.nice + curr.system + curr.idle + curr.iowait + curr.irq + curr.softirq;
 	curr.cpu_time = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
@@ -151,4 +183,10 @@ b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsign
 	}
 	return b_write_tempfd(dst, dst_size, fd_cpu_temp, interval);
 	(void)temp_file;
+}
+
+uint64_t
+test_u_strtou10(const char *p, const char **endp)
+{
+	return u_strtou10(p, endp);
 }

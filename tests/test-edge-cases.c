@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdint.h>
 
 /* Satisfy extern reference from block object files. */
 unsigned int g_time;
@@ -157,6 +158,68 @@ test_consecutive_calls(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  Test 6 — loop-free uint64 parser u_strtou10                       */
+/* ------------------------------------------------------------------ */
+
+extern uint64_t test_u_strtou10(const char *p, const char **endp);
+
+static int
+test_cpu_u_strtou10(void)
+{
+	printf("  [edge 6] test_u_strtou10 loop-free uint64 parser      ... ");
+
+	const char *p;
+	const char *end;
+	uint64_t val;
+
+	// 1. Single digit
+	p = "7";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 7, "expected 7");
+	CHECK(end == p + 1, "expected end to advance by 1");
+
+	// 2. Trailing spaces / non-digits
+	p = "123 abc";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 123, "expected 123");
+	CHECK(end == p + 3, "expected end to advance by 3");
+	CHECK(*end == ' ', "expected advanced pointer to point to space");
+
+	// 3. Leading space or invalid characters
+	p = " 456";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 0, "expected 0 for leading non-digit");
+	CHECK(end == p, "expected end to not advance");
+
+	// 4. Large number (10 digits)
+	p = "1234567890";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 1234567890ULL, "expected 1234567890");
+	CHECK(end == p + 10, "expected end to advance by 10");
+
+	// 5. Maximum uint64_t (20 digits)
+	p = "18446744073709551615";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 18446744073709551615ULL, "expected max uint64_t");
+	CHECK(end == p + 20, "expected end to advance by 20");
+
+	// 6. 21 digits (more than maximum 20 digits handled by loop-free)
+	p = "123456789012345678901";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 12345678901234567890ULL, "expected first 20 digits parsed");
+	CHECK(end == p + 20, "expected end to advance by 20");
+
+	// 7. Zeros
+	p = "0000123";
+	val = test_u_strtou10(p, &end);
+	CHECK(val == 123, "expected 123 from leading zeros");
+	CHECK(end == p + 7, "expected end to advance by 7");
+
+	printf("PASS\n");
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
 /*  main                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -171,6 +234,7 @@ main(void)
 	test_interval_modified();
 	test_disk_zero_dst();
 	test_consecutive_calls();
+	test_cpu_u_strtou10();
 
 	printf("\n%s: %s\n",
 	       nfail ? "FAIL" : "PASS",
