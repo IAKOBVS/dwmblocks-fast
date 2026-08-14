@@ -17,6 +17,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
 #include "../config.h"
+#include <string.h>
+#include "../utils.h"
 #include "procfs.h"
 
 #ifdef USE_ALSA
@@ -82,7 +84,7 @@ b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned 
 	char buf[B_PAGE_SIZE + 1];
 	unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/asound/cards");
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return NULL);
+		return dst;
 	const size_t name_len = strlen(name);
 	if (u_strstr_len(buf, read_sz, name, name_len))
 		return u_stpcpy_len(dst, name, name_len);

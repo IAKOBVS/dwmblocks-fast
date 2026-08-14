@@ -169,6 +169,10 @@ compare_interval_and_signal(const void *a, const void *b)
 		return 1;
 	if (p->signal < q->signal)
 		return -1;
+	if (p->internal_tostatus_idx > q->internal_tostatus_idx)
+		return 1;
+	if (p->internal_tostatus_idx < q->internal_tostatus_idx)
+		return -1;
 	return 0;
 }
 
@@ -264,13 +268,22 @@ g_getcmds_sig(unsigned int signal)
 			continue;
 		if (unlikely(B_FUNC(i) == NULL))
 			continue;
-		const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-		if (unlikely(end == NULL))
+		char tmp[sizeof(g_statusblocks[0])];
+		const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+		if (unlikely(tmp_e == NULL))
 			DIE(return -1);
-		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = end - g_statusblocks[B_TOSTATUS(i)];
+		const unsigned int tmp_len = tmp_e - tmp;
+		/* Check if there has been change. */
+		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))) {
+			if (!memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
+				continue;
+		} else {
+			++g_status_changed_len;
+		}
+		u_stpcpy_len(g_statusblocks[B_TOSTATUS(i)], tmp, tmp_len);
+		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = tmp_len;
 		/* Mark change. */
 		++g_status_changed;
-		++g_status_changed_len;
 		/* Get latest rightmost. */
 		g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
 	}
@@ -514,10 +527,9 @@ g_status_mainloop(void)
 				}
 				mask >>= 1u;
 			}
-		} else {
-			if (unlikely(g_getcmds() == -1))
-				DIE(return -1);
 		}
+		if (unlikely(g_getcmds() == -1))
+			DIE(return -1);
 		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) == -1))
 				DIE(return -1);
