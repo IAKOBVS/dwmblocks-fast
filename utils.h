@@ -92,7 +92,7 @@ u_isdigit(int c)
 	return ((unsigned)c - '0' < 10);
 }
 
-static ATTR_MAYBE_UNUSED unsigned int
+static ATTR_MAYBE_UNUSED unsigned long long
 u_strtoull10(const char *p, const char **endp)
 {
 	unsigned long long n = 0;

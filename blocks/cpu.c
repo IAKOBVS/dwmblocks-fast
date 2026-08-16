@@ -84,8 +84,18 @@ b_read_cpu_usage(void)
 	return usage;
 }
 
-static int last_energy;
+static unsigned long long last_energy;
+static unsigned long long energy_max_range;
 static struct timespec last_clock;
+
+/* Return energy consumed in uJ between two RAPL counter snapshots,
+ * correcting for the wrap of the counter at max_range_uj.
+ * Tested by tests/test-edge-cases.c. */
+unsigned long long
+b_cpu_energy_diff(unsigned long long curr, unsigned long long prev, unsigned long long max_range_uj)
+{
+	return (curr >= prev) ? curr - prev : curr + max_range_uj - prev;
+}
 
 static int
 b_read_cpu_usage_power(void)
@@ -93,6 +103,17 @@ b_read_cpu_usage_power(void)
 	if (unlikely(fd_cpu_usage_power == -1)) {
 		fd_cpu_usage_power = b_cpu_init("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
 		if (unlikely(fd_cpu_usage_power < 0))
+			DIE(return -1);
+		const int fd_range = b_cpu_init("/sys/class/powercap/intel-rapl/intel-rapl:0/max_energy_range_uj");
+		if (unlikely(fd_range < 0))
+			DIE(return -1);
+		char rbuf[SIZE_T_MAX_DIGITS + 1];
+		const unsigned int rsz = b_proc_read_filefd(rbuf, sizeof(rbuf), fd_range);
+		if (unlikely(rsz == (unsigned int)-1))
+			DIE(return -1);
+		const char *unused_range;
+		energy_max_range = u_strtoull10(rbuf, &unused_range);
+		if (unlikely(close(fd_range) == -1))
 			DIE(return -1);
 	}
 	char buf[SIZE_T_MAX_DIGITS + 1];
@@ -103,12 +124,12 @@ b_read_cpu_usage_power(void)
 	struct timespec curr_clock;
 	if (unlikely(clock_gettime(CLOCK_MONOTONIC, &curr_clock) != 0))
 		DIE(return -1);
-	const int curr_energy = (int)u_strtou10(buf, &unused);
+	const unsigned long long curr_energy = u_strtoull10(buf, &unused);
 	const double clock_diff = (double)(curr_clock.tv_sec - last_clock.tv_sec) + (double)(curr_clock.tv_nsec - last_clock.tv_nsec) / 1000000000;
-	const double energy_diff = (double)(curr_energy - last_energy);
+	const unsigned long long energy_diff = b_cpu_energy_diff(curr_energy, last_energy, energy_max_range);
 	last_energy = curr_energy;
 	last_clock = curr_clock;
-	return (int)(energy_diff / (clock_diff * 1000000.0));
+	return (int)((double)energy_diff / (clock_diff * 1000000.0));
 }
 
 char *
@@ -118,7 +139,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 	const int usage = b_read_cpu_usage();
 	if (unlikely(usage == -1))
 		DIE(return NULL);
-	if (unlikely(usage >= 101 || usage <= -1))
+	if (unlikely(usage <= -1))
 		DIE(return NULL);
 	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
@@ -132,8 +153,6 @@ b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, un
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage_power();
-	if (unlikely(usage == -1))
-		DIE(return NULL);
 	p = u_utoa_le3_p((unsigned int)usage, p);
 	return p;
 	(void)dst_size;

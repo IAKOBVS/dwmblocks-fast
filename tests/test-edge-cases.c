@@ -21,6 +21,7 @@
 #include <time.h>
 
 #include "../blocks/procfs.h"
+#include "../utils.h"
 
 /* Satisfy extern reference from block object files. */
 unsigned int g_time;
@@ -40,6 +41,9 @@ extern char *b_write_disk_usage_percent(char *dst, unsigned int dst_size,
                                         const char *path, unsigned int *interval);
 extern char *b_write_disk_usage_free(char *dst, unsigned int dst_size,
                                      const char *path, unsigned int *interval);
+extern unsigned long long b_cpu_energy_diff(unsigned long long curr,
+                                            unsigned long long last,
+                                            unsigned long long max_range_uj);
 
 static int nfail;
 
@@ -230,6 +234,71 @@ test_procfs_iterator(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  Test 7 — u_strtoull10 must return the full 64-bit value           */
+/* ------------------------------------------------------------------ */
+/* Regression: u_strtoull10 used to return unsigned int, truncating the
+ * RAPL energy_uj counter (max 262143328850 uJ > UINT32_MAX) to 32 bits,
+ * producing bogus power readings. */
+
+static int
+test_u_strtoull10(void)
+{
+	printf("  [edge 7] u_strtoull10 returns full 64-bit value        ... ");
+	const char *unused;
+	const unsigned long long v = u_strtoull10("262143328850", &unused);
+	CHECK(v == 262143328850ULL, "expected full 64-bit parse, no 32-bit truncation");
+	CHECK(v > 4294967295ULL, "value must exceed the 32-bit range");
+	if (v == 262143328850ULL)
+		printf("PASS (v=%llu)\n", v);
+	else
+		printf("FAIL (v=%llu)\n", v);
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Test 8 — RAPL energy counter wrap must not produce negative power  */
+/* ------------------------------------------------------------------ */
+/* Regression: b_read_cpu_usage_power computed curr-last in int; when
+ * the counter wrapped (max 262143328850 uJ, not a multiple of 2^32),
+ * the result could be exactly -1, which the caller treated as an error
+ * and aborted with assert(0) at cpu.c:136. */
+
+static int
+test_cpu_energy_wrap(void)
+{
+	printf("  [edge 8] b_cpu_energy_diff across RAPL wrap            ... ");
+	const unsigned long long max_range = 262143328850ULL;
+
+	/* normal: counter increased */
+	const unsigned long long d1 = b_cpu_energy_diff(100000150000ULL, 100000000000ULL, max_range);
+	CHECK(d1 == 150000ULL, "normal delta wrong");
+
+	/* wrap: last near max, curr just past 0 */
+	const unsigned long long last_wrap = 262143300000ULL;
+	const unsigned long long d2 = b_cpu_energy_diff(30000000ULL, last_wrap, max_range);
+	CHECK(d2 == 30000000ULL + (max_range - last_wrap), "wrap delta wrong");
+	/* naive u64 subtraction would be 2^64 - last + curr (huge); must stay small */
+	CHECK(d2 < 1000000000ULL, "wrap delta must stay small and positive");
+
+	/* no negative, no crash-inducing -1: power over 2 s must be >= 0 */
+	const int watts = (int)((double)d2 / (2.0 * 1000000.0));
+	CHECK(watts >= 0, "power must never be negative");
+
+	/* delta must never exceed the counter range */
+	const unsigned long long d3 = b_cpu_energy_diff(5, max_range - 5, max_range);
+	CHECK(d3 > 0 && d3 <= max_range, "wrap delta must be positive and <= max range");
+
+	/* equal snapshots */
+	CHECK(b_cpu_energy_diff(123, 123, max_range) == 0, "equal values -> 0");
+
+	if (d1 == 150000ULL && d2 == 30000000ULL + (max_range - last_wrap) && watts >= 0)
+		printf("PASS (wrap delta=%llu uJ, %d W)\n", d2, watts);
+	else
+		printf("FAIL\n");
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
 /*  main                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -245,6 +314,8 @@ main(void)
 	test_disk_zero_dst();
 	test_consecutive_calls();
 	test_procfs_iterator();
+	test_u_strtoull10();
+	test_cpu_energy_wrap();
 
 	printf("\n%s: %s\n",
 	       nfail ? "FAIL" : "PASS",
