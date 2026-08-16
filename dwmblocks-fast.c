@@ -338,10 +338,10 @@ g_init_signals(void)
 		}
 	}
 	/* Handle termination signals. */
-	/* if (unlikely(g_sigaction(SIGTERM, g_handler_term) == -1)) */
-	/* 	DIE(return -1); */
-	/* if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1)) */
-	/* 	DIE(return -1); */
+	if (unlikely(g_sigaction(SIGTERM, g_handler_term) == -1))
+		DIE(return -1);
+	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
+		DIE(return -1);
 	if (unlikely(g_sig_block() == -1))
 		DIE(return -1);
 	return 0;
