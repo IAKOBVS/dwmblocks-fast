@@ -29,14 +29,12 @@
 #include <assert.h>
 #include <fcntl.h>
 
-/* Maximum user signal number storable in the bitmask.
- * Must be < CHAR_BIT * sizeof(sig_atomic_t) and must
- * accommodate all SIG_* defines in config.h. */
+/* Maximum user signal number.
+ * Must accommodate all SIG_* defines in config.h. */
 #ifdef HAVE_RT_SIGNALS
-#	define G_SIGNAL_BITMASK_MAX \
-		MIN(31, ((int)SIGRTMAX - (int)SIGRTMIN))
+#	define G_SIGNAL_MAX ((int)SIGRTMAX - (int)SIGRTMIN)
 #else
-#	define G_SIGNAL_BITMASK_MAX 31
+#	define G_SIGNAL_MAX 31
 #endif
 
 #ifdef USE_X11
@@ -140,14 +138,13 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static volatile sig_atomic_t g_signal_mask;
+static volatile sig_atomic_t g_signal;
 static int g_status_changed;
 static int g_status_changed_len;
 static unsigned int g_status_start_idx;
 static unsigned int g_status_idx[LEN(g_blocks)];
 
 static sigset_t sigset_rt;
-static sigset_t sigset_old;
 
 /* Run command or execute C function. */
 static ATTR_INLINE char *
@@ -184,7 +181,7 @@ b_init(void)
 		if (unlikely(g_blocks[i].func == NULL))
 			DIE(return -1);
 		/* Verify signal number is in range for the bitmask. */
-		if (unlikely(g_blocks[i].signal > G_SIGNAL_BITMASK_MAX))
+		if (unlikely(g_blocks[i].signal > G_SIGNAL_MAX))
 			DIE(return -1);
 		B_INTERVAL(i) = g_blocks[i].interval;
 		B_FUNC(i) = g_blocks[i].func;
@@ -257,7 +254,7 @@ static int
 g_getcmds_sig(unsigned int signal)
 {
 	/* Validate signal range before iterating. */
-	if (unlikely(signal > G_SIGNAL_BITMASK_MAX))
+	if (unlikely(signal > G_SIGNAL_MAX))
 		return 0;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (likely(B_SIGNAL(i) != signal))
@@ -291,19 +288,17 @@ g_sigaction(int signum, void(handler)(int))
 	return 0;
 }
 
-static ATTR_INLINE int
+static ATTR_INLINE void
 g_sig_block(void)
 {
-	return sigprocmask(SIG_BLOCK, &sigset_rt, &sigset_old);
+	sigprocmask(SIG_BLOCK, &sigset_rt, NULL);
 }
 
-#if 0
-static ATTR_INLINE int
+static ATTR_INLINE void
 g_sig_unblock(void)
 {
-	return sigprocmask(SIG_SETMASK, &sigset_old, NULL);
+	sigprocmask(SIG_UNBLOCK, &sigset_rt, NULL);
 }
-#endif
 
 static int
 g_init_signals(void)
@@ -342,8 +337,7 @@ g_init_signals(void)
 		DIE(return -1);
 	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
 		DIE(return -1);
-	if (unlikely(g_sig_block() == -1))
-		DIE(return -1);
+	g_sig_block();
 	return 0;
 }
 
@@ -384,11 +378,9 @@ g_status_get(char *dst)
 static ATTR_INLINE void
 g_sleep(unsigned int secs)
 {
-	const struct timespec ts = {
-		.tv_sec = secs,
-		.tv_nsec = 0
-	};
-	pselect(0, NULL, NULL, NULL, &ts, &sigset_old);
+	g_sig_unblock();
+	usleep(secs * 1000000);
+	g_sig_block();
 }
 
 #ifdef USE_X11
@@ -505,15 +497,11 @@ static int
 g_status_mainloop(void)
 {
 	for (;;) {
-		unsigned int mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-		if (unlikely(mask)) {
-			for (unsigned int sig = 0; mask; ++sig) {
-				if (mask & 1u) {
-					if (unlikely(g_getcmds_sig(sig) == -1))
-						DIE(return -1);
-				}
-				mask >>= 1u;
-			}
+		const int sig = (int)g_signal;
+		g_signal = 0;
+		if (unlikely(sig > 0)) {
+			if (unlikely(g_getcmds_sig((unsigned int)sig) == -1))
+				DIE(return -1);
 		} else {
 			if (unlikely(g_getcmds() == -1))
 				DIE(return -1);
@@ -552,10 +540,9 @@ g_handler_sig_dummy(int signum)
 static void
 g_handler_sig(int signum)
 {
-	int sig_idx = (sig_atomic_t)signum - (sig_atomic_t)SIGPLUS;
-	/* Signal index 0 is reserved (timer-only blocks use B_SIGNAL == 0). */
-	if (sig_idx > 0 && sig_idx <= G_SIGNAL_BITMASK_MAX)
-		g_signal_mask |= (sig_atomic_t)(1u << sig_idx);
+	int sig_num = signum - (int)SIGMINUS;
+	if (sig_num > 0 && sig_num <= G_SIGNAL_MAX)
+		g_signal = (sig_atomic_t)sig_num;
 }
 
 static void

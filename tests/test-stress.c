@@ -88,20 +88,20 @@ probe_binary(void)
 }
 
 /* ------------------------------------------------------------------ */
-/*  Test 1 — signal-bitmask accumulation                              */
+/*  Test 1 — signal delivery (simple g_signal, last-one-wins)         */
 /* ------------------------------------------------------------------ */
 
-#define SIG_BITMASK_MAX 31
-#define SIGPLUS         SIGRTMIN
+#define G_SIGNAL_MAX  (SIGRTMAX - SIGRTMIN)
+#define SIGPLUS       SIGRTMIN
 
-static volatile sig_atomic_t g_signal_mask;
+static volatile sig_atomic_t g_signal;
 
 static void
-handler_bitmask(int signum)
+handler_signal(int signum)
 {
-	int sig_idx = (sig_atomic_t)signum - (sig_atomic_t)SIGPLUS;
-	if (sig_idx > 0 && sig_idx <= SIG_BITMASK_MAX)
-		g_signal_mask |= (sig_atomic_t)(1u << sig_idx);
+	int sig_num = signum - (int)SIGPLUS;
+	if (sig_num > 0 && sig_num <= G_SIGNAL_MAX)
+		g_signal = (sig_atomic_t)sig_num;
 }
 
 static void
@@ -115,52 +115,55 @@ unblock_rt_signals(void)
 }
 
 static int
-test_bitmask_accumulation(void)
+test_signal_delivery(void)
 {
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handler_bitmask;
+	sa.sa_handler = handler_signal;
 	sa.sa_flags   = SA_RESTART;
 	sigfillset(&sa.sa_mask);
 
-	printf("  [test 1] signal-bitmask accumulation                      ... ");
+	printf("  [test 1] signal delivery (single signal)                 ... ");
 
 	unblock_rt_signals();
 	for (int sig = SIGPLUS + 1; sig <= SIGPLUS + 4; ++sig)
 		sigaction(sig, &sa, NULL);
 
-	g_signal_mask = 0;
-	raise(SIGPLUS + 1);
-	raise(SIGPLUS + 2);
+	g_signal = 0;
 	raise(SIGPLUS + 3);
-	raise(SIGPLUS + 4);
 
-	unsigned int mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-	if ((mask & 0x1e) != 0x1e) {
-		printf("FAIL (mask=0x%x, expected 0x1e)\n", mask);
+	int sig = (int)g_signal;
+	g_signal = 0;
+	if (sig != 3) {
+		printf("FAIL (g_signal=%d, expected 3)\n", sig);
 		return 1;
 	}
 	printf("PASS\n");
 
-	g_signal_mask = 0;
-	raise(SIGPLUS + 2);
-	raise(SIGPLUS + 2);
-	mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-	if ((mask & 0x04) == 0) {
-		printf("  [test 1b] duplicate signal coalescing               FAIL (mask=0x%x)\n", mask);
-		return 1;
-	}
-	printf("  [test 1b] duplicate signal coalescing                    PASS\n");
-
-	g_signal_mask = 0;
+	printf("  [test 1b] last-one-wins (two signals)                    ... ");
+	g_signal = 0;
 	raise(SIGPLUS + 1);
-	raise(SIGPLUS + 3);
-	mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-	if ((mask & 0x0a) != 0x0a) {
-		printf("  [test 1c] disjoint signal accumulation              FAIL (mask=0x%x)\n", mask);
+	raise(SIGPLUS + 4);
+	sig = (int)g_signal;
+	g_signal = 0;
+	if (sig != 4) {
+		printf("FAIL (g_signal=%d, expected 4)\n", sig);
 		return 1;
 	}
-	printf("  [test 1c] disjoint signal accumulation                   PASS\n");
+	printf("PASS\n");
+
+	printf("  [test 1c] signal index 0 (reserved) ignored               ... ");
+	sigaction(SIGPLUS + 0, &sa, NULL);
+	g_signal = 0;
+	raise(SIGPLUS + 0);
+	sig = (int)g_signal;
+	g_signal = 0;
+	if (sig != 0) {
+		printf("FAIL (g_signal=%d, expected 0)\n", sig);
+		return 1;
+	}
+	printf("PASS\n");
+
 	return 0;
 }
 
@@ -264,7 +267,7 @@ test_edge_cases(void)
 	int failed = 0;
 	struct sigaction sa;
 	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = handler_bitmask;
+	sa.sa_handler = handler_signal;
 	sa.sa_flags   = SA_RESTART;
 	sigfillset(&sa.sa_mask);
 
@@ -272,28 +275,29 @@ test_edge_cases(void)
 	int max_valid = SIGRTMAX - SIGRTMIN;
 
 	printf("  [test 4a] signal index 0 (reserved) ignored               ... ");
-	/* Install handler for SIGRTMIN itself so raise() doesn't kill us. */
 	sigaction(SIGPLUS + 0, &sa, NULL);
-	g_signal_mask = 0;
+	g_signal = 0;
 	raise(SIGPLUS + 0);
-	unsigned int mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-	if (mask & 1u) {
-		printf("FAIL (bit 0 was set)\n");
+	int sig = (int)g_signal;
+	g_signal = 0;
+	if (sig != 0) {
+		printf("FAIL (g_signal=%d, expected 0)\n", sig);
 		++failed;
 	} else {
 		printf("PASS\n");
 	}
 
 	if (max_valid >= 1) {
-		int top = (max_valid < SIG_BITMASK_MAX) ? max_valid : SIG_BITMASK_MAX;
+		int top = (max_valid < G_SIGNAL_MAX) ? max_valid : G_SIGNAL_MAX;
 		sigaction(SIGPLUS + top, &sa, NULL);
 
 		printf("  [test 4b] signal index %d (top of RT range) accepted    ... ", top);
-		g_signal_mask = 0;
+		g_signal = 0;
 		raise(SIGPLUS + top);
-		mask = (unsigned int)__sync_fetch_and_and(&g_signal_mask, 0);
-		if (!(mask & (1u << top))) {
-			printf("FAIL (bit %d was not set)\n", top);
+		sig = (int)g_signal;
+		g_signal = 0;
+		if (sig != top) {
+			printf("FAIL (g_signal=%d, expected %d)\n", sig, top);
 			++failed;
 		} else {
 			printf("PASS\n");
@@ -322,7 +326,7 @@ mock_init(void)
 static int
 mock_getcmds_sig(unsigned int signal)
 {
-	if (signal > SIG_BITMASK_MAX)
+	if (signal > G_SIGNAL_MAX)
 		return 0;
 	for (int i = 0; i < MOCK_NBLOCKS; ++i) {
 		if (mock_signal[i] == signal)
@@ -384,7 +388,7 @@ main(void)
 	sigdelset(&block_all, SIGINT);
 	sigprocmask(SIG_SETMASK, &block_all, &old_block);
 
-	total_fail += test_bitmask_accumulation();
+	total_fail += test_signal_delivery();
 	total_fail += test_fork_kill_stress();
 	total_fail += test_rapid_resignal();
 	total_fail += test_edge_cases();
