@@ -138,7 +138,8 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 #else
 static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
-static volatile sig_atomic_t g_signal;
+static volatile sig_atomic_t g_signal_mask;
+static volatile sig_atomic_t g_restart;
 static int g_status_changed;
 static int g_status_changed_len;
 static unsigned int g_status_start_idx;
@@ -198,6 +199,7 @@ b_init(void)
 static void
 g_getcmds_init(void)
 {
+	memcpy(g_status_str, S_LITERAL(G_STATUS_PAD_LEFT));
 	/* Initialize the original order of the staturbar. */
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		g_blocks[i].internal_tostatus_idx = i;
@@ -478,7 +480,6 @@ g_status_init(void)
 		DIE(return -1);
 #endif
 	g_getcmds_init();
-	memcpy(g_status_str, S_LITERAL(G_STATUS_PAD_LEFT));
 	if (unlikely(g_init_signals() == -1))
 		DIE(return -1);
 	return 0;
@@ -497,11 +498,19 @@ static int
 g_status_mainloop(void)
 {
 	for (;;) {
-		const int sig = (int)g_signal;
-		g_signal = 0;
-		if (unlikely(sig > 0)) {
-			if (unlikely(g_getcmds_sig((unsigned int)sig) == -1))
-				DIE(return -1);
+		const sig_atomic_t mask = g_signal_mask;
+		g_signal_mask = 0;
+		if (unlikely(g_restart != 0)) {
+			g_getcmds_init();
+			g_restart = 0;
+		}
+		if (unlikely(mask != 0)) {
+			for (unsigned int s = 1; s <= (unsigned int)G_SIGNAL_MAX; ++s) {
+				if (mask & (sig_atomic_t)(1u << s)) {
+					if (unlikely(g_getcmds_sig(s) == -1))
+						DIE(return -1);
+				}
+			}
 		} else {
 			if (unlikely(g_getcmds() == -1))
 				DIE(return -1);
@@ -528,12 +537,12 @@ g_handler_sig_dummy(int signum)
 	end = u_stpcpy_len(end, S_LITERAL("dwmblocks-fast: sending unknown signal: "));
 	if (signum < 0)
 		*end++ = '-';
-	end = u_utoa_p((unsigned int)signum, buf);
+	end = u_utoa_p((unsigned int)signum, end);
 	*end++ = '\n';
 	*end = '\0';
 	/* fprintf is not reentrant. */
 	if (unlikely(write(STDERR_FILENO, buf, (size_t)(end - buf)) != (end - buf)))
-		DIE();
+		;
 }
 #endif
 
@@ -542,13 +551,21 @@ g_handler_sig(int signum)
 {
 	int sig_num = signum - (int)SIGMINUS;
 	if (sig_num > 0 && sig_num <= G_SIGNAL_MAX)
-		g_signal = (sig_atomic_t)sig_num;
+		g_signal_mask |= (sig_atomic_t)(1u << sig_num);
 }
 
 static void
 g_handler_term(int signum)
 {
+	write(STDERR_FILENO, S_LITERAL("Exiting!\n"));;
 	_Exit(EXIT_SUCCESS);
+	(void)signum;
+}
+
+static void
+g_handler_restart(int signum)
+{
+	g_restart = 1;
 	(void)signum;
 }
 
@@ -567,6 +584,5 @@ main(int argc, char **argv)
 	if (unlikely(g_status_mainloop() == -1))
 		DIE(return EXIT_FAILURE);
 	g_status_cleanup();
-	perror("Exiting!");
 	return EXIT_SUCCESS;
 }

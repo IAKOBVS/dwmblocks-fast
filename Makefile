@@ -73,7 +73,7 @@ all: options $(PROG_BIN) $(SCRIPTS)
 check: $(PROG_BIN) $(SRC)/test.o
 	mkdir -p $(BIN)
 	$(CC) -o tests/test-run-bin $(CFLAGS) $(CPPFLAGS) $(SRC)/test.o $(OBJS) $(REQ) $(LDFLAGS)
-	command -v setcap >/dev/null 2>&1 && sudo setcap cap_dac_read_search+ep tests/test-run-bin 2>/dev/null; true
+	command -v setcap >/dev/null 2>&1 && sudo setcap cap_dac_read_search+ep tests/test-run-bin 2>/dev/null || true
 	./tests/test-run
 	rm -f $(SRC)/test.o tests/test-run-bin
 
@@ -97,7 +97,7 @@ install: $(PROG_BIN) $(SCRIPTS)
 	mkdir -p $(DESTDIR)$(PREFIX)/bin
 	command -v rsync >/dev/null && rsync -parc $^ $(DESTDIR)$(PREFIX)/bin || cp -paf $^ $(DESTDIR)$(PREFIX)/bin
 	@# To allow access of /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
-	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep $(DESTDIR)$(PREFIX)/bin/$(PROG)
+	command -v setcap >/dev/null 2>&1 && sudo setcap cap_dac_read_search+ep $(DESTDIR)$(PREFIX)/bin/$(PROG) || true
 
 uninstall: 
 	rm -f $(DESTDIR)$(PREFIX)/$(PROG_BIN) $(DESTDIR)$(PREFIX)/bin/$(SCRIPTSBASE)
@@ -158,7 +158,7 @@ $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 	mkdir -p $(BIN)
 	$(CC) -o $@ $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(LDFLAGS)
 	@# To allow access of /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
-	command -v setcap >/dev/null && sudo setcap cap_dac_read_search+ep $(PROG_BIN)
+	command -v setcap >/dev/null 2>&1 && sudo setcap cap_dac_read_search+ep $(PROG_BIN) 2>/dev/null || true
 
 $(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
 

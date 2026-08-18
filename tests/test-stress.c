@@ -88,20 +88,28 @@ probe_binary(void)
 }
 
 /* ------------------------------------------------------------------ */
-/*  Test 1 — signal delivery (simple g_signal, last-one-wins)         */
+/*  Test 1 — signal delivery (bitmask accumulation)                    */
 /* ------------------------------------------------------------------ */
 
 #define G_SIGNAL_MAX  (SIGRTMAX - SIGRTMIN)
 #define SIGPLUS       SIGRTMIN
 
-static volatile sig_atomic_t g_signal;
+static volatile sig_atomic_t g_signal_mask;
 
 static void
 handler_signal(int signum)
 {
 	int sig_num = signum - (int)SIGPLUS;
 	if (sig_num > 0 && sig_num <= G_SIGNAL_MAX)
-		g_signal = (sig_atomic_t)sig_num;
+		g_signal_mask |= (sig_atomic_t)(1u << sig_num);
+}
+
+static sig_atomic_t
+read_and_clear_mask(void)
+{
+	sig_atomic_t m = g_signal_mask;
+	g_signal_mask = 0;
+	return m;
 }
 
 static void
@@ -129,37 +137,34 @@ test_signal_delivery(void)
 	for (int sig = SIGPLUS + 1; sig <= SIGPLUS + 4; ++sig)
 		sigaction(sig, &sa, NULL);
 
-	g_signal = 0;
+	g_signal_mask = 0;
 	raise(SIGPLUS + 3);
 
-	int sig = (int)g_signal;
-	g_signal = 0;
-	if (sig != 3) {
-		printf("FAIL (g_signal=%d, expected 3)\n", sig);
+	sig_atomic_t mask = read_and_clear_mask();
+	if (!(mask & (1u << 3))) {
+		printf("FAIL (mask=0x%lx, expected bit 3)\n", (unsigned long)mask);
 		return 1;
 	}
 	printf("PASS\n");
 
-	printf("  [test 1b] last-one-wins (two signals)                    ... ");
-	g_signal = 0;
+	printf("  [test 1b] bitmask accumulation (two signals)             ... ");
+	g_signal_mask = 0;
 	raise(SIGPLUS + 1);
 	raise(SIGPLUS + 4);
-	sig = (int)g_signal;
-	g_signal = 0;
-	if (sig != 4) {
-		printf("FAIL (g_signal=%d, expected 4)\n", sig);
+	mask = read_and_clear_mask();
+	if (!(mask & (1u << 1)) || !(mask & (1u << 4))) {
+		printf("FAIL (mask=0x%lx, expected bits 1 and 4)\n", (unsigned long)mask);
 		return 1;
 	}
 	printf("PASS\n");
 
 	printf("  [test 1c] signal index 0 (reserved) ignored               ... ");
 	sigaction(SIGPLUS + 0, &sa, NULL);
-	g_signal = 0;
+	g_signal_mask = 0;
 	raise(SIGPLUS + 0);
-	sig = (int)g_signal;
-	g_signal = 0;
-	if (sig != 0) {
-		printf("FAIL (g_signal=%d, expected 0)\n", sig);
+	mask = read_and_clear_mask();
+	if (mask & (1u << 0)) {
+		printf("FAIL (mask=0x%lx, expected no bit 0)\n", (unsigned long)mask);
 		return 1;
 	}
 	printf("PASS\n");
@@ -276,12 +281,11 @@ test_edge_cases(void)
 
 	printf("  [test 4a] signal index 0 (reserved) ignored               ... ");
 	sigaction(SIGPLUS + 0, &sa, NULL);
-	g_signal = 0;
+	g_signal_mask = 0;
 	raise(SIGPLUS + 0);
-	int sig = (int)g_signal;
-	g_signal = 0;
-	if (sig != 0) {
-		printf("FAIL (g_signal=%d, expected 0)\n", sig);
+	sig_atomic_t mask4 = read_and_clear_mask();
+	if (mask4 & (1u << 0)) {
+		printf("FAIL (mask=0x%lx, expected no bit 0)\n", (unsigned long)mask4);
 		++failed;
 	} else {
 		printf("PASS\n");
@@ -292,12 +296,11 @@ test_edge_cases(void)
 		sigaction(SIGPLUS + top, &sa, NULL);
 
 		printf("  [test 4b] signal index %d (top of RT range) accepted    ... ", top);
-		g_signal = 0;
+		g_signal_mask = 0;
 		raise(SIGPLUS + top);
-		sig = (int)g_signal;
-		g_signal = 0;
-		if (sig != top) {
-			printf("FAIL (g_signal=%d, expected %d)\n", sig, top);
+		mask4 = read_and_clear_mask();
+		if (!(mask4 & (1u << top))) {
+			printf("FAIL (mask=0x%lx, expected bit %d)\n", (unsigned long)mask4, top);
 			++failed;
 		} else {
 			printf("PASS\n");

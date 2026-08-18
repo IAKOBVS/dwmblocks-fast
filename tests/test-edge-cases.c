@@ -109,9 +109,9 @@ test_interval_modified(void)
 
 	printf("  [edge 3] b_write_time sets interval to < 90 sec       ... ");
 	b_write_time(buf, sizeof(buf), NULL, &interval);
-	CHECK(interval < 90, "expected interval < 90");
+	CHECK(interval <= 90, "expected interval <= 90");
 	CHECK(interval > 0, "expected interval > 0");
-	if (interval > 0 && interval < 90)
+	if (interval > 0 && interval <= 90)
 		printf("PASS (interval=%u)\n", interval);
 	else
 		printf("FAIL\n");

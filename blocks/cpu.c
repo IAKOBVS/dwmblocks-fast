@@ -102,20 +102,31 @@ b_read_cpu_usage_power(void)
 {
 	if (unlikely(fd_cpu_usage_power == -1)) {
 		fd_cpu_usage_power = b_cpu_init("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj");
-		if (unlikely(fd_cpu_usage_power < 0))
-			DIE(return -1);
+		if (unlikely(fd_cpu_usage_power < 0)) {
+			fd_cpu_usage_power = -2;
+			return 0;
+		}
 		const int fd_range = b_cpu_init("/sys/class/powercap/intel-rapl/intel-rapl:0/max_energy_range_uj");
-		if (unlikely(fd_range < 0))
-			DIE(return -1);
+		if (unlikely(fd_range < 0)) {
+			close(fd_cpu_usage_power);
+			fd_cpu_usage_power = -2;
+			return 0;
+		}
 		char rbuf[SIZE_T_MAX_DIGITS + 1];
 		const unsigned int rsz = b_proc_read_filefd(rbuf, sizeof(rbuf), fd_range);
-		if (unlikely(rsz == (unsigned int)-1))
-			DIE(return -1);
+		if (unlikely(rsz == (unsigned int)-1)) {
+			close(fd_range);
+			close(fd_cpu_usage_power);
+			fd_cpu_usage_power = -2;
+			return 0;
+		}
 		const char *unused_range;
 		energy_max_range = u_strtoull10(rbuf, &unused_range);
 		if (unlikely(close(fd_range) == -1))
 			DIE(return -1);
 	}
+	if (unlikely(fd_cpu_usage_power == -2))
+		return 0;
 	char buf[SIZE_T_MAX_DIGITS + 1];
 	const unsigned int read_sz = b_proc_read_filefd(buf, sizeof(buf), fd_cpu_usage_power);
 	if (unlikely(read_sz == (unsigned int)-1))
