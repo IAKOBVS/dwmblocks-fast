@@ -505,8 +505,8 @@ g_status_mainloop(void)
 		const sig_atomic_t mask = g_signal_mask;
 		g_signal_mask = 0;
 		if (unlikely(g_restart != 0)) {
-			b_init();
 			g_restart = 0;
+			b_init();
 		}
 		if (unlikely(mask != 0)) {
 			for (unsigned int s = 1; s <= (unsigned int)G_SIGNAL_MAX; ++s) {
