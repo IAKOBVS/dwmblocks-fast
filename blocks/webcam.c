@@ -35,7 +35,7 @@ b_write_webcam_on(char *dst, unsigned int dst_size, const char *unused, unsigned
 	char buf[B_PAGE_SIZE + 1];
 	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/modules");
 	if (unlikely(read_sz == (unsigned int)-1))
-		DIE(return NULL);
+		return dst;
 	if (u_strstr_len(buf, (size_t)read_sz, S_LITERAL("uvcvideo")))
 		dst = u_stpcpy_len(dst, S_LITERAL(ICON_WEBCAM_ON));
 	return dst;

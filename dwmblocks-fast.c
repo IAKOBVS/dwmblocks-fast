@@ -127,6 +127,8 @@ static int
 g_status_mainloop(void);
 static void
 g_handler_term(int signum);
+static void
+g_handler_hup(int signum);
 #ifdef USE_X11
 static int
 g_init_x11(void);
@@ -139,6 +141,7 @@ static g_write_ty g_write_dst = G_WRITE_STATUSBAR;
 static const g_write_ty g_write_dst = G_WRITE_STDOUT;
 #endif
 static volatile sig_atomic_t g_signal;
+static volatile sig_atomic_t g_sighup;
 static int g_status_changed;
 static int g_status_changed_len;
 static unsigned int g_status_start_idx;
@@ -337,6 +340,11 @@ g_init_signals(void)
 		DIE(return -1);
 	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
 		DIE(return -1);
+	/* Handle SIGHUP signal to update all blocks. */
+	if (unlikely(sigaddset(&sigset_rt, SIGHUP) == -1))
+		DIE(return -1);
+	if (unlikely(g_sigaction(SIGHUP, g_handler_hup) == -1))
+		DIE(return -1);
 	g_sig_block();
 	return 0;
 }
@@ -497,9 +505,16 @@ static int
 g_status_mainloop(void)
 {
 	for (;;) {
+		const int sighup = (int)g_sighup;
+		g_sighup = 0;
 		const int sig = (int)g_signal;
 		g_signal = 0;
-		if (unlikely(sig > 0)) {
+		if (unlikely(sighup)) {
+			for (unsigned int i = 0; i < LEN(g_blocks); ++i)
+				B_SLEEP(i) = 0;
+			if (unlikely(g_getcmds() == -1))
+				DIE(return -1);
+		} else if (unlikely(sig > 0)) {
 			if (unlikely(g_getcmds_sig((unsigned int)sig) == -1))
 				DIE(return -1);
 		} else {
@@ -552,9 +567,18 @@ g_handler_term(int signum)
 	(void)signum;
 }
 
+static void
+g_handler_hup(int signum)
+{
+	g_sighup = 1;
+	(void)signum;
+}
+
 int
 main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
 #ifdef USE_X11
 	/* Handle command line arguments. */
 	for (int i = 0; i < argc; ++i)

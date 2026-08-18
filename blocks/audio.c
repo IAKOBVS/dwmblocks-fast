@@ -16,13 +16,13 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
+#include <string.h>
 #include "../config.h"
+#include "../utils.h"
 #include "procfs.h"
 
 #ifdef USE_ALSA
 #	include "../blocks/audio-alsa.h"
-#	include "../utils.h"
-#	include "../config.h"
 
 char *
 b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)

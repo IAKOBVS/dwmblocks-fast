@@ -257,6 +257,75 @@ test_rapid_resignal(void)
 	return run_forkkill("3", 50, 1);
 }
 
+static int
+test_sighup(void)
+{
+	printf("  [test 6] SIGHUP signal handling                         ... ");
+	fflush(stdout);
+
+	if (!probe_binary()) {
+		printf("SKIP (binary needs setcap)\n");
+		return 0;
+	}
+
+	int pipefd[2];
+	if (pipe(pipefd) == -1)
+		return 1;
+
+	sigset_t old_mask;
+	sigemptyset(&old_mask);
+	sigprocmask(SIG_BLOCK, NULL, &old_mask);
+
+	pid_t child = fork();
+	if (child == -1) {
+		close(pipefd[0]);
+		close(pipefd[1]);
+		return 1;
+	}
+
+	if (child == 0) {
+		reset_rt_handlers();
+		sigprocmask(SIG_SETMASK, &old_mask, NULL);
+		int devnull = open("/dev/null", O_WRONLY);
+		if (devnull != -1) {
+			dup2(devnull, STDERR_FILENO);
+			close(devnull);
+		}
+		close(pipefd[0]);
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);
+		execl("./bin/dwmblocks-fast", "dwmblocks-fast", "-p", (char *)NULL);
+		execlp("dwmblocks-fast", "dwmblocks-fast", "-p", (char *)NULL);
+		_Exit(127);
+	}
+
+	close(pipefd[1]);
+
+	struct timespec ts = { .tv_sec = 0, .tv_nsec = 200000000L };
+	nanosleep(&ts, NULL);
+
+	int ok = 0;
+	if (kill(child, SIGHUP) == 0) {
+		nanosleep(&ts, NULL);
+		/* Child should remain alive after SIGHUP */
+		if (kill(child, 0) == 0)
+			ok = 1;
+	}
+
+	kill(child, SIGTERM);
+
+	int wstatus;
+	waitpid(child, &wstatus, 0);
+	close(pipefd[0]);
+
+	if (!ok) {
+		printf("FAIL (child exited unexpectedly on SIGHUP)\n");
+		return 1;
+	}
+	printf("PASS\n");
+	return 0;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Test 4 — edge-case resilience                                     */
 /* ------------------------------------------------------------------ */
@@ -326,7 +395,7 @@ mock_init(void)
 static int
 mock_getcmds_sig(unsigned int signal)
 {
-	if (signal > G_SIGNAL_MAX)
+	if (signal > (unsigned int)G_SIGNAL_MAX)
 		return 0;
 	for (int i = 0; i < MOCK_NBLOCKS; ++i) {
 		if (mock_signal[i] == signal)
@@ -379,13 +448,14 @@ main(void)
 	printf("dwmblocks-fast stress/edge tests\n");
 	printf("================================\n\n");
 
-	/* Block everything except SIGTERM and SIGINT so they
+	/* Block everything except SIGTERM, SIGINT, and SIGHUP so they
 	 * can't interfere during non-fork tests. */
 	sigset_t old_block;
 	sigset_t block_all;
 	sigfillset(&block_all);
 	sigdelset(&block_all, SIGTERM);
 	sigdelset(&block_all, SIGINT);
+	sigdelset(&block_all, SIGHUP);
 	sigprocmask(SIG_SETMASK, &block_all, &old_block);
 
 	total_fail += test_signal_delivery();
@@ -395,6 +465,7 @@ main(void)
 
 	mock_init();
 	total_fail += test_mock_edge();
+	total_fail += test_sighup();
 
 	sigprocmask(SIG_SETMASK, &old_block, NULL);
 

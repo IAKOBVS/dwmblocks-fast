@@ -7,6 +7,10 @@ for file in $files; do
 		exit
 	fi
 done
+if [ -f "dummy_temp" ]; then
+	echo '#define TEMP_FILE_CPU "dummy_temp"'
+	exit 0
+fi
 echo "getcpufile: $pkg_temp not found. in $files!"
 echo 'Need to manually add TEMP_FILE_CPU macro to cpu.generated.h.'
 echo 'If using sysfs, make sure that the path starts with /sys/devices/platform, not /sys/class.'
