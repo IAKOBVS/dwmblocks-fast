@@ -90,7 +90,9 @@ b_read_ram_usage_percent(void)
 		DIE(return -1);
 	if (unlikely(avail == (unsigned long long)-1))
 		DIE(return -1);
-	const int percent = 100 - (int)((long double)avail / (long double)total * (long double)100);
+	if (unlikely(total == 0))
+		return 0;
+	const int percent = (int)(100 - (100 * avail / total));
 	return percent;
 }
 
@@ -99,7 +101,7 @@ b_read_ram_usage_available(void)
 {
 	if (unlikely(b_meminfo_read(b_meminfo, sizeof(b_meminfo)) == -1))
 		DIE(return (unsigned long long)-1);
-	const unsigned long long avail = b_proc_value_getull(b_meminfo, sizeof(b_meminfo), S_LITERAL("MemAvailable"), ':', ' ');
+	const unsigned long long avail = b_proc_value_getull(b_meminfo, b_meminfo_sz, S_LITERAL("MemAvailable"), ':', ' ');
 	if (unlikely(avail == (unsigned long long)-1))
 		DIE(return (unsigned long long)-1);
 	/* Values are in KiB. */
