@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <stdint.h>
 
 /* Maximum user signal number.
  * Must accommodate all SIG_* defines in config.h. */
@@ -504,16 +505,15 @@ g_status_mainloop(void)
 	for (;;) {
 		const sig_atomic_t mask = g_signal_mask;
 		g_signal_mask = 0;
-		if (unlikely(g_restart != 0)) {
-			g_restart = 0;
-			b_init();
-		}
 		if (unlikely(mask != 0)) {
-			for (unsigned int s = 1; s <= (unsigned int)G_SIGNAL_MAX; ++s) {
-				if (mask & (sig_atomic_t)(1u << s)) {
-					if (unlikely(g_getcmds_sig(s) == -1))
-						DIE(return -1);
-				}
+			if (unlikely(g_restart != 0)) {
+				g_restart = 0;
+				b_init();
+			} else {
+				for (unsigned int s = 1; s <= (unsigned int)G_SIGNAL_MAX; ++s)
+					if (mask & (sig_atomic_t)(1u << s))
+						if (unlikely(g_getcmds_sig(s) == -1))
+							DIE(return -1);
 			}
 		} else {
 			if (unlikely(g_getcmds() == -1))
@@ -569,6 +569,7 @@ g_handler_term(int signum)
 static void
 g_handler_restart(int signum)
 {
+	g_signal_mask = (sig_atomic_t)(~(uintmax_t)-1);
 	g_restart = 1;
 	(void)signum;
 }
