@@ -127,6 +127,8 @@ static int
 g_status_mainloop(void);
 static void
 g_handler_term(int signum);
+static void
+g_handler_restart(int signum);
 #ifdef USE_X11
 static int
 g_init_x11(void);
@@ -339,6 +341,8 @@ g_init_signals(void)
 		DIE(return -1);
 	if (unlikely(g_sigaction(SIGINT, g_handler_term) == -1))
 		DIE(return -1);
+	if (unlikely(g_sigaction(SIGHUP, g_handler_restart) == -1))
+		DIE(return -1);
 	g_sig_block();
 	return 0;
 }
@@ -501,7 +505,7 @@ g_status_mainloop(void)
 		const sig_atomic_t mask = g_signal_mask;
 		g_signal_mask = 0;
 		if (unlikely(g_restart != 0)) {
-			g_getcmds_init();
+			b_init();
 			g_restart = 0;
 		}
 		if (unlikely(mask != 0)) {
