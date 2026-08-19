@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <sys/select.h>
 
 /* Maximum user signal number.
  * Must accommodate all SIG_* defines in config.h. */
@@ -149,6 +150,7 @@ static unsigned int g_status_start_idx;
 static unsigned int g_status_idx[LEN(g_blocks)];
 
 static sigset_t sigset_rt;
+static sigset_t sigset_empty;
 
 /* Run command or execute C function. */
 static ATTR_INLINE char *
@@ -299,16 +301,12 @@ g_sig_block(void)
 	sigprocmask(SIG_BLOCK, &sigset_rt, NULL);
 }
 
-static ATTR_INLINE void
-g_sig_unblock(void)
-{
-	sigprocmask(SIG_UNBLOCK, &sigset_rt, NULL);
-}
-
 static int
 g_init_signals(void)
 {
 	if (unlikely(sigemptyset(&sigset_rt)) == -1)
+		DIE(return -1);
+	if (unlikely(sigemptyset(&sigset_empty)) == -1)
 		DIE(return -1);
 	/* Initialize RT signals. */
 #if HAVE_RT_SIGNALS
@@ -385,9 +383,9 @@ g_status_get(char *dst)
 static ATTR_INLINE void
 g_sleep(unsigned int secs)
 {
-	g_sig_unblock();
-	usleep(secs * 1000000);
-	g_sig_block();
+	/* Atomically unblock signals and sleep.  pselect restores the
+	 * original (blocked) signal mask when it returns. */
+	pselect(0, NULL, NULL, NULL, &(struct timespec ){ .tv_sec = secs, .tv_nsec = 0 }, &sigset_empty);
 }
 
 #ifdef USE_X11
@@ -569,7 +567,7 @@ g_handler_term(int signum)
 static void
 g_handler_restart(int signum)
 {
-	g_signal_mask = (sig_atomic_t)(~(uintmax_t)-1);
+	g_signal_mask = (sig_atomic_t)(~(sig_atomic_t)0);
 	g_restart = 1;
 	(void)signum;
 }
