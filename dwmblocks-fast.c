@@ -77,12 +77,12 @@ typedef enum {
 	G_WRITE_STDOUT
 } g_write_ty;
 
-static unsigned int b_sleeps[LEN(g_blocks)];
+static unsigned short b_sleeps[LEN(g_blocks)];
 static struct {
-	char *(*func)(char *, unsigned int, const char *, unsigned int *);
+	char *(*func)(char *, unsigned int, const char *, unsigned short *);
 	const char *arg;
 } b_blocks[LEN(g_blocks)];
-static unsigned int b_intervals[LEN(g_blocks)];
+static unsigned short b_intervals[LEN(g_blocks)];
 
 static unsigned char b_tostatus_idxs[LEN(g_blocks)];
 /* G_STATUSBLOCKLEN fits in an unsigned char. */
@@ -147,14 +147,14 @@ static volatile sig_atomic_t g_restart;
 static int g_status_changed;
 static int g_status_changed_len;
 static unsigned int g_status_start_idx;
-static unsigned int g_status_idx[LEN(g_blocks)];
+static unsigned char g_status_idx[LEN(g_blocks)];
 
 static sigset_t sigset_rt;
 static sigset_t sigset_empty;
 
 /* Run command or execute C function. */
 static ATTR_INLINE char *
-g_getcmd(char *dst, char *(*func)(char *, unsigned int, const char *, unsigned int *), const char *arg, unsigned int *interval)
+g_getcmd(char *dst, char *(*func)(char *dst, unsigned int dst_len, const char *arg, unsigned short *interval), const char *arg, unsigned short *interval)
 {
 	return func(dst, sizeof(g_statusblocks[0]), arg, interval);
 }
@@ -178,7 +178,7 @@ compare_interval_and_signal(const void *a, const void *b)
 static int
 b_init(void)
 {
-	for (unsigned i = 0; i < LEN(g_blocks); ++i) {
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		/* Check too long padding. */
 		const size_t pad_len = strlen(g_blocks[i].pad_left) + strlen(g_blocks[i].pad_right);
 		if (unlikely(pad_len > sizeof(g_statusblocks[0])))
@@ -211,7 +211,7 @@ g_getcmds_init(void)
 		/* Larger intervals mean less likely to need to update,
 		 * needed for sort. */
 		if (g_blocks[i].interval == 0)
-			g_blocks[i].interval = (unsigned int)-1;
+			g_blocks[i].interval = (unsigned short)-1;
 	}
 	/* Sort blocks from their intervals. */
 	qsort(g_blocks, LEN(g_blocks), sizeof(g_blocks[0]), compare_interval_and_signal);

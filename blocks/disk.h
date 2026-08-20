@@ -20,8 +20,8 @@
 #define B_DISK_H 1
 
 char *
-b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval);
+b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpoint, unsigned short *interval);
 char *
-b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval);
+b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint, unsigned short *interval);
 
 #endif /* B_DISK_H */

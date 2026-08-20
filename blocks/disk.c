@@ -81,7 +81,7 @@ b_read_disk_usage_percent(const char *mountpoint)
 }
 
 char *
-b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval)
+b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint, unsigned short *interval)
 {
 	if (unlikely(b_read_statvfs(mountpoint, &b_statvfs) != 0))
 		DIE(return NULL);
@@ -98,7 +98,7 @@ b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint
 }
 
 char *
-b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpoint, unsigned int *interval)
+b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpoint, unsigned short *interval)
 {
 	const unsigned int usage = b_read_disk_usage_percent(mountpoint);
 	if (unlikely(usage == (unsigned int)-1))

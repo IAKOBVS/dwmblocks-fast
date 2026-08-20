@@ -25,7 +25,7 @@
 #	include "../config.h"
 
 char *
-b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	char *p = dst;
 	const int muted = b_read_speaker_muted();
@@ -47,7 +47,7 @@ b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsign
 }
 
 char *
-b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	char *p = dst;
 	const int muted = b_read_mic_muted();
@@ -77,7 +77,7 @@ b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned i
 #endif
 
 char *
-b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned int *interval)
+b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned short *interval)
 {
 	char buf[B_PAGE_SIZE + 1];
 	unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/asound/cards");

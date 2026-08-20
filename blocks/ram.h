@@ -26,9 +26,9 @@
 #	ifdef HAVE_PROCFS
 
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *
-b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 
 #	endif
 

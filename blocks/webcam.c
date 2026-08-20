@@ -30,7 +30,7 @@
 #ifdef HAVE_PROCFS
 
 char *
-b_write_webcam_on(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_webcam_on(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	char buf[B_PAGE_SIZE + 1];
 	const unsigned int read_sz = b_proc_read_file(buf, sizeof(buf), "/proc/modules");

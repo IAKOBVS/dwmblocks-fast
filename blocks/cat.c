@@ -23,7 +23,7 @@
 #include "../macros.h"
 
 char *
-b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned int *interval)
+b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned short *interval)
 {
 	if (unlikely(dst_size == 0))
 		return dst;

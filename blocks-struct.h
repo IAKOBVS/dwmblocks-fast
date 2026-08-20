@@ -20,11 +20,11 @@
 #	define BLOCKS_STRUCT_H 1
 
 typedef struct {
-	char *(*func)(char *, unsigned int, const char *, unsigned int *);
+	char *(*func)(char *dst, unsigned int dst_len, const char *arg, unsigned short *interval);
 	const char *arg;
 	const char *pad_left;
 	const char *pad_right;
-	unsigned int interval;
+	unsigned short interval;
 	const unsigned char signal;
 	unsigned char internal_tostatus_idx;
 } g_block_ty;

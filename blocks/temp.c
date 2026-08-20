@@ -63,7 +63,7 @@ b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file)
 }
 
 char *
-b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
+b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned short *interval)
 {
 	char *p = dst;
 	p = b_write_temp_internal(p, dst_size, temp_file);
@@ -75,7 +75,7 @@ b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned i
 }
 
 char *
-b_write_tempfd(char *dst, unsigned int dst_size, int fd, unsigned int *interval)
+b_write_tempfd(char *dst, unsigned int dst_size, int fd, unsigned short *interval)
 {
 	char *p = dst;
 	p = b_write_tempfd_internal(p, dst_size, fd);

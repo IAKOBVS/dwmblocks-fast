@@ -90,7 +90,7 @@ static struct Block g_blocks[] = {
 ### src/blocks.h
 ```
 static char *
-write_my(char *dst, unsigned int dst_len, const char *unused, unsigned int *interval)
+write_my(char *dst, unsigned int dst_len, const char *unused, unsigned short *interval)
 {
     /* Do something, output to dst. */
     return dst;

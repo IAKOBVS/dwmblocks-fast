@@ -26,13 +26,13 @@
 /* ../blocks/audio.c */
 
 char *
-b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_speaker_vol(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *
-b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_mic_vol(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 
 #	endif /* USE_ALSA */
 
 char *
-b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned int *interval);
+b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned short *interval);
 
 #endif /* B_AUDIO_H */

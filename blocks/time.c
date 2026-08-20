@@ -53,7 +53,7 @@ b_read_time(void)
 /* TODO: optimize, cache time formatting */
 /* Format: 9:00 PM */
 char *
-b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	const struct tm *tm = b_read_time();
 	if (unlikely(tm == NULL))
@@ -88,7 +88,7 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	*p++ = 'M';
 	*p = '\0';
 	/* Set next update for when minute changes. */
-	*interval = (unsigned int)(90 - tm->tm_sec);
+	*interval = (unsigned short)(90 - tm->tm_sec);
 	return p;
 	(void)dst_size;
 	(void)unused;
@@ -96,7 +96,7 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 }
 
 char *
-b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	const struct tm *tm = b_read_time();
 	if (unlikely(tm == NULL))
@@ -135,7 +135,7 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned int 
 	/* Write year */
 	p = u_utoa_p((unsigned int)tm->tm_year + 1900, p);
 	/* Set next update for when the day changes. */
-	*interval = (unsigned int)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (59 - tm->tm_sec));
+	*interval = (unsigned short)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (59 - tm->tm_sec));
 	return p;
 	(void)dst_size;
 	(void)unused;

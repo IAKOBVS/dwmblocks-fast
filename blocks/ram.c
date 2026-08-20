@@ -107,7 +107,7 @@ b_read_ram_usage_available(void)
 }
 
 char *
-b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	const int usage = b_read_ram_usage_percent();
 	if (unlikely(usage == -1))
@@ -121,7 +121,7 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, 
 }
 
 char *
-b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	unsigned long long usage = b_read_ram_usage_available();
 	if (unlikely(usage == (unsigned long long)-1))

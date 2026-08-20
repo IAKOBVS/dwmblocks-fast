@@ -22,6 +22,6 @@
 /* ../blocks/cat.c */
 
 char *
-b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned int *interval);
+b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned short *interval);
 
 #endif /* B_CAT_H */

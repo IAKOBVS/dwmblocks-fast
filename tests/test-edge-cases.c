@@ -28,19 +28,19 @@ unsigned int g_time;
 
 /* Block function prototypes */
 extern char *b_write_date(char *dst, unsigned int dst_size,
-                          const char *unused, unsigned int *interval);
+                          const char *unused, unsigned short *interval);
 extern char *b_write_time(char *dst, unsigned int dst_size,
-                          const char *unused, unsigned int *interval);
+                          const char *unused, unsigned short *interval);
 extern char *b_write_cpu_usage(char *dst, unsigned int dst_size,
-                               const char *unused, unsigned int *interval);
+                               const char *unused, unsigned short *interval);
 extern char *b_write_ram_usage_percent(char *dst, unsigned int dst_size,
-                                       const char *unused, unsigned int *interval);
+                                       const char *unused, unsigned short *interval);
 extern char *b_write_ram_usage_available(char *dst, unsigned int dst_size,
-                                         const char *unused, unsigned int *interval);
+                                         const char *unused, unsigned short *interval);
 extern char *b_write_disk_usage_percent(char *dst, unsigned int dst_size,
-                                        const char *path, unsigned int *interval);
+                                        const char *path, unsigned short *interval);
 extern char *b_write_disk_usage_free(char *dst, unsigned int dst_size,
-                                     const char *path, unsigned int *interval);
+                                     const char *path, unsigned short *interval);
 extern unsigned long long b_cpu_energy_diff(unsigned long long curr,
                                             unsigned long long last,
                                             unsigned long long max_range_uj);

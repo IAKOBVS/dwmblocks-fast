@@ -26,15 +26,15 @@
 /* ../blocks/gpu.c */
 
 char *
-b_write_gpu_all(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_gpu_all(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *
-b_write_gpu_temp(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_gpu_temp(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *
-b_write_gpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_gpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *
-b_write_gpu_usage_vram(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_gpu_usage_vram(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *
-b_write_gpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval);
+b_write_gpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 
 #	endif /* USE_CUDA */
 

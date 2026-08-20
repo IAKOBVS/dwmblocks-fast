@@ -30,9 +30,9 @@ b_read_temp(const char *temp_file);
 char *
 b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file);
 char *
-b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval);
+b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned short *interval);
 char *
-b_write_tempfd(char *dst, unsigned int dst_size, int fd, unsigned int *interval);
+b_write_tempfd(char *dst, unsigned int dst_size, int fd, unsigned short *interval);
 
 #	endif /* HAVE_PROCFS */
 

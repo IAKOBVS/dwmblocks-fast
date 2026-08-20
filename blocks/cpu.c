@@ -144,7 +144,7 @@ b_read_cpu_usage_power(void)
 }
 
 char *
-b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage();
@@ -160,7 +160,7 @@ b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 }
 
 char *
-b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned int *interval)
+b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage_power();
@@ -172,7 +172,7 @@ b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, un
 }
 
 char *
-b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned int *interval)
+b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned short *interval)
 {
 	if (unlikely(fd_cpu_temp == -1)) {
 		fd_cpu_temp = b_cpu_init(temp_file);

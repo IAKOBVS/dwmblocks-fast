@@ -26,7 +26,7 @@
 
 /* Execute shell script. */
 char *
-b_write_shell(char *dst, unsigned int dst_size, const char *cmd, unsigned int *interval)
+b_write_shell(char *dst, unsigned int dst_size, const char *cmd, unsigned short *interval)
 {
 	FILE *fp = popen(cmd, "r");
 	if (unlikely(fp == NULL))
