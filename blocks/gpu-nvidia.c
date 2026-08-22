@@ -143,7 +143,9 @@ b_gpu_read_usage_vram(nvmlDevice_t dev, nvmlMemory_t *memory)
 	b_gpu.ret = nvmlDeviceGetMemoryInfo(dev, memory);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());
-	return 100 - (unsigned int)(((long double)memory->free / (long double)memory->total) * (long double)100);
+	if (unlikely(memory->total == 0))
+		return 0;
+	return (unsigned int)(100 - (100 * memory->free / memory->total));
 }
 
 static ATTR_INLINE unsigned int

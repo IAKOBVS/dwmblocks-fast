@@ -59,7 +59,7 @@ b_read_cpu_usage(void)
 		if (unlikely(fd_cpu_usage < 0))
 			DIE(return -1);
 	}
-	char buf[B_PAGE_SIZE + 1];
+	char buf[256];
 	const unsigned int read_sz = b_proc_read_filefd(buf, sizeof(buf), fd_cpu_usage);
 	if (unlikely(read_sz == (unsigned int)-1))
 		DIE(return -1);
@@ -79,7 +79,8 @@ b_read_cpu_usage(void)
 	curr.cpu_time = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
 	if (unlikely(curr.time == 0))
 		return 0;
-	const int usage = (int)((long double)100 * ((long double)(curr.cpu_time - last.cpu_time) / (long double)(curr.time - last.time)));
+	const unsigned long long time_diff = curr.time - last.time;
+	const int usage = (time_diff > 0) ? (int)(100 * (curr.cpu_time - last.cpu_time) / time_diff) : 0;
 	last = curr;
 	return usage;
 }
