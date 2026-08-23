@@ -22,7 +22,7 @@
 /* ../blocks/obs.c */
 
 char *
-b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval, const char *proc_name, unsigned int proc_name_len, unsigned int proc_interval, const char *proc_icon, unsigned int *pid_cache);
+b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval, const char *proc_name, unsigned int proc_name_len, unsigned int *pid_cache, unsigned int proc_interval, const char *proc_icon_on, const char *proc_icon_off);
 char *
 b_write_obs_on(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval);
 char *

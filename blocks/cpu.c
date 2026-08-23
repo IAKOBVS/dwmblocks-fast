@@ -79,7 +79,13 @@ b_read_cpu_usage(void)
 	curr.cpu_time = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
 	if (unlikely(curr.time == 0))
 		return 0;
-	const int usage = (int)((long double)100 * ((long double)(curr.cpu_time - last.cpu_time) / (long double)(curr.time - last.time)));
+	const int time_diff = curr.time - last.time;
+	/* Two samples within the same jiffy: avoid dividing by zero. */
+	if (unlikely(time_diff == 0)) {
+		last = curr;
+		return 0;
+	}
+	const int usage = (int)((long double)100 * ((long double)(curr.cpu_time - last.cpu_time) / (long double)time_diff));
 	last = curr;
 	return usage;
 }
@@ -140,6 +146,9 @@ b_read_cpu_usage_power(void)
 	const unsigned long long energy_diff = b_cpu_energy_diff(curr_energy, last_energy, energy_max_range);
 	last_energy = curr_energy;
 	last_clock = curr_clock;
+	/* Avoid dividing by zero when called twice within the same tick. */
+	if (unlikely(clock_diff <= 0))
+		return 0;
 	return (int)((double)energy_diff / (clock_diff * 1000000.0));
 }
 

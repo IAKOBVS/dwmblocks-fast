@@ -59,6 +59,7 @@ typedef enum {
 
 int b_gpu_temp_fd = -1;
 
+#if USE_NVSPEED
 static int
 b_gpu_temp_fd_init(const char *filename)
 {
@@ -67,6 +68,7 @@ b_gpu_temp_fd_init(const char *filename)
 		sleep(1);
 	return fd;
 }
+#endif
 
 void
 b_gpu_cleanup(void)
@@ -74,6 +76,7 @@ b_gpu_cleanup(void)
 	if (b_gpu.init)
 		nvmlShutdown();
 	free(b_gpu.buf);
+	b_gpu.buf = NULL;
 }
 
 void
@@ -95,7 +98,7 @@ b_gpu_nvmlDeviceGetTemperature(nvmlDevice_t dev, nvmlTemperatureSensors_t sensor
 	*temp = (unsigned int)tmp.temperature;
 	return ret;
 #	else
-	return nvmlDeviceGetTemperature(buf.dev, sensorType, temp);
+	return nvmlDeviceGetTemperature(dev, sensorType, temp);
 #	endif
 }
 
@@ -104,7 +107,7 @@ b_gpu_init(void)
 {
 	b_gpu.ret = nvmlInit();
 	if (unlikely(unlikely(b_gpu.ret != NVML_SUCCESS)))
-		DIE_DO(nvmlErrorString(b_gpu.ret));
+		DIE_DO(b_gpu_err());
 	b_gpu.ret = nvmlDeviceGetCount(&b_gpu.deviceCount);
 	if (unlikely(b_gpu.ret != NVML_SUCCESS))
 		DIE_DO(b_gpu_err());

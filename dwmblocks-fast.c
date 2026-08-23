@@ -31,6 +31,10 @@
 #include <stdint.h>
 #include <sys/select.h>
 
+#if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
+#	define HAVE_RT_SIGNALS 1
+#endif
+
 /* Maximum user signal number.
  * Must accommodate all SIG_* defines in config.h. */
 #ifdef HAVE_RT_SIGNALS
@@ -51,10 +55,6 @@
 
 #include "dwmblocks-fast.h"
 unsigned int g_time;
-
-#if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
-#	define HAVE_RT_SIGNALS 1
-#endif
 
 #ifdef HAVE_RT_SIGNALS
 #	define SIGPLUS  (SIGRTMIN)
@@ -261,7 +261,7 @@ static int
 g_getcmds_sig(unsigned int signal)
 {
 	/* Validate signal range before iterating. */
-	if (unlikely(signal > G_SIGNAL_MAX))
+	if (unlikely(signal > (unsigned int)G_SIGNAL_MAX))
 		return 0;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (likely(B_SIGNAL(i) != signal))
@@ -501,8 +501,9 @@ static int
 g_status_mainloop(void)
 {
 	for (;;) {
-		const sig_atomic_t mask = g_signal_mask;
-		g_signal_mask = 0;
+		/* Atomic read-and-clear so a handler racing between read
+		 * and clear cannot lose its bit. */
+		const sig_atomic_t mask = __sync_fetch_and_and(&g_signal_mask, 0);
 		if (unlikely(mask != 0)) {
 			if (unlikely(g_restart != 0)) {
 				g_restart = 0;
@@ -542,9 +543,8 @@ g_handler_sig_dummy(int signum)
 	end = u_utoa_p((unsigned int)signum, end);
 	*end++ = '\n';
 	*end = '\0';
-	/* fprintf is not reentrant. */
-	if (unlikely(write(STDERR_FILENO, buf, (size_t)(end - buf)) != (end - buf)))
-		;
+	/* fprintf is not reentrant. Best-effort write. */
+	write(STDERR_FILENO, buf, (size_t)(end - buf));
 }
 #endif
 
@@ -559,7 +559,7 @@ g_handler_sig(int signum)
 static void
 g_handler_term(int signum)
 {
-	write(STDERR_FILENO, S_LITERAL("Exiting!\n"));;
+	write(STDERR_FILENO, S_LITERAL("Exiting!\n"));
 	_Exit(EXIT_SUCCESS);
 	(void)signum;
 }

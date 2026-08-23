@@ -29,7 +29,6 @@
 #	include "blocks/cpu.h"
 #	include "blocks/ram.h"
 #	include "blocks/gpu.h"
-#	include "blocks/webcam.h"
 #	include "blocks/temp.h"
 #	include "blocks/cat.h"
 #	include "blocks/disk.h"

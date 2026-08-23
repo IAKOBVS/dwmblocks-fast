@@ -63,7 +63,7 @@ static int
 test_null_arg(void)
 {
 	char buf[64] = {0};
-	unsigned int interval = 0;
+	unsigned short interval = 0;
 
 	printf("  [edge 1] NULL arg on b_write_time                    ... ");
 	char *end = b_write_time(buf, sizeof(buf), NULL, &interval);
@@ -84,7 +84,7 @@ static int
 test_empty_arg(void)
 {
 	char buf[64] = {0};
-	unsigned int interval = 0;
+	unsigned short interval = 0;
 
 	printf("  [edge 2] empty-string arg on b_write_date            ... ");
 	char *end = b_write_date(buf, sizeof(buf), "", &interval);
@@ -105,35 +105,38 @@ static int
 test_interval_modified(void)
 {
 	char buf[64] = {0};
-	unsigned int interval = 999;
+	unsigned short interval = 999;
 
 	printf("  [edge 3] b_write_time sets interval to < 90 sec       ... ");
 	b_write_time(buf, sizeof(buf), NULL, &interval);
 	CHECK(interval <= 90, "expected interval <= 90");
 	CHECK(interval > 0, "expected interval > 0");
 	if (interval > 0 && interval <= 90)
-		printf("PASS (interval=%u)\n", interval);
+		printf("PASS (interval=%u)\n", (unsigned int)interval);
 	else
 		printf("FAIL\n");
 	return 0;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Test 4 — b_write_disk with valid path but zero-sized dst          */
+/*  Test 4 — b_write_disk_usage_percent on a valid path               */
 /* ------------------------------------------------------------------ */
+/* NOTE: block writers are unbounded and require an adequately sized
+ * dst (production rows are G_STATUSBLOCKLEN bytes). */
 
 static int
-test_disk_zero_dst(void)
+test_disk_valid_path(void)
 {
-	char buf[1] = {0};
-	unsigned int interval = 0;
+	char buf[64] = {0};
+	unsigned short interval = 0;
 
-	printf("  [edge 4] b_write_disk_usage_percent small dst (size=1) ... ");
-	char *end = b_write_disk_usage_percent(buf, 1, "/", &interval);
+	printf("  [edge 4] b_write_disk_usage_percent valid path (\"/\")    ... ");
+	char *end = b_write_disk_usage_percent(buf, sizeof(buf), "/", &interval);
 	CHECK(end != NULL, "expected non-NULL return");
-	/* With dst_size=1, the function should truncate. */
-	if (end != NULL)
-		printf("PASS (returned, wrote %td bytes)\n", end - buf);
+	CHECK(end > buf, "expected data written");
+	CHECK(strlen(buf) > 0 && strlen(buf) <= 3, "expected short percent string");
+	if (end != NULL && end > buf)
+		printf("PASS (wrote \"%s\")\n", buf);
 	else
 		printf("FAIL\n");
 	return 0;
@@ -148,7 +151,7 @@ test_consecutive_calls(void)
 {
 	char buf1[64] = {0};
 	char buf2[64] = {0};
-	unsigned int interval = 0;
+	unsigned short interval = 0;
 
 	printf("  [edge 5] two calls within same minute yield same data   ... ");
 	b_write_time(buf1, sizeof(buf1), NULL, &interval);
@@ -299,6 +302,50 @@ test_cpu_energy_wrap(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  Test 9 — value_get must find keys late in the buffer              */
+/* ------------------------------------------------------------------ */
+/* Regression: value_get's length bookkeeping over-subtracted the
+ * absolute offset each iteration, shrinking the scan window faster
+ * than the data and even underflowing into OOB reads for keys late
+ * in the buffer. */
+
+static int
+test_proc_value_get(void)
+{
+	printf("  [edge 9] b_proc_value_getull finds late keys           ... ");
+	int ok = 1;
+
+	/* Audit repro: filler forces one memchr jump, and the tail
+	 * (< 2 * key_len bytes) made the old bookkeeping underflow and
+	 * miss the key entirely. */
+	const char *buf1 = "xx xx xx xx xx xx MemAvailable: 12345\n";
+	const unsigned long long v1 = b_proc_value_getull(buf1, (unsigned int)strlen(buf1), S_LITERAL("MemAvailable"), ':', ' ');
+	CHECK(v1 == 12345ULL, "expected 12345 parsed from a key late in the buffer");
+	ok = ok && v1 == 12345ULL;
+
+	/* meminfo-shaped input where the wanted key is not the first one. */
+	const char *buf2 =
+		"MemTotal:       16315212 kB\n"
+		"MemFree:          821344 kB\n"
+		"MemAvailable:    5671234 kB\n";
+	const unsigned long long v2 = b_proc_value_getull(buf2, (unsigned int)strlen(buf2), S_LITERAL("MemAvailable"), ':', ' ');
+	CHECK(v2 == 5671234ULL, "expected 5671234 parsed from meminfo");
+	ok = ok && v2 == 5671234ULL;
+
+	/* Missing key must return the error sentinel. */
+	const char *buf3 = "a a a a a a a a a\n";
+	const unsigned long long v3 = b_proc_value_getull(buf3, (unsigned int)strlen(buf3), S_LITERAL("Nope"), ' ', ' ');
+	CHECK(v3 == (unsigned long long)-1, "missing key must yield -1 sentinel");
+	ok = ok && v3 == (unsigned long long)-1;
+
+	if (ok)
+		printf("PASS\n");
+	else
+		printf("FAIL\n");
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
 /*  main                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -311,11 +358,12 @@ main(void)
 	test_null_arg();
 	test_empty_arg();
 	test_interval_modified();
-	test_disk_zero_dst();
+	test_disk_valid_path();
 	test_consecutive_calls();
 	test_procfs_iterator();
 	test_u_strtoull10();
 	test_cpu_energy_wrap();
+	test_proc_value_get();
 
 	printf("\n%s: %s\n",
 	       nfail ? "FAIL" : "PASS",

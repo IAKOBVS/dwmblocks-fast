@@ -55,6 +55,7 @@ dwmblocks-fast -p                     # print to stdout (for wms that read stdin
 
 - `#include "config.h"` must be first in `dwmblocks-fast.c`.
 - No printf/scanf-family calls (runtime overhead). Use custom `u_utoa_p()`, `u_stpcpy()`, etc. from `utils.h`.
+- Performance changes must ship with microbenchmarks demonstrating that the expected improvement is actually reflected in measurements (before/after numbers). Do not land speculative optimizations without benchmark evidence.
 - Error handling via `DIE(return -1)` macro (prints `errno`, then `assert(0)`).
 - `DBG(x)` macros for debug prints (enable with `-DDEBUG`).
 - `#ifdef HAVE_PROCFS` / `HAVE_SYSFS` / `HAVE_POWERCAP` guard Linux-specific blocks.

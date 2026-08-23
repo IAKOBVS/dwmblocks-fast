@@ -16,7 +16,6 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE. */
 
-#include <sys/sysinfo.h>
 #include <time.h>
 #include <assert.h>
 
@@ -32,6 +31,8 @@ b_time_init(void)
 	if (t == (time_t)-1)
 		return -1;
 	const struct tm *tm = localtime(&t);
+	if (unlikely(tm == NULL))
+		return -1;
 	return tm->tm_gmtoff;
 }
 
@@ -61,12 +62,15 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned shor
 	unsigned int h = (unsigned int)tm->tm_hour;
 	char meridiem;
 	char *p = dst;
-	/* Convert to 12-hour clock */
-	if (h > 12) {
+	/* Convert to 12-hour clock. 0:00 is 12 AM, 12:00 is 12 PM. */
+	if (h >= 12) {
 		meridiem = 'P';
-		h -= 12;
+		if (h > 12)
+			h -= 12;
 	} else {
 		meridiem = 'A';
+		if (h == 0)
+			h = 12;
 	}
 	/* Write hour */
 	p = u_utoa_le2_p(h, p);
@@ -124,7 +128,7 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned shor
 		"May ",
 		"Jun ",
 		"Jul ",
-		"Agu ",
+		"Aug ",
 		"Sep ",
 		"Oct ",
 		"Nov ",

@@ -156,7 +156,7 @@ b_read_audio_alsa_muted(b_audio_alsa_ty *audio_alsa)
 		else if (audio_alsa->playback_or_capture == B_AUDIO_ALSA_CAPTURE)
 			audio_alsa->ret = snd_mixer_selem_get_capture_switch(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &i);
 		else
-			DIE();
+			DIE(return -1);
 		if (unlikely(audio_alsa->ret != 0))
 			DIE_DO(b_audio_alsa_err());
 		return !i;

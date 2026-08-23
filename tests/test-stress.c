@@ -227,12 +227,17 @@ run_forkkill(const char *label, int rounds, int multi)
 	int total_sent = 0;
 	int sigs[] = { SIGPLUS + 1, SIGPLUS + 2, SIGPLUS + 3, SIGPLUS + 4 };
 	int nsigs = multi ? 4 : 2;
+	/* Unrelated-signal noise: use an RT signal outside the configured
+	 * SIG_* range (1-4) so the dummy handler swallows it instead of
+	 * killing the child (a non-RT signal like SIGUSR1 would terminate
+	 * it, racing with SIGTERM delivery). */
+	const int noise_sig = SIGPLUS + 5;
 	for (int r = 0; r < rounds; ++r) {
 		for (int s = 0; s < nsigs; ++s) {
 			if (kill(child, sigs[s]) == 0)
 				++total_sent;
 		}
-		kill(child, SIGUSR1);
+		kill(child, noise_sig);
 	}
 
 	nanosleep(&ts, NULL);

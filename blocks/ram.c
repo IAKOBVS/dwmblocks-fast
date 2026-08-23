@@ -128,7 +128,7 @@ b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused
 		DIE(return NULL);
 	const int unit = u_humanize(&usage);
 	char *p = dst;
-	p = u_ulltoa_p((unsigned int)usage, p);
+	p = u_ulltoa_p(usage, p);
 	if (likely(unit != '\0'))
 		*p++ = unit;
 	*p = '\0';

@@ -104,7 +104,7 @@ b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpo
 	if (unlikely(usage == (unsigned int)-1))
 		DIE(return NULL);
 	char *p = dst;
-	p = u_ulltoa_p((unsigned int)usage, p);
+	p = u_ulltoa_p(usage, p);
 	return p;
 	(void)dst_size;
 	(void)interval;

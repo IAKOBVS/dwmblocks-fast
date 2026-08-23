@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#include <stddef.h>
 
 #include "../macros.h"
 #include "../utils.h"
@@ -33,12 +34,12 @@ static char *
 value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter)
 {
 	const char *value = procfs_buf;
-	for (unsigned int value_len = procfs_buf_len; value_len >= key_len; value_len -= value - procfs_buf) {
-		if (!memcmp(value, key, key_len) && *(value + key_len) == delimiter)
+	const char *const end = procfs_buf + procfs_buf_len;
+	for (; end - value > (ptrdiff_t)key_len;) {
+		if (!memcmp(value, key, key_len) && value[key_len] == delimiter)
 			return (char *)value;
 		value += key_len;
-		value_len -= key_len;
-		value = memchr(value, *key, value_len);
+		value = memchr(value, *key, (size_t)(end - value));
 		if (unlikely(value == NULL))
 			break;
 	}
@@ -185,9 +186,9 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 {
 	/* Construct path: /proc/[pid]/(status|comm). */
 #ifdef HAVE_PROCFS_PID_COMM
-	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/comm") + 1];
+	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/comm") + 1];
 #else
-	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
+	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/status") + 1];
 #endif
 	char *fnamep = fname;
 	/* /proc/ */

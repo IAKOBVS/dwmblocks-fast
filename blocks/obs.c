@@ -46,9 +46,9 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned short
 	} else {
 		/* Construct path: /proc/[pid]/(status|comm). */
 #ifdef HAVE_PROCFS_PID_COMM
-		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/comm") + 1];
+		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/comm") + 1];
 #else
-		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 8 + S_LEN("/status") + 1];
+		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/status") + 1];
 #endif
 		char *fname_e = fname;
 		/* /proc/ */

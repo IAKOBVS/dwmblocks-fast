@@ -89,7 +89,8 @@ test-edge-cases: $(PROG_BIN) tests/test-edge-cases.c
 test-all: check test-stress test-edge-cases
 
 clean:
-	rm -f $(PROG_BIN) $(SCRIPTS) $(REQ) $(OBJS) $(SRC)/*.o
+	rm -f $(PROG_BIN) $(SCRIPTS) $(REQ) $(OBJS) $(SRC)/*.o tests/*-bin tests/*.o
+	rm -f $(OBJS:.o=.d) $(SRC)/$(PROG).o.d $(SRC)/test.o.d
 
 install: $(PROG_BIN) $(SCRIPTS)
 	# strip $(PROG_BIN)
@@ -149,10 +150,10 @@ disable-alsa: $(config) config.mk
 	rm config.mk.bak
 
 .c.o:
-	$(CC) -o $@ -c $(CFLAGS) $(CPPFLAGS) $<
+	$(CC) -o $@ -c -MMD -MP $(CFLAGS) $(CPPFLAGS) $<
 
 $(SRC)/test.o: $(PROG_BIN)
-	$(CC) -o $@ -c -DTEST=1 $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).c
+	$(CC) -o $@ -c -DTEST=1 -MMD -MP $(CFLAGS) $(CPPFLAGS) $(SRC)/$(PROG).c
 
 $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 	mkdir -p $(BIN)
@@ -160,9 +161,13 @@ $(PROG_BIN): $(CFGS) $(SRC)/$(PROG).o $(OBJS) $(REQ) $(REQ_H)
 	@# To allow access of /sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj
 	command -v setcap >/dev/null 2>&1 && sudo setcap cap_dac_read_search+ep $(PROG_BIN) 2>/dev/null || true
 
-$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ) $(REQ_H)
+# Always recompile $(OBJS) if $(REQ) changed. Header deps come from the
+# generated .d files (see -MMD above).
+$(OBJS) $(SRC)/$(PROG).o $(SRC)/test.o: $(REQ)
 
-$(SCRIPTS):
+-include $(OBJS:.o=.d) $(SRC)/$(PROG).o.d $(SRC)/test.o.d
+
+$(SCRIPTS): $(CONFIG) updatesig
 	./updatesig $(BIN) scripts/$(SCRIPTSBASE)
 
 $(CONFIG):
@@ -180,4 +185,4 @@ config.mk:
 $(CPU_TEMP_GENERATED):
 	./getcpufile > $@
 	
-.PHONY: all options clean install uninstall config check
+.PHONY: all options clean install uninstall config check disable-cuda disable-x11 disable-alsa test-stress test-edge-cases test-all
