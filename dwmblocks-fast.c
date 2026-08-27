@@ -235,10 +235,7 @@ g_getcmds(void)
 		left = B_SLEEP(i);
 		if (left)
 			continue;
-		const unsigned short interval = B_INTERVAL(i);
-		if (!interval)
-			continue;
-		B_SLEEP(i) = interval - 1;
+		B_SLEEP(i) = B_SIGNAL(i) ? B_INTERVAL(i) : B_INTERVAL(i) - 1;
 		/* Skip blocks with NULL function pointer. */
 		if (unlikely(B_FUNC(i) == NULL))
 			continue;
@@ -273,27 +270,30 @@ static int
 g_getcmds_sig(unsigned int signal)
 {
 	g_wake_min = (unsigned int)-1;
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (B_SIGNAL(i) == signal && B_FUNC(i) != NULL) {
-			/* Render into tmp first so unchanged output does not
-			 * trigger a full status rewrite (mirrors g_getcmds). */
-			char tmp[sizeof(g_statusblocks[0])];
-			const char *end = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-			if (unlikely(end == NULL))
-				DIE(return -1);
-			const unsigned int tmp_len = end - tmp;
-			const unsigned char sti = B_TOSTATUS(i);
-			g_status_changed_len = tmp_len != B_STATUSBLOCKS_LEN(sti);
-			if (g_status_changed_len || memcmp(tmp, g_statusblocks[sti], tmp_len) != 0) {
-				u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
-				B_STATUSBLOCKS_LEN(sti) = tmp_len;
-				/* Mark change. */
-				++g_status_changed;
-				/* Get latest rightmost. */
-				g_status_start_idx = MIN(g_status_start_idx, sti);
-			}
-		}
-		g_wake_min = MIN(g_wake_min, (unsigned int)B_SLEEP(i));
+	unsigned short left;
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i, g_wake_min = MIN(g_wake_min, left)) {
+		left = B_SLEEP(i);
+		if (B_SIGNAL(i) != signal)
+			continue;
+		if (B_FUNC(i) == NULL)
+			continue;
+		/* Render into tmp first so unchanged output does not
+		 * trigger a full status rewrite (mirrors g_getcmds). */
+		char tmp[sizeof(g_statusblocks[0])];
+		const char *end = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+		if (unlikely(end == NULL))
+			DIE(return -1);
+		const unsigned int tmp_len = end - tmp;
+		const unsigned char sti = B_TOSTATUS(i);
+		g_status_changed_len = tmp_len != B_STATUSBLOCKS_LEN(sti);
+		if (!g_status_changed_len && !memcmp(tmp, g_statusblocks[sti], tmp_len))
+			continue;
+		u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
+		B_STATUSBLOCKS_LEN(sti) = tmp_len;
+		/* Mark change. */
+		++g_status_changed;
+		/* Get latest rightmost. */
+		g_status_start_idx = MIN(g_status_start_idx, sti);
 	}
 	return 0;
 }
