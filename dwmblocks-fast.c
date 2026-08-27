@@ -230,38 +230,37 @@ static int
 g_getcmds(void)
 {
 	g_wake_min = (unsigned int)-1;
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		unsigned int left = B_SLEEP(i);
-		if (left == 0) {
-			left = B_INTERVAL(i) - 1;
-			B_SLEEP(i) = (unsigned short)left;
-			/* Skip blocks with NULL function pointer. */
-			if (unlikely(B_FUNC(i) == NULL))
-				continue;
-			/* May need update. */
-			char tmp[sizeof(g_statusblocks[0])];
-			/* Get the result of g_getcmd. */
-			const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-			if (unlikely(tmp_e == NULL))
-				DIE(return -1);
-			const unsigned int tmp_len = tmp_e - tmp;
-			const unsigned char sti = B_TOSTATUS(i);
-			/* Check if there has been change. */
-			if (tmp_len != B_STATUSBLOCKS_LEN(sti) ||
-			    memcmp(tmp, g_statusblocks[sti], tmp_len) != 0) {
-				if (tmp_len != B_STATUSBLOCKS_LEN(sti))
-					++g_status_changed_len;
-				/* Get the latest change. */
-				u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
-				B_STATUSBLOCKS_LEN(sti) = tmp_len;
-				/* Mark change. */
-				++g_status_changed;
-				/* Get latest rightmost. */
-				g_status_start_idx = MIN(g_status_start_idx, sti);
-			}
-			left = B_SLEEP(i);
-		}
-		g_wake_min = MIN(g_wake_min, left);
+	unsigned short left;
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i, g_wake_min = MIN(g_wake_min, left)) {
+		left = B_SLEEP(i);
+		if (left)
+			continue;
+		const unsigned short interval = B_INTERVAL(i);
+		if (!interval)
+			continue;
+		B_SLEEP(i) = interval - 1;
+		/* Skip blocks with NULL function pointer. */
+		if (unlikely(B_FUNC(i) == NULL))
+			continue;
+		/* May need update. */
+		char tmp[sizeof(g_statusblocks[0])];
+		/* Get the result of g_getcmd. */
+		const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+		if (unlikely(tmp_e == NULL))
+			DIE(return -1);
+		const unsigned int tmp_len = tmp_e - tmp;
+		const unsigned char sti = B_TOSTATUS(i);
+		g_status_changed_len = tmp_len != B_STATUSBLOCKS_LEN(sti);
+		/* Check if there has been change. */
+		if (!g_status_changed_len && !memcmp(tmp, g_statusblocks[sti], tmp_len))
+			continue;
+		/* Get the latest change. */
+		u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
+		B_STATUSBLOCKS_LEN(sti) = tmp_len;
+		/* Mark change. */
+		++g_status_changed;
+		/* Get latest rightmost. */
+		g_status_start_idx = MIN(g_status_start_idx, sti);
 	}
 	return 0;
 }
@@ -273,24 +272,19 @@ g_getcmds(void)
 static int
 g_getcmds_sig(unsigned int signal)
 {
-	/* Validate signal range before iterating. */
-	if (unlikely(signal > (unsigned int)G_SIGNAL_MAX))
-		return 0;
 	g_wake_min = (unsigned int)-1;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
 		if (B_SIGNAL(i) == signal && B_FUNC(i) != NULL) {
 			/* Render into tmp first so unchanged output does not
 			 * trigger a full status rewrite (mirrors g_getcmds). */
-			char tmp[G_STATUSBLOCKLEN];
+			char tmp[sizeof(g_statusblocks[0])];
 			const char *end = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
 			if (unlikely(end == NULL))
 				DIE(return -1);
 			const unsigned int tmp_len = end - tmp;
 			const unsigned char sti = B_TOSTATUS(i);
-			if (tmp_len != B_STATUSBLOCKS_LEN(sti) ||
-			    memcmp(tmp, g_statusblocks[sti], tmp_len) != 0) {
-				if (tmp_len != B_STATUSBLOCKS_LEN(sti))
-					++g_status_changed_len;
+			g_status_changed_len = tmp_len != B_STATUSBLOCKS_LEN(sti);
+			if (g_status_changed_len || memcmp(tmp, g_statusblocks[sti], tmp_len) != 0) {
 				u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
 				B_STATUSBLOCKS_LEN(sti) = tmp_len;
 				/* Mark change. */
