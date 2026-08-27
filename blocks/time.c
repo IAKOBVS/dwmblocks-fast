@@ -45,7 +45,7 @@ b_read_time(void)
 			return NULL;
 	}
 	time_t t = time(NULL);
-	if (t == (time_t)-1)
+	if (unlikely(t == (time_t)-1))
 		return NULL;
 	t += utc_off;
 	return gmtime(&t);
