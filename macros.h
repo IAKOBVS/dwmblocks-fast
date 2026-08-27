@@ -100,6 +100,7 @@
 #	define MIN(x, y)    (((x) < (y)) ? (x) : (y))
 #	define S_LEN(s)     (sizeof(s) - 1)
 #	define S_LITERAL(s) s, S_LEN(s)
+#	define LEN(a)       (sizeof(a) / sizeof((a)[0]))
 
 #	ifdef __GLIBC_PREREQ
 #		define XGLIBC_PREREQ(maj, min) __GLIBC_PREREQ(maj, min)
@@ -123,135 +124,18 @@
 #	endif
 
 #	ifdef _GNU_SOURCE
-#		define HAVE_MEMMEM            1
-#		define HAVE_MEMRCHR           1
-#		define HAVE_STRCHRNUL         1
-#		define HAVE_FGETS_UNLOCKED    1
-#		define HAVE_FPUTS_UNLOCKED    1
-#		define HAVE_GETWC_UNLOCKED    1
-#		define HAVE_GETWCHAR_UNLOCKED 1
-#		define HAVE_FGETWC_UNLOCKED   1
-#		define HAVE_FPUTWC_UNLOCKED   1
-#		define HAVE_PUTWCHAR_UNLOCKED 1
-#		define HAVE_FGETWS_UNLOCKED   1
-#		define HAVE_FPUTWS_UNLOCKED   1
-#		define HAVE_WMEMPCPY          1
-#		define HAVE_MEMPCPY           1
-#		define HAVE_STRCASESTR        1
+#		define HAVE_MEMMEM     1
+#		define HAVE_MEMRCHR    1
+#		define HAVE_STRCHRNUL  1
+#		define HAVE_WMEMPCPY   1
+#		define HAVE_MEMPCPY    1
+#		define HAVE_STRCASESTR 1
 #	endif
 
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FREAD_UNLOCKED
-#		define io_fread(ptr, size, n, stream) fread_unlocked(ptr, size, n, stream)
-#	else
-#		define io_fread(ptr, size, n, stream) fread(ptr, size, n, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETC_UNLOCKED
-#		define io_fgetc(stream) fgetb_unlocked(stream)
-#	else
-#		define io_fgetc(stream) fgetc(stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETWS_UNLOCKED
-#		define io_fgetws(ws, n, stream) fgetws_unlocked(ws, n, stream)
-#	else
-#		define io_fgetws(ws, n, stream) fgetws(ws, n, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_GETC_UNLOCKED
-#		define getc(stream) getb_unlocked(stream)
-#	else
-#		define getc(stream) getc(stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_GETCHAR_UNLOCKED
-#		define getchar() getchar_unlocked()
-#	else
-#		define getchar() getchar()
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETS_UNLOCKED
-#		define io_fgets(s, n, stream) fgets_unlocked(s, n, stream)
-#	else
-#		define io_fgets(s, n, stream) fgets(s, n, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_GETWC_UNLOCKED
-#		define getwc(stream) getwb_unlocked(stream)
-#	else
-#		define getwc(stream) getwc(stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_GETWCHAR_UNLOCKED
-#		define getwchar() getwchar_unlocked()
-#	else
-#		define getwchar() getwchar()
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_READ) && HAVE_FGETWC_UNLOCKED
-#		define io_fgetwc(stream) fgetwb_unlocked(stream)
-#	else
-#		define io_fgetwc(stream) fgetwc(stream)
-#	endif
-
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTWC_UNLOCKED
-#		define io_fputwc(wc, stream) fputwb_unlocked(wc, stream)
-#	else
-#		define io_fputwc(wc, stream) fputwc(wc, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_PUTWCHAR_UNLOCKED
-#		define putwchar(wc) putwchar_unlocked(wc)
-#	else
-#		define putwchar(wc) putwchar(wc)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTS_UNLOCKED
-#		define io_fputs(s, stream) fputs_unlocked(s, stream)
-#	else
-#		define io_fputs(s, stream) fputs(s, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTWS_UNLOCKED
-#		define io_fputws(ws, stream) fputws_unlocked(ws, stream)
-#	else
-#		define io_fputws(ws, stream) fputws(ws, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_PUTC_UNLOCKED
-#		define putc(c, stream) putb_unlocked(c, stream)
-#	else
-#		define putc(c, stream) putc(c, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_PUTCHAR_UNLOCKED
-#		define putchar(c) putchar_unlocked(c)
-#	else
-#		define putchar(c) putchar(c)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FWRITE_UNLOCKED
-#		define io_fwrite(ptr, size, n, stream) fwrite_unlocked(ptr, size, n, stream)
-#	else
-#		define io_fwrite(ptr, size, n, stream) fwrite(ptr, size, n, stream)
-#	endif
-#	if (USE_UNLOCKED_IO || USE_UNLOCKED_IO_WRITE) && HAVE_FPUTC_UNLOCKED
-#		define io_fputc(c, stream) fputb_unlocked(c, stream)
-#	else
-#		define io_fputc(c, stream) fputc(c, stream)
-#	endif
-
-#	if USE_UNLOCKED_IO && HAVE_CLEARERR_UNLOCKED
-#		define clearerr(stream) clearerr_unlocked(stream)
-#	else
-#		define clearerr(stream) clearerr(stream)
-#	endif
-#	if USE_UNLOCKED_IO && HAVE_FEOF_UNLOCKED
-#		define io_feof(stream) feof_unlocked(stream)
-#	else
-#		define io_feof(stream) feof(stream)
-#	endif
-#	if USE_UNLOCKED_IO && HAVE_FERROR_UNLOCKED
-#		define io_ferror(stream) ferror_unlocked(stream)
-#	else
-#		define io_ferror(stream) ferror(stream)
-#	endif
-#	if USE_UNLOCKED_IO && HAVE_FILENO_UNLOCKED
-#		define io_fileno(stream) fileno_unlocked(stream)
-#	else
-#		define io_fileno(stream) fileno(stream)
-#	endif
-#	if USE_UNLOCKED_IO && HAVE_FFLUSH_UNLOCKED
-#		define io_fflush(stream) fflush_unlocked(stream)
-#	else
-#		define io_fflush(stream) fflush(stream)
-#	endif
+/* Unlocked-stdio wrappers removed: none were reachable (the
+ * USE_UNLOCKED_IO* gates were never defined) and several referenced
+ * nonexistent functions. Reintroduce deliberately if ever needed. */
+#	define io_fileno(stream) fileno(stream)
 
 #	ifdef __linux__
 #		define HAVE_PROCFS   1

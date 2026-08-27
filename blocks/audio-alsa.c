@@ -117,12 +117,14 @@ b_audio_alsa_init(b_audio_alsa_ty *audio_alsa)
 	return b_audio_alsa_init_internal(audio_alsa, audio_alsa->card, audio_alsa->playback_or_capture);
 }
 
+/* Volume in percent (0-100), or -1 on failure. Callers must treat
+ * any negative value as an error, never as a volume level. */
 int
 b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 {
 	if (unlikely(audio_alsa->init == 0))
 		if (unlikely(b_audio_alsa_init(audio_alsa) != 0))
-			return 1;
+			return -1;
 	audio_alsa->ret = snd_mixer_handle_events(audio_alsa->handle);
 	if (audio_alsa->ret < 0)
 		DIE_DO(b_audio_alsa_err());
@@ -131,7 +133,7 @@ b_read_audio_alsa_vol(b_audio_alsa_ty *audio_alsa)
 	else if (audio_alsa->playback_or_capture == B_AUDIO_ALSA_CAPTURE)
 		audio_alsa->ret = snd_mixer_selem_get_capture_volume(audio_alsa->elem, SND_MIXER_SCHN_FRONT_LEFT, &audio_alsa->curr_vol);
 	else
-		DIE(return 0);
+		DIE(return -1);
 	if (unlikely(audio_alsa->ret != 0))
 		DIE_DO(b_audio_alsa_err());
 	if (unlikely(audio_alsa->max_vol == audio_alsa->min_vol))

@@ -85,16 +85,9 @@ b_write_disk_usage_free(char *dst, unsigned int dst_size, const char *mountpoint
 {
 	if (unlikely(b_read_statvfs(mountpoint, &b_statvfs) != 0))
 		DIE(return NULL);
-	unsigned long long avail = b_statvfs.f_bsize * b_statvfs.f_bavail;
-	int unit = u_humanize(&avail);
-	char *p = dst;
-	p = u_ulltoa_p(avail, dst);
-	if (likely(unit != '\0'))
-		*p++ = unit;
-	*p = '\0';
-	return p;
 	(void)dst_size;
 	(void)interval;
+	return u_write_humanized(dst, b_statvfs.f_bsize * b_statvfs.f_bavail);
 }
 
 char *
@@ -105,7 +98,7 @@ b_write_disk_usage_percent(char *dst, unsigned int dst_size, const char *mountpo
 		DIE(return NULL);
 	char *p = dst;
 	p = u_ulltoa_p(usage, p);
-	return p;
 	(void)dst_size;
 	(void)interval;
+	return p;
 }

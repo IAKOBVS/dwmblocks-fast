@@ -93,10 +93,9 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned shor
 	*p = '\0';
 	/* Set next update for when minute changes. */
 	*interval = (unsigned short)(90 - tm->tm_sec);
-	return p;
 	(void)dst_size;
 	(void)unused;
-	(void)interval;
+	return p;
 }
 
 char *
@@ -138,9 +137,12 @@ b_write_date(char *dst, unsigned int dst_size, const char *unused, unsigned shor
 	p = u_stpcpy_len(p, mons[tm->tm_mon], S_LEN("Mon "));
 	/* Write year */
 	p = u_utoa_p((unsigned int)tm->tm_year + 1900, p);
-	/* Set next update for when the day changes. */
-	*interval = (unsigned short)(((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (59 - tm->tm_sec));
-	return p;
+	/* Set next update for when the day changes. Max is 86399 s which
+	 * exceeds unsigned short; clamp instead of wrapping (a wrapped
+	 * value made the date re-run every ~5.8 h). */
+	const unsigned int secs = ((23 - tm->tm_hour) * 3600) + ((59 - tm->tm_min) * 60) + (59 - tm->tm_sec);
+	*interval = (unsigned short)MIN(secs, (unsigned int)(unsigned short)-1);
 	(void)dst_size;
 	(void)unused;
+	return p;
 }

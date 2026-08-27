@@ -59,17 +59,6 @@ typedef enum {
 
 int b_gpu_temp_fd = -1;
 
-#if USE_NVSPEED
-static int
-b_gpu_temp_fd_init(const char *filename)
-{
-	int fd;
-	for (int retry = 10; (fd = open(filename, O_RDONLY)) < 0 && retry; --retry)
-		sleep(1);
-	return fd;
-}
-#endif
-
 void
 b_gpu_cleanup(void)
 {
@@ -195,10 +184,10 @@ b_write_gpus(char *dst, unsigned int dst_size, const char *unused, unsigned shor
 		p = u_utoa_le3_p(avg, p);
 	else
 		p = u_utoa_p(avg, p);
-	return p;
 	(void)dst_size;
 	(void)unused;
 	(void)interval;
+	return p;
 }
 
 char *
@@ -206,9 +195,11 @@ b_write_gpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsign
 {
 #if USE_NVSPEED
 	if (unlikely(b_gpu_temp_fd < 0)) {
-		b_gpu_temp_fd = b_gpu_temp_fd_init(temp_file);
+		/* Single attempt; missing sensor renders a placeholder and
+		 * retries the open on the next tick. */
+		b_gpu_temp_fd = open(temp_file, O_RDONLY);
 		if (unlikely(b_gpu_temp_fd < 0))
-			DIE(return NULL);
+			return u_stpcpy_len(dst, S_LITERAL("?"));
 	}
 	return b_write_tempfd(dst, dst_size, b_gpu_temp_fd, interval);
 #else

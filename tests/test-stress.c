@@ -334,7 +334,7 @@ mock_init(void)
 static int
 mock_getcmds_sig(unsigned int signal)
 {
-	if (signal > G_SIGNAL_MAX)
+	if (signal > (unsigned int)G_SIGNAL_MAX)
 		return 0;
 	for (int i = 0; i < MOCK_NBLOCKS; ++i) {
 		if (mock_signal[i] == signal)

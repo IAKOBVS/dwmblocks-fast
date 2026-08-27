@@ -23,13 +23,25 @@
 #include "../utils.h"
 #include "../config.h"
 
-char *
-b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
+#define B_TEMP_PLACEHOLDER "?"
+
+/* Render a placeholder instead of aborting: a missing or transiently
+ * glitching sensor must not kill the statusbar. The block retries on
+ * its next interval tick. */
+static char *
+b_write_temp_placeholder(char *dst)
 {
-	/* Milidegrees = degrees * 1000 */
-	int read_sz = pread(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"), 0);
+	return u_stpcpy_len(dst, S_LITERAL(B_TEMP_PLACEHOLDER));
+}
+
+/* Format a raw sysfs milidegree read (e.g. "45000\n") in place:
+ * strip the trailing newline and the three milidigits, NUL-terminate.
+ * Short or failed reads degrade to the placeholder. */
+static char *
+b_temp_format(char *dst, int read_sz)
+{
 	if (unlikely(read_sz <= 3))
-		DIE(return NULL);
+		return b_write_temp_placeholder(dst);
 	/* Don't read the newline. */
 	if (*(dst + read_sz - 1) == '\n')
 		--read_sz;
@@ -37,7 +49,14 @@ b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
 	read_sz -= S_LEN("000");
 	*(dst + read_sz) = '\0';
 	return dst + read_sz;
+}
+
+char *
+b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
+{
+	const int read_sz = pread(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"), 0);
 	(void)dst_size;
+	return b_temp_format(dst, read_sz);
 }
 
 char *
@@ -45,21 +64,14 @@ b_write_temp_internal(char *dst, unsigned int dst_size, const char *temp_file)
 {
 	const int fd = open(temp_file, O_RDONLY);
 	if (unlikely(fd == -1))
-		DIE(return NULL);
-	/* Milidegrees = degrees * 1000 */
-	int read_sz = read(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"));
+		return b_write_temp_placeholder(dst);
+	const int read_sz = read(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"));
 	if (unlikely(close(fd) == -1))
-		DIE(return NULL);
+		return b_write_temp_placeholder(dst);
 	if (unlikely(read_sz <= 3))
-		DIE(return NULL);
-	/* Don't read the newline. */
-	if (*(dst + read_sz - 1) == '\n')
-		--read_sz;
-	/* Don't read the milidegrees. */
-	read_sz -= S_LEN("000");
-	*(dst + read_sz) = '\0';
-	return dst + read_sz;
+		return b_write_temp_placeholder(dst);
 	(void)dst_size;
+	return b_temp_format(dst, read_sz);
 }
 
 char *
@@ -67,11 +79,9 @@ b_write_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned s
 {
 	char *p = dst;
 	p = b_write_temp_internal(p, dst_size, temp_file);
-	if (unlikely(p == dst))
-		DIE(return NULL);
-	return p;
 	(void)dst_size;
 	(void)interval;
+	return p;
 }
 
 char *
@@ -79,9 +89,7 @@ b_write_tempfd(char *dst, unsigned int dst_size, int fd, unsigned short *interva
 {
 	char *p = dst;
 	p = b_write_tempfd_internal(p, dst_size, fd);
-	if (unlikely(p == dst))
-		DIE(return NULL);
-	return p;
 	(void)dst_size;
 	(void)interval;
+	return p;
 }

@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <time.h>
 #include <sys/select.h>
 
 #if defined _POSIX_REALTIME_SIGNALS && (_POSIX_REALTIME_SIGNALS > 0)
@@ -57,20 +58,14 @@
 unsigned int g_time;
 
 #ifdef HAVE_RT_SIGNALS
-#	define SIGPLUS  (SIGRTMIN)
 #	define SIGMINUS (SIGRTMIN)
 #else
-#	define SIGPLUS  (SIGUSR1 + 1)
 #	define SIGMINUS (SIGUSR1 - 1)
 #endif
 
-#define LEN(X)           (sizeof(X) / sizeof(X[0]))
 #define G_STATUSBLOCKLEN 32
 /* Length of pad_left and pad_right < sizeof(g_statusblocks[0]). */
 #define G_STATUSLEN (S_LEN(G_STATUS_PAD_LEFT) + (sizeof(g_statusblocks)) + sizeof(g_statusblocks) + S_LEN(G_STATUS_PAD_RIGHT) + 1)
-
-/* Do not change. */
-#define INTERVAL_UPDATE 1
 
 typedef enum {
 	G_WRITE_STATUSBAR = 0,
@@ -78,6 +73,10 @@ typedef enum {
 } g_write_ty;
 
 static unsigned short b_sleeps[LEN(g_blocks)];
+/* Smallest countdown across all blocks, maintained by whichever pass
+ * touched the countdowns last (getcmds / getcmds_sig / b_init), so
+ * the mainloop never rescans b_sleeps[] to schedule its sleep. */
+static unsigned int g_wake_min;
 static struct {
 	char *(*func)(char *, unsigned int, const char *, unsigned short *);
 	const char *arg;
@@ -196,7 +195,11 @@ b_init(void)
 		B_PAD_LEFT(B_TOSTATUS(i)) = g_blocks[i].pad_left;
 		B_PAD_RIGHT(B_TOSTATUS(i)) = g_blocks[i].pad_right;
 		B_SIGNAL(i) = g_blocks[i].signal;
+		/* Run every block on the next pass; also keeps the
+		 * g_wake_min invariant fresh after a restart. */
+		B_SLEEP(i) = 0;
 	}
+	g_wake_min = 0;
 	return 0;
 }
 
@@ -219,64 +222,84 @@ g_getcmds_init(void)
 	b_init();
 }
 
-/* Run commands or functions according to their interval. */
+/* Run commands or functions according to their interval.  Countdowns
+ * are decremented by g_ticks_advance; this pass runs the blocks whose
+ * countdown reached zero and tracks the smallest remaining countdown
+ * for the scheduler. */
 static int
 g_getcmds(void)
 {
+	g_wake_min = (unsigned int)-1;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		/* Check if needs update. */
-		if (B_SLEEP(i)-- > 0)
-			continue;
-		B_SLEEP(i) = B_INTERVAL(i) - 1;
-		/* Skip blocks with NULL function pointer. */
-		if (unlikely(B_FUNC(i) == NULL))
-			continue;
-		/* May need update. */
-		char tmp[sizeof(g_statusblocks[0])];
-		/* Get the result of g_getcmd. */
-		const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-		if (unlikely(tmp_e == NULL))
-			DIE(return -1);
-		const unsigned int tmp_len = tmp_e - tmp;
-		/* Check if there has been change. */
-		if (tmp_len == B_STATUSBLOCKS_LEN(B_TOSTATUS(i))) {
-			if (!memcmp(tmp, g_statusblocks[B_TOSTATUS(i)], tmp_len))
+		unsigned int left = B_SLEEP(i);
+		if (left == 0) {
+			left = B_INTERVAL(i) - 1;
+			B_SLEEP(i) = (unsigned short)left;
+			/* Skip blocks with NULL function pointer. */
+			if (unlikely(B_FUNC(i) == NULL))
 				continue;
-		} else {
-			++g_status_changed_len;
+			/* May need update. */
+			char tmp[sizeof(g_statusblocks[0])];
+			/* Get the result of g_getcmd. */
+			const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+			if (unlikely(tmp_e == NULL))
+				DIE(return -1);
+			const unsigned int tmp_len = tmp_e - tmp;
+			const unsigned char sti = B_TOSTATUS(i);
+			/* Check if there has been change. */
+			if (tmp_len != B_STATUSBLOCKS_LEN(sti) ||
+			    memcmp(tmp, g_statusblocks[sti], tmp_len) != 0) {
+				if (tmp_len != B_STATUSBLOCKS_LEN(sti))
+					++g_status_changed_len;
+				/* Get the latest change. */
+				u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
+				B_STATUSBLOCKS_LEN(sti) = tmp_len;
+				/* Mark change. */
+				++g_status_changed;
+				/* Get latest rightmost. */
+				g_status_start_idx = MIN(g_status_start_idx, sti);
+			}
+			left = B_SLEEP(i);
 		}
-		/* Get the latest change. */
-		u_stpcpy_len(g_statusblocks[B_TOSTATUS(i)], tmp, tmp_len);
-		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = tmp_len;
-		/* Mark change. */
-		++g_status_changed;
-		/* Get latest rightmost. */
-		g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
+		g_wake_min = MIN(g_wake_min, left);
 	}
 	return 0;
 }
 
-/* Same as g_getcmds but executed when receiving a signal. */
+/* Same as g_getcmds but executed when receiving a signal.  Visits
+ * every block so g_wake_min stays a full snapshot of b_sleeps[] even
+ * though only signal-matched blocks render (their functions may
+ * rewrite their own countdown, e.g. audio retry intervals). */
 static int
 g_getcmds_sig(unsigned int signal)
 {
 	/* Validate signal range before iterating. */
 	if (unlikely(signal > (unsigned int)G_SIGNAL_MAX))
 		return 0;
+	g_wake_min = (unsigned int)-1;
 	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
-		if (likely(B_SIGNAL(i) != signal))
-			continue;
-		if (unlikely(B_FUNC(i) == NULL))
-			continue;
-		const char *end = g_getcmd(g_statusblocks[B_TOSTATUS(i)], B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-		if (unlikely(end == NULL))
-			DIE(return -1);
-		B_STATUSBLOCKS_LEN(B_TOSTATUS(i)) = end - g_statusblocks[B_TOSTATUS(i)];
-		/* Mark change. */
-		++g_status_changed;
-		++g_status_changed_len;
-		/* Get latest rightmost. */
-		g_status_start_idx = MIN(g_status_start_idx, B_TOSTATUS(i));
+		if (B_SIGNAL(i) == signal && B_FUNC(i) != NULL) {
+			/* Render into tmp first so unchanged output does not
+			 * trigger a full status rewrite (mirrors g_getcmds). */
+			char tmp[G_STATUSBLOCKLEN];
+			const char *end = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
+			if (unlikely(end == NULL))
+				DIE(return -1);
+			const unsigned int tmp_len = end - tmp;
+			const unsigned char sti = B_TOSTATUS(i);
+			if (tmp_len != B_STATUSBLOCKS_LEN(sti) ||
+			    memcmp(tmp, g_statusblocks[sti], tmp_len) != 0) {
+				if (tmp_len != B_STATUSBLOCKS_LEN(sti))
+					++g_status_changed_len;
+				u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
+				B_STATUSBLOCKS_LEN(sti) = tmp_len;
+				/* Mark change. */
+				++g_status_changed;
+				/* Get latest rightmost. */
+				g_status_start_idx = MIN(g_status_start_idx, sti);
+			}
+		}
+		g_wake_min = MIN(g_wake_min, (unsigned int)B_SLEEP(i));
 	}
 	return 0;
 }
@@ -327,7 +350,7 @@ g_init_signals(void)
 				DIE(return -1);
 			}
 #endif
-			/* FIX: Explicitly add fallback or RT signal to the block mask */
+			/* Add fallback or RT signal to the block mask. */
 			if (unlikely(sigaddset(&sigset_rt, target_sig) == -1))
 				DIE(return -1);
 
@@ -380,12 +403,67 @@ g_status_get(char *dst)
 	return dst;
 }
 
-static ATTR_INLINE void
-g_sleep(unsigned int secs)
+/* CLOCK_MONOTONIC as nanoseconds. */
+static ATTR_INLINE unsigned long long
+g_mono_ns(void)
 {
-	/* Atomically unblock signals and sleep.  pselect restores the
-	 * original (blocked) signal mask when it returns. */
-	pselect(0, NULL, NULL, NULL, &(struct timespec ){ .tv_sec = secs, .tv_nsec = 0 }, &sigset_empty);
+	struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (unsigned long long)ts.tv_sec * 1000000000ULL + (unsigned long long)ts.tv_nsec;
+}
+
+static unsigned long long g_sched_ns; /* next wake deadline */
+static unsigned long long g_last_ns;  /* previous pass, for deltas */
+static unsigned long long g_rem_ns;   /* sub-second carry across passes */
+
+/* Advance the scheduler clock by the real elapsed time.  Ticks come
+ * from CLOCK_MONOTONIC with the sub-second remainder carried across
+ * passes, so g_time tracks wall time exactly instead of assuming each
+ * iteration costs one second (block rendering and X11 writes made the
+ * old fixed increment drift).  Countdowns are decremented by the same
+ * amount; blocks reaching zero are due on the next pass. */
+static void
+g_ticks_advance(unsigned long long now)
+{
+	g_rem_ns += now - g_last_ns;
+	g_last_ns = now;
+	const unsigned int secs = (unsigned int)(g_rem_ns / 1000000000ULL);
+	if (unlikely(secs == 0))
+		return;
+	g_rem_ns %= 1000000000ULL;
+	g_time += secs;
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i) {
+		const unsigned int left = B_SLEEP(i);
+		B_SLEEP(i) = (unsigned short)(left > secs ? left - secs : 0);
+	}
+}
+
+/* Next due moment: start of the current tick bucket plus the nearest
+ * block's countdown.  A pure function of scheduler state, so passes
+ * made between tick boundaries (e.g. right after a signal) neither
+ * lose nor extend the wait. */
+static ATTR_INLINE unsigned long long
+g_next_deadline(void)
+{
+	return g_last_ns - g_rem_ns + ((unsigned long long)g_wake_min + 1) * 1000000000ULL;
+}
+
+/* Sleep until the absolute deadline.  Returns nonzero if a signal cut
+ * the wait short so the caller loops and services the mask at once —
+ * signal-triggered updates stay realtime, exactly like the fixed
+ * 1 s sleep they replaced.  The deadline itself survives: it is
+ * recomputed from state on the next pass. */
+static ATTR_INLINE int
+g_sleep_till(unsigned long long deadline)
+{
+	for (;;) {
+		const unsigned long long now = g_mono_ns();
+		if (now >= deadline)
+			return 0;
+		const unsigned long long rem = deadline - now;
+		if (pselect(0, NULL, NULL, NULL, &(struct timespec){ .tv_sec = (time_t)(rem / 1000000000ULL), .tv_nsec = (long)(rem % 1000000000ULL) }, &sigset_empty) == -1)
+			return 1; /* EINTR: pending signal, service it now */
+	}
 }
 
 #ifdef USE_X11
@@ -500,6 +578,7 @@ g_status_cleanup(void)
 static int
 g_status_mainloop(void)
 {
+	g_last_ns = g_sched_ns = g_mono_ns();
 	for (;;) {
 		/* Atomic read-and-clear so a handler racing between read
 		 * and clear cannot lose its bit. */
@@ -508,6 +587,9 @@ g_status_mainloop(void)
 			if (unlikely(g_restart != 0)) {
 				g_restart = 0;
 				b_init();
+				/* Sleeps and g_wake_min are zeroed by
+				 * b_init: g_next_deadline() schedules the
+				 * full refresh within a second. */
 			} else {
 				for (unsigned int s = 1; s <= (unsigned int)G_SIGNAL_MAX; ++s)
 					if (mask & (sig_atomic_t)(1u << s))
@@ -515,17 +597,24 @@ g_status_mainloop(void)
 							DIE(return -1);
 			}
 		} else {
+			/* Tick pass: advance the scheduler clock by real
+			 * elapsed time and run due blocks.  Signal passes
+			 * never touch the countdowns, so signals arriving
+			 * mid-wait cannot delay periodic updates; conversely
+			 * the deadline is derived from scheduler state, so
+			 * servicing a signal early never extends it. */
+			g_ticks_advance(g_mono_ns());
 			if (unlikely(g_getcmds() == -1))
 				DIE(return -1);
 		}
+		g_sched_ns = g_next_deadline();
 		if (g_status_changed)
 			if (unlikely(g_status_write(g_status_str) == -1))
 				DIE(return -1);
-		g_time += INTERVAL_UPDATE;
 #ifdef TEST
 		return 0;
 #endif
-		g_sleep(INTERVAL_UPDATE);
+		g_sleep_till(g_sched_ns); /* returns early on signal */
 	}
 	return 0;
 }

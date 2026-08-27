@@ -37,6 +37,8 @@ char *
 b_proc_value_get(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter);
 unsigned long long
 b_proc_value_getull(const char *procfs_buf, unsigned int procfs_buf_len, const char *key, unsigned int key_len, int delimiter, int space);
+void
+b_proc_pid_path(char *dst, unsigned int pid, const char *suffix, unsigned int suffix_len);
 
 struct b_proc_iter {
 	const char *pos;

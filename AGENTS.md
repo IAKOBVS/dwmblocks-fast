@@ -7,7 +7,7 @@ C statusbar for window managers. Fork of dwmblocks.
 ```sh
 make              # build
 make check        # compile & run test (compiles with -DTEST=1)
-sudo make install # strip + setcap + install to /usr/local/bin
+sudo make install # setcap + install to /usr/local/bin
 make clean
 ```
 
@@ -28,7 +28,18 @@ make clean
 
 ## Architecture
 
-- Blocks run on a tick loop (`INTERVAL_UPDATE = 1s`). Each block has an `interval` (seconds between runs; `0` = signal-only).
+- Event-driven scheduler: blocks carry an `interval` (seconds; `0` =
+  signal-only). The mainloop sleeps until the *nearest* block becomes
+  due (`g_wake_min` maintained by `g_getcmds`/`g_getcmds_sig`, which
+  visit every block anyway) instead of ticking at a fixed 1 Hz.
+  Countdown math lives solely in `g_ticks_advance` (CLOCK_MONOTONIC,
+  ns-remainder carried across passes so ticks track wall time exactly).
+- Absolute deadlines (`g_sched_ns`, derived via `g_next_deadline()` as
+  a pure function of scheduler state) mean signals arriving mid-wait
+  are handled **in real time**: pselect returns EINTR on delivery, the
+  loop services the mask immediately, and the deadline is unchanged
+  when recomputed. Missed deadlines (stall/suspend) collapse to a
+  single catch-up pass rather than a burst.
 - Block order in `g_blocks[]` determines print order after interval-sorting. `qsort` reorders by interval then signal; `internal_tostatus_idx` preserves original layout.
 - **OBS order constraint**: `b_write_obs_on` must precede `b_write_obs_recording` in `g_blocks[]`.
 - Signal-triggered updates: define `SIG_*` in `config.h`, set `.signal` in the block, then `pkill -RTMIN+<SIG> dwmblocks-fast`.
@@ -37,8 +48,8 @@ make clean
 
 ## Build quirks
 
-- `.POSIX:` make. No GNU-make-isms.
-- `-fanalyzer` + `-Wpedantic -pedantic -Wall -Wextra -Wuninitialized -Wshadow -Warray-bounds -Wnull-dereference -Wformat -Wunused -Wwrite-strings`
+- GNU make required (uses `+=`, `$^`, grouped multi-target rules; not POSIX-make strict).
+- `-Wpedantic -pedantic -Wall -Wextra -Wuninitialized -Wshadow -Warray-bounds -Wnull-dereference -Wformat -Wunused -Wwrite-strings`
 - LTO (`-flto`) and `-march=native` enabled by default.
 - Install uses `rsync -parc` if available, falls back to `cp -paf`.
 - Binary gets `cap_dac_read_search+ep` via `setcap` after build and install (needed for `/sys/class/powercap/.../energy_uj`).

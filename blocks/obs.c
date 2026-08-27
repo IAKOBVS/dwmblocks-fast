@@ -47,21 +47,11 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned short
 		/* Construct path: /proc/[pid]/(status|comm). */
 #ifdef HAVE_PROCFS_PID_COMM
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/comm") + 1];
+		b_proc_pid_path(fname, *pid_cache, S_LITERAL("/comm"));
 #else
 		char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/status") + 1];
+		b_proc_pid_path(fname, *pid_cache, S_LITERAL("/status"));
 #endif
-		char *fname_e = fname;
-		/* /proc/ */
-		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/proc/"));
-		/* /proc/[pid] */
-		fname_e = u_utoa_p(*pid_cache, fname_e);
-		/* /proc/[pid]/(status|comm) */
-#ifdef HAVE_PROCFS_PID_COMM
-		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/comm"));
-#else
-		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
-#endif
-		(void)fname_e;
 		int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
 		if (ret == 0) {
 			*pid_cache = 0;
@@ -74,23 +64,19 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned short
 	}
 	dst = u_stpcpy(dst, proc_icon_on);
 	*interval = proc_interval;
-	return dst;
 	(void)unused;
 	(void)dst_size;
+	return dst;
 }
 
 char *
 b_write_obs_on(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	return b_write_obs(dst, dst_size, unused, interval, S_LITERAL("obs"), &b_obs_open_pid, INTERVAL_OBS_ON, ICON_OBS_ON, ICON_OBS_OFF);
-	(void)unused;
-	(void)dst_size;
 }
 
 char *
 b_write_obs_recording(char *dst, unsigned int dst_size, const char *unused, unsigned short *interval)
 {
 	return b_write_obs(dst, dst_size, unused, interval, S_LITERAL("obs-ffmpeg-mux"), &b_obs_recording_pid, INTERVAL_OBS_RECORDING, ICON_OBS_RECORDING_ON, ICON_OBS_RECORDING_OFF);
-	(void)unused;
-	(void)dst_size;
 }

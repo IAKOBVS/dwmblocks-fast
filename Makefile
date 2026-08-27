@@ -17,8 +17,8 @@
 # LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.POSIX:
-
+# Requires GNU make or a make with equivalent extensions (+=, $^,
+# grouped multi-target rules). Not POSIX-make strict.
 include config.mk
 
 # Variables
@@ -86,7 +86,26 @@ test-edge-cases: $(PROG_BIN) tests/test-edge-cases.c
 	$(CC) -o tests/test-edge-cases-bin $(CFLAGS) $(CPPFLAGS) tests/test-edge-cases.c $(OBJS) $(REQ) $(LDFLAGS)
 	./tests/test-edge-cases-run
 
-test-all: check test-stress test-edge-cases
+test-time: $(PROG_BIN) tests/test-time.c
+	mkdir -p $(BIN)
+	$(CC) -o tests/test-time-bin $(CFLAGS) $(CPPFLAGS) tests/test-time.c $(OBJS) $(REQ) $(LDFLAGS)
+	./tests/test-time-bin
+
+# Includes dwmblocks-fast.c directly to test statics; needs only the
+# block objects at link time.
+test-status: $(PROG_BIN) tests/test-status.c
+	mkdir -p $(BIN)
+	$(CC) -o tests/test-status-bin $(CFLAGS) $(CPPFLAGS) tests/test-status.c $(OBJS) $(REQ) $(LDFLAGS)
+	./tests/test-status-bin
+
+test-all: check test-stress test-edge-cases test-time test-status
+
+# Dispatch-layout microbenchmark (see IMPROVEMENTS.md). Optional rounds arg.
+BENCH_ROUNDS ?= 11
+bench-blocks: tests/bench-blocks.c
+	$(CC) -o tests/bench-blocks-bin $(CFLAGS) $(CPPFLAGS) tests/bench-blocks.c
+	./tests/bench-blocks-bin $(BENCH_ROUNDS)
+	rm -f tests/bench-blocks-bin
 
 clean:
 	rm -f $(PROG_BIN) $(SCRIPTS) $(REQ) $(OBJS) $(SRC)/*.o tests/*-bin tests/*.o
@@ -185,4 +204,4 @@ config.mk:
 $(CPU_TEMP_GENERATED):
 	./getcpufile > $@
 	
-.PHONY: all options clean install uninstall config check disable-cuda disable-x11 disable-alsa test-stress test-edge-cases test-all
+.PHONY: all options clean install uninstall config check disable-cuda disable-x11 disable-alsa test-stress test-edge-cases test-time test-status test-all bench-blocks

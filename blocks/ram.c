@@ -114,10 +114,10 @@ b_write_ram_usage_percent(char *dst, unsigned int dst_size, const char *unused, 
 		DIE(return NULL);
 	char *p = dst;
 	p = u_utoa_le3_p((unsigned int)usage, p);
-	return p;
 	(void)dst_size;
 	(void)unused;
 	(void)interval;
+	return p;
 }
 
 char *
@@ -126,16 +126,10 @@ b_write_ram_usage_available(char *dst, unsigned int dst_size, const char *unused
 	unsigned long long usage = b_read_ram_usage_available();
 	if (unlikely(usage == (unsigned long long)-1))
 		DIE(return NULL);
-	const int unit = u_humanize(&usage);
-	char *p = dst;
-	p = u_ulltoa_p(usage, p);
-	if (likely(unit != '\0'))
-		*p++ = unit;
-	*p = '\0';
-	return p;
 	(void)dst_size;
 	(void)unused;
 	(void)interval;
+	return u_write_humanized(dst, usage);
 }
 
 #endif

@@ -39,7 +39,7 @@ b_write_cat(char *dst, unsigned int dst_size, const char *filename, unsigned sho
 	if (nl)
 		read_sz = nl - dst;
 	*(dst + read_sz) = '\0';
-	return dst + read_sz;
 	(void)dst_size;
 	(void)interval;
+	return dst + read_sz;
 }

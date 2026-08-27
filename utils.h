@@ -19,6 +19,7 @@
 #ifndef UTILS_H
 #	define UTILS_H 1
 
+#	include <assert.h>
 #	include <string.h>
 #	include "macros.h"
 
@@ -78,7 +79,10 @@ u_utoa_le3_p(unsigned int num, char *buf)
 		*(buf + 1) = '\0';
 		return buf + 1;
 	}
-	/* digits == 3 */
+	/* digits == 3. Contract: num <= 999. Callers with unbounded
+	 * values must use u_utoa_p instead (assert catches violations
+	 * in debug builds). */
+	assert(num <= 999);
 	*(buf + 0) = (num / 100) + '0';
 	*(buf + 1) = ((num / 10) % 10) + '0';
 	*(buf + 2) = (num % 10) + '0';
@@ -179,10 +183,6 @@ u_strstr_len(const char *hs, size_t hs_len, const char *ne, size_t ne_len)
 #define U_TIB (U_GIB * U_KIB)
 #define U_PIB (U_TIB * U_KIB)
 #define U_EIB (U_PIB * U_KIB)
-#define U_ZIB (U_EIB * U_KIB)
-#define U_YIB (U_ZIB * U_KIB)
-#define U_RIB (U_YIB * U_KIB)
-#define U_QIB (U_RIB * U_KIB)
 
 static ATTR_MAYBE_UNUSED unsigned long long
 u_humanize(unsigned long long *size)
@@ -209,24 +209,21 @@ u_humanize(unsigned long long *size)
 		*size /= U_PIB;
 		return 'P';
 	}
-	/* if (*size < U_ZIB) { */
 	*size /= U_EIB;
 	return 'E';
-	/* } */
-	/* if (*size < U_YIB) { */
-	/* 	*size /= U_ZIB; */
-	/* 	return 'Z'; */
-	/* } */
-	/* if (*size < U_RIB) { */
-	/* 	*size /= U_YIB; */
-	/* 	return 'Y'; */
-	/* } */
-	/* if (*size < U_QIB) { */
-	/* 	*size /= U_RIB; */
-	/* 	return 'R'; */
-	/* } */
-	/* *size /= U_QIB; */
-	/* return 'Q'; */
+}
+
+/* Humanize size and write "<n><unit>" (or plain "<n>" below 1 KiB),
+ * NUL-terminated. Returns the end pointer. */
+static ATTR_MAYBE_UNUSED char *
+u_write_humanized(char *dst, unsigned long long size)
+{
+	const int unit = u_humanize(&size);
+	char *p = u_ulltoa_p(size, dst);
+	if (likely(unit != '\0'))
+		*p++ = (char)unit;
+	*p = '\0';
+	return p;
 }
 
 #endif /* UTILS_H */

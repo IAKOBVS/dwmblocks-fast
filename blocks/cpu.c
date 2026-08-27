@@ -19,7 +19,6 @@
 #include "../config.h"
 
 #include <assert.h>
-#include <bits/time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
@@ -35,13 +34,13 @@ static int fd_cpu_usage = -1;
 static int fd_cpu_usage_power = -1;
 static int fd_cpu_temp = -1;
 
+/* Single attempt; no startup sleep-retry loops (they froze the bar for
+ * up to 10 s per missing file on machines without RAPL/temp sensors).
+ * Missing files degrade to placeholder rendering instead. */
 static int
 b_cpu_init(const char *filename)
 {
-	int fd = -1;
-	for (int retry = 10; (fd = open(filename, O_RDONLY)) < 0 && retry; --retry)
-		sleep(1);
-	return fd;
+	return open(filename, O_RDONLY);
 }
 
 typedef struct {
@@ -74,7 +73,7 @@ b_read_cpu_usage(void)
 	curr.iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
 	curr.irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
 	curr.softirq = (int)u_strtou10(p, &p);
-	/* clang-format off */
+	/* clang-format on */
 	curr.time = curr.user + curr.nice + curr.system + curr.idle + curr.iowait + curr.irq + curr.softirq;
 	curr.cpu_time = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
 	if (unlikely(curr.time == 0))
@@ -162,10 +161,10 @@ b_write_cpu_usage(char *dst, unsigned int dst_size, const char *unused, unsigned
 	if (unlikely(usage <= -1))
 		DIE(return NULL);
 	p = u_utoa_le3_p((unsigned int)usage, p);
-	return p;
 	(void)dst_size;
 	(void)unused;
 	(void)interval;
+	return p;
 }
 
 char *
@@ -173,11 +172,13 @@ b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, un
 {
 	char *p = dst;
 	const int usage = b_read_cpu_usage_power();
-	p = u_utoa_le3_p((unsigned int)usage, p);
-	return p;
+	/* Watts are unbounded (>999 W on HEDT under load): use the
+	 * general writer, not the 3-digit fast path. */
+	p = u_utoa_p((unsigned int)usage, p);
 	(void)dst_size;
 	(void)unused;
 	(void)interval;
+	return p;
 }
 
 char *
@@ -186,8 +187,9 @@ b_write_cpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsign
 	if (unlikely(fd_cpu_temp == -1)) {
 		fd_cpu_temp = b_cpu_init(temp_file);
 		if (unlikely(fd_cpu_temp < 0))
-			DIE(return NULL);
+			/* Missing sensor: placeholder now, retry open next tick. */
+			return u_stpcpy_len(dst, S_LITERAL("?"));
 	}
-	return b_write_tempfd(dst, dst_size, fd_cpu_temp, interval);
 	(void)temp_file;
+	return b_write_tempfd(dst, dst_size, fd_cpu_temp, interval);
 }

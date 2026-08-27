@@ -92,12 +92,24 @@ b_proc_read_file(char *dst, unsigned int dst_size, const char *filename)
 	if (unlikely(fd == -1))
 		return (unsigned int)-1;
 	const ssize_t read_sz = read(fd, dst, dst_size - 1);
-	if (unlikely(close(fd) == -1))
+	if (unlikely(read_sz == -1)) {
+		close(fd);
 		return (unsigned int)-1;
-	if (unlikely(read_sz == -1))
+	}
+	if (unlikely(close(fd) == -1))
 		return (unsigned int)-1;
 	dst[read_sz] = '\0';
 	return read_sz;
+}
+
+/* Write /proc/[pid]/suffix (NUL-terminated) into dst. dst must fit
+ * S_LEN("/proc/") + 10 digits + suffix_len + 1 bytes. */
+void
+b_proc_pid_path(char *dst, unsigned int pid, const char *suffix, unsigned int suffix_len)
+{
+	char *e = u_stpcpy_len(dst, S_LITERAL("/proc/"));
+	e = u_utoa_p(pid, e);
+	u_stpcpy_len(e, suffix, suffix_len);
 }
 
 int
@@ -190,9 +202,6 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 #else
 	char fname[S_LEN("/proc/") + sizeof(unsigned int) * 3 + S_LEN("/status") + 1];
 #endif
-	char *fnamep = fname;
-	/* /proc/ */
-	fnamep = u_stpcpy_len(fnamep, S_LITERAL("/proc/"));
 	/* Open /proc/ */
 	DIR *dp = opendir("/proc/");
 	if (unlikely(dp == NULL))
@@ -203,14 +212,11 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 		/* Enter /proc/[pid] */
 		if (*(ep->d_name) == '.' || !u_isdigit(*(ep->d_name)))
 			continue;
-		char *fname_e = fnamep;
-		/* /proc/[pid] */
-		fname_e = u_stpcpy(fname_e, ep->d_name);
-		/* /proc/[pid]/(status|comm) */
+		const unsigned int pid = u_atou10(ep->d_name);
 #ifdef HAVE_PROCFS_PID_COMM
-		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/comm"));
+		b_proc_pid_path(fname, pid, S_LITERAL("/comm"));
 #else
-		fname_e = u_stpcpy_len(fname_e, S_LITERAL("/status"));
+		b_proc_pid_path(fname, pid, S_LITERAL("/status"));
 #endif
 		const int ret = b_proc_exist_at(proc_name, proc_name_len, fname);
 		if (unlikely(ret == -1)) {
@@ -218,7 +224,7 @@ b_proc_exist(const char *proc_name, unsigned int proc_name_len)
 			return (unsigned int)-1;
 		}
 		if (ret)
-			return (unsigned int)atoi(ep->d_name);
+			return pid;
 	}
 	if (unlikely(errno == EBADF))
 		return (unsigned int)-1;

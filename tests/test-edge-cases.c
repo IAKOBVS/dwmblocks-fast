@@ -346,6 +346,78 @@ test_proc_value_get(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  Test 10 — utils boundary matrix                                   */
+/* ------------------------------------------------------------------ */
+
+static int
+test_utils_matrix(void)
+{
+	printf("  [edge 10] utils boundary matrix                       ... ");
+	int ok = 1;
+	char buf[64];
+
+	/* u_utoa_p: zero and UINT_MAX. NOTE: writers return the end
+	 * pointer (at '\0'), so assert on buf contents. */
+	u_utoa_p(0, buf);
+	CHECK(strcmp(buf, "0") == 0, "utoa(0)");
+	ok = ok && strcmp(buf, "0") == 0;
+	u_utoa_p(4294967295u, buf);
+	CHECK(strcmp(buf, "4294967295") == 0, "utoa(UINT_MAX)");
+	ok = ok && strcmp(buf, "4294967295") == 0;
+
+	/* u_ulltoa_p: ULLONG_MAX = 20 digits. */
+	u_ulltoa_p(18446744073709551615ULL, buf);
+	CHECK(strcmp(buf, "18446744073709551615") == 0, "ulltoa(ULLONG_MAX)");
+	ok = ok && strlen(buf) == 20;
+
+	/* u_utoa_le2_p / le3_p digit widths. */
+	u_utoa_le2_p(7, buf);
+	CHECK(strcmp(buf, "7") == 0, "le2(7)");
+	ok = ok && strcmp(buf, "7") == 0;
+	u_utoa_le3_p(999, buf);
+	CHECK(strcmp(buf, "999") == 0, "le3(999)");
+	ok = ok && strcmp(buf, "999") == 0;
+	/* u_utoa_le3_p: 3-digit fast path. Contract: num <= 999
+	 * (enforced by assert in debug builds). Unbounded callers must
+	 * use u_utoa_p — b_write_cpu_usage_power does, for >999 W. */
+	u_utoa_le3_p(100, buf);
+	CHECK(strcmp(buf, "100") == 0, "le3(100)");
+	ok = ok && strcmp(buf, "100") == 0;
+	u_utoa_le3_p(999, buf);
+	CHECK(strcmp(buf, "999") == 0, "le3(999 upper bound)");
+	ok = ok && strcmp(buf, "999") == 0;
+	u_utoa_le3_p(0, buf);
+	CHECK(strcmp(buf, "0") == 0, "le3(0)");
+	ok = ok && strcmp(buf, "0") == 0;
+
+	/* u_write_humanize boundaries. */
+	struct { unsigned long long in; const char *out; } hum[] = {
+		{ 0ULL, "0" }, { 1023ULL, "1023" }, { 1024ULL, "1K" },
+		{ 1048575ULL, "1023K" }, { 1048576ULL, "1M" },
+		{ 1073741824ULL, "1G" }, { 1099511627776ULL, "1T" },
+	};
+	for (unsigned int i = 0; i < sizeof(hum) / sizeof(hum[0]); ++i) {
+		u_write_humanized(buf, hum[i].in);
+		if (strcmp(buf, hum[i].out) != 0) {
+			char msg[96];
+			snprintf(msg, sizeof(msg), "humanize(%llu) -> \"%s\", want \"%s\"",
+				 hum[i].in, buf, hum[i].out);
+			CHECK(0, msg);
+			ok = 0;
+		}
+	}
+
+	/* u_stpcpy_len with empty string. */
+	CHECK(u_stpcpy_len(buf, "", 0) == buf && *buf == '\0', "stpcpy_len empty");
+
+	if (ok)
+		printf("PASS\n");
+	else
+		printf("FAIL\n");
+	return 0;
+}
+
+/* ------------------------------------------------------------------ */
 /*  main                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -364,6 +436,7 @@ main(void)
 	test_u_strtoull10();
 	test_cpu_energy_wrap();
 	test_proc_value_get();
+	test_utils_matrix();
 
 	printf("\n%s: %s\n",
 	       nfail ? "FAIL" : "PASS",
