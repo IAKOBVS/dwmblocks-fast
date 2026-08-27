@@ -658,13 +658,11 @@ g_handler_restart(int signum)
 int
 main(int argc, char **argv)
 {
-#ifdef USE_X11
 	/* Handle command line arguments. */
 	for (int i = 0; i < argc; ++i)
 		/* Check if printing to stdout. */
 		if (!strcmp("-p", argv[i]))
 			g_write_dst = G_WRITE_STDOUT;
-#endif
 	if (unlikely(g_status_init() == -1))
 		DIE(return EXIT_FAILURE);
 	if (unlikely(g_status_mainloop() == -1))
