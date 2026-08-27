@@ -92,7 +92,7 @@ b_write_time(char *dst, unsigned int dst_size, const char *unused, unsigned shor
 	*p++ = 'M';
 	*p = '\0';
 	/* Set next update for when minute changes. */
-	*interval = (unsigned short)(90 - tm->tm_sec);
+	*interval = (unsigned short)(60 - tm->tm_sec);
 	(void)dst_size;
 	(void)unused;
 	return p;
