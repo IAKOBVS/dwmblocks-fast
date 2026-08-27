@@ -275,7 +275,7 @@ g_getcmds_sig(unsigned int signal)
 		left = B_SLEEP(i);
 		if (B_SIGNAL(i) != signal)
 			continue;
-		if (B_FUNC(i) == NULL)
+		if (unlikely(B_FUNC(i) == NULL))
 			continue;
 		/* Render into tmp first so unchanged output does not
 		 * trigger a full status rewrite (mirrors g_getcmds). */
