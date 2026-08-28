@@ -222,20 +222,27 @@ g_getcmds_init(void)
 	b_init();
 }
 
-/* Run commands or functions according to their interval.  Countdowns
- * are decremented by g_ticks_advance; this pass runs the blocks whose
- * countdown reached zero and tracks the smallest remaining countdown
- * for the scheduler. */
-static int
-g_getcmds(void)
+/* Run blocks and track the smallest remaining countdown for the
+ * scheduler.  Countdowns are decremented by g_ticks_advance; this pass
+ * runs the blocks whose countdown reached zero (tick path) or the
+ * block bound to the received signal (signal path) and folds the
+ * result into g_wake_min. */
+static inline int
+g_internal_getcmds(int use_signal, unsigned int signal)
 {
 	g_wake_min = (unsigned int)-1;
 	unsigned short left;
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i, g_wake_min = MIN(g_wake_min, left)) {
+	for (unsigned int i = 0; i < LEN(g_blocks); ++i, g_wake_min = MIN(g_wake_min, (unsigned int)left)) {
 		left = B_SLEEP(i);
-		if (left)
-			continue;
-		B_SLEEP(i) = B_SIGNAL(i) ? B_INTERVAL(i) : B_INTERVAL(i) - 1;
+		if (use_signal) {
+			if (B_SIGNAL(i) != signal)
+				continue;
+		} else {
+			if (left)
+				continue;
+			B_SLEEP(i) = B_INTERVAL(i) - 1;
+			left = B_SLEEP(i);
+		}
 		/* Skip blocks with NULL function pointer. */
 		if (unlikely(B_FUNC(i) == NULL))
 			continue;
@@ -245,11 +252,17 @@ g_getcmds(void)
 		const char *tmp_e = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
 		if (unlikely(tmp_e == NULL))
 			DIE(return -1);
+		left = B_SLEEP(i); /* countdown after render; the function may
+			* have rewritten its own interval (e.g. audio retry) */
 		const unsigned int tmp_len = tmp_e - tmp;
 		const unsigned char sti = B_TOSTATUS(i);
-		g_status_changed_len = tmp_len != B_STATUSBLOCKS_LEN(sti);
-		/* Check if there has been change. */
-		if (!g_status_changed_len && !memcmp(tmp, g_statusblocks[sti], tmp_len))
+		/* Accumulate: any length change this pass must force the
+		 * slow path. */
+		const int status_changed = tmp_len != B_STATUSBLOCKS_LEN(sti);
+		g_status_changed_len += status_changed;
+		/* Check if there has been change.  Suppression depends only
+		 * on this block's own lengths, never on the accumulated flag. */
+		if (!status_changed && !memcmp(tmp, g_statusblocks[sti], tmp_len))
 			continue;
 		/* Get the latest change. */
 		u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
@@ -262,6 +275,12 @@ g_getcmds(void)
 	return 0;
 }
 
+static int
+g_getcmds(void)
+{
+	return g_internal_getcmds(0, 0);
+}
+
 /* Same as g_getcmds but executed when receiving a signal.  Visits
  * every block so g_wake_min stays a full snapshot of b_sleeps[] even
  * though only signal-matched blocks render (their functions may
@@ -269,33 +288,7 @@ g_getcmds(void)
 static int
 g_getcmds_sig(unsigned int signal)
 {
-	g_wake_min = (unsigned int)-1;
-	unsigned short left;
-	for (unsigned int i = 0; i < LEN(g_blocks); ++i, g_wake_min = MIN(g_wake_min, left)) {
-		left = B_SLEEP(i);
-		if (B_SIGNAL(i) != signal)
-			continue;
-		if (unlikely(B_FUNC(i) == NULL))
-			continue;
-		/* Render into tmp first so unchanged output does not
-		 * trigger a full status rewrite (mirrors g_getcmds). */
-		char tmp[sizeof(g_statusblocks[0])];
-		const char *end = g_getcmd(tmp, B_FUNC(i), B_ARG(i), &B_SLEEP(i));
-		if (unlikely(end == NULL))
-			DIE(return -1);
-		const unsigned int tmp_len = end - tmp;
-		const unsigned char sti = B_TOSTATUS(i);
-		g_status_changed_len = tmp_len != B_STATUSBLOCKS_LEN(sti);
-		if (!g_status_changed_len && !memcmp(tmp, g_statusblocks[sti], tmp_len))
-			continue;
-		u_stpcpy_len(g_statusblocks[sti], tmp, tmp_len);
-		B_STATUSBLOCKS_LEN(sti) = tmp_len;
-		/* Mark change. */
-		++g_status_changed;
-		/* Get latest rightmost. */
-		g_status_start_idx = MIN(g_status_start_idx, sti);
-	}
-	return 0;
+	return g_internal_getcmds(1, signal);
 }
 
 static int
