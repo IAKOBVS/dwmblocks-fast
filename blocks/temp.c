@@ -51,7 +51,7 @@ b_temp_format(char *dst, int read_sz)
 	return dst + read_sz;
 }
 
-char *
+static inline char *
 b_write_tempfd_internal(char *dst, unsigned int dst_size, int fd)
 {
 	const int read_sz = pread(fd, dst, S_LEN("100") + S_LEN("000") + S_LEN("\n"), 0);

@@ -194,7 +194,7 @@ char *
 b_write_gpu_temp(char *dst, unsigned int dst_size, const char *temp_file, unsigned short *interval)
 {
 #if USE_NVSPEED
-	if (unlikely(b_gpu_temp_fd < 0)) {
+	if (unlikely(b_gpu_temp_fd == -1)) {
 		/* Single attempt; missing sensor renders a placeholder and
 		 * retries the open on the next tick. */
 		b_gpu_temp_fd = open(temp_file, O_RDONLY);

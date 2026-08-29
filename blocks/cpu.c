@@ -174,7 +174,10 @@ b_write_cpu_usage_power(char *dst, unsigned int dst_size, const char *unused, un
 	const int usage = b_read_cpu_usage_power();
 	/* Watts are unbounded (>999 W on HEDT under load): use the
 	 * general writer, not the 3-digit fast path. */
-	p = u_utoa_p((unsigned int)usage, p);
+	if (likely(usage < 1000))
+		p = u_utoa_le3_p(usage, p);
+	else
+		p = u_utoa_p(usage, p);
 	(void)dst_size;
 	(void)unused;
 	(void)interval;
