@@ -1,7 +1,4 @@
 # User files
-config.mk
-blocks.h
-config.h
 bin/*
 tests/*-bin
 *.generated.h
