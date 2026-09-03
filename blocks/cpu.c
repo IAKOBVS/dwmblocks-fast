@@ -66,19 +66,19 @@ b_read_cpu_usage(void)
 	const char *p = buf;
 	/* clang-format off */
 	p += S_LEN("CPU  ");
-	curr.user = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.nice = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.system = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.idle = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.iowait = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.irq = (int)u_strtou10(p, &p); p += S_LEN(" ");
-	curr.softirq = (int)u_strtou10(p, &p);
+	curr.user = u_strtoull10(p, &p); p += S_LEN(" ");
+	curr.nice = u_strtoull10(p, &p); p += S_LEN(" ");
+	curr.system = u_strtoull10(p, &p); p += S_LEN(" ");
+	curr.idle = u_strtoull10(p, &p); p += S_LEN(" ");
+	curr.iowait = u_strtoull10(p, &p); p += S_LEN(" ");
+	curr.irq = u_strtoull10(p, &p); p += S_LEN(" ");
+	curr.softirq = u_strtoull10(p, &p);
 	/* clang-format on */
 	curr.time = curr.user + curr.nice + curr.system + curr.idle + curr.iowait + curr.irq + curr.softirq;
 	curr.cpu_time = curr.user + curr.nice + curr.system + curr.irq + curr.softirq;
 	if (unlikely(curr.time == 0))
 		return 0;
-	const int time_diff = curr.time - last.time;
+	const unsigned long long time_diff = curr.time - last.time;
 	/* Two samples within the same jiffy: avoid dividing by zero. */
 	if (unlikely(time_diff == 0)) {
 		last = curr;

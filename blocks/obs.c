@@ -32,7 +32,7 @@ b_write_obs(char *dst, unsigned int dst_size, const char *unused, unsigned short
 		/* Cache the pid to avoid searching for next calls. */
 		*pid_cache = b_proc_exist(proc_name, proc_name_len);
 		if (unlikely(*pid_cache == (unsigned int)-1))
-			DIE(return NULL);
+			return NULL;
 		if (*pid_cache == 0) {
 			/* OBS is not recording, but still on. Keep checking. */
 			if (pid_cache == &b_obs_recording_pid && b_obs_open_pid)

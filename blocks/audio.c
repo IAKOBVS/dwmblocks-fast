@@ -90,7 +90,7 @@ b_write_mic_exists(char *dst, unsigned int dst_size, const char *name, unsigned 
 	if (u_strstr_len(buf, read_sz, name, name_len))
 		return u_stpcpy_len(dst, name, name_len);
 	else
+		return dst;
 	(void)dst_size;
 	(void)interval;
-		return dst;
 }

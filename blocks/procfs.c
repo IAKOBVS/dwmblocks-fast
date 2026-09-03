@@ -145,10 +145,11 @@ b_proc_exist_at(const char *proc_name, unsigned int proc_name_len, const char *p
 		return -1;
 	}
 	const ssize_t read_sz = read(fd, buf, sizeof(buf) - 1);
-	if (unlikely(close(fd) == -1))
-		return -1;
+	(void)close(fd);
+	/* Process may have disappeared between open() and read();
+	 * treat that as "not found", not as a fatal error. */
 	if (unlikely(read_sz == -1))
-		return -1;
+		return 0;
 	buf[read_sz] = '\0';
 	return b_proc_name_match(buf, (unsigned int)read_sz, proc_name, proc_name_len);
 }
