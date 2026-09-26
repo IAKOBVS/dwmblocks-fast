@@ -36,6 +36,8 @@ b_time_init(void)
 	return tm->tm_gmtoff;
 }
 
+static struct tm tm;
+
 static struct tm *
 b_read_time(void)
 {
@@ -48,7 +50,7 @@ b_read_time(void)
 	if (unlikely(t == (time_t)-1))
 		return NULL;
 	t += utc_off;
-	return gmtime(&t);
+	return gmtime_r(&t, &tm);
 }
 
 /* TODO: optimize, cache time formatting */
